@@ -7,6 +7,7 @@ English-first where it matters (the front page and the security/contribution doc
 | [release-notes-1.1.0.md](release-notes-1.1.0.md) | EN + 中文 | 1.1.0 release notes — the first public release: what the release is, download hashes, what changed, known limitations |
 | [development-log.md](development-log.md) | EN + 中文 | Development log — goal → change → verification → commit, for every milestone, with the commands to check it |
 | [differences-from-upstream.md](differences-from-upstream.md) | EN + 中文 | Every file that differs from upstream dsh-pet 0.3.0, with sizes and SHA-256, plus how to reproduce the comparison |
+| [known-issues.md](known-issues.md) | EN + 中文 | Open defects in the released builds: symptom → reproduction → root cause → intended fix (the portable-zip `安装.cmd` problems live here) |
 | [architecture-roadmap.zh-CN.md](architecture-roadmap.zh-CN.md) | 中文 | Roadmap: host-coupling removal (`resolveActivePetId` and friends), control-bridge security, long-term plans — with real file:line anchors |
 | [how-to-publish.zh-CN.md](how-to-publish.zh-CN.md) | 中文 | How a release is published: build, verify, tag, upload, and the ASCII-file-name rule |
 | [code-signing.zh-CN.md](code-signing.zh-CN.md) | 中文 | Code signing: why the binaries are unsigned, what signing would cost and involve |
