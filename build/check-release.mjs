@@ -153,6 +153,7 @@ const GENERATED = (() => {
     "app/lib/index.js",
     "app/runtime/electron-helper/main.js",
     "app/runtime/electron-helper/sprite.js",
+    "app/runtime/electron-helper/targets.js",
     "app/runtime/electron-helper/shared-core.js",
     "app/runtime/electron-helper/events.js",
     "launcher/main.js",

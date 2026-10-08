@@ -1,4 +1,4 @@
-/* dsh-pet local patches: drag-hold@1 menu-state@8 speech-stats@4 gaze-cursor@1 click-chat@1 mood-model@2 sing-along@8 auto-talk@2 pc-actions@3 move-2d@1 voice-mode@8 tts-speak@3 brain-switch@4 cache-menu@3 director-budget@1 voice-persist@1 */
+/* dsh-pet local patches: drag-hold@1 menu-state@8 speech-stats@4 gaze-cursor@1 click-chat@1 mood-model@2 sing-along@8 auto-talk@2 pc-actions@4 move-2d@1 voice-mode@8 tts-speak@3 brain-switch@4 cache-menu@3 director-budget@1 voice-persist@1 voice-targets@1 */
 /**
  * dsh-pet desktop helper —— 宠物本体（PetSprite 类）。
  *
@@ -2828,9 +2828,52 @@ class PetSprite {
     return { ok: true, what: what, reply: '好，我这就' + (mv.place === 'cursor' ? '过去' : '挪到') + what + '～' };
   }
 
+  /* ===== [local patch voice-targets@1] 口语归一 + 目标分类 =====
+   * 主人对着麦克风说的话和打字不一样：句尾常被识别成「吧/呀/啊」，动词也常在后面
+   * （「帮我把B站打开」）。这里把这两种说法**挪成原来那条正则认识的写法**，
+   * 于是"已调好的口语适配"一个字都不用动，新说法自动走同一条路。
+   * 分类（网址 / 本机文件夹或文件 / 软件名）只看 targets.js 一份规则。 */
+  normOpenText(s) {
+    const raw = String(s == null ? '' : s).trim();
+    const tg = this.petTargets();
+    const cut = (x) => (tg && typeof tg.cleanTrailing === 'function' ? tg.cleanTrailing(x) : String(x || '').trim());
+    let t = cut(raw).replace(/^(?:请|麻烦|劳驾)(?:你|您)?\s*/, '');
+    if (!t) return raw;
+    const m = t.match(/^(?:帮我|给我|替我)?\s*把\s*["'「]?(.+?)["'」]?\s*(?:打开|启动|运行|开一下|开开)$/);
+    if (m) return '打开' + m[1];
+    return t;
+  }
+
+  /** targets.js 的入口（脚本没加载成时返回 null，调用方各自退回老口径）。 */
+  petTargets() {
+    try {
+      const t = typeof window !== 'undefined' ? window.DshPetTargets : null;
+      return t && typeof t.classify === 'function' ? t : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // [local patch voice-targets@1] 「搜一下X」「百度一下X」：开浏览器搜。
+  // 与「打开网页」共用「允许她打开网页」这一道权限 —— 多一种说法不多开一扇门。
+  parseSearchIntent(text) {
+    const t = String(text || '').trim();
+    if (!t || t.length > 60) return null;
+    const m = t.match(/^(?:帮我|给我|替我|麻烦|请)?\s*(百度一下|百度|搜索一下|搜索|搜一下|搜|查一下|查查)\s*[「"']?(.+?)[」"']?$/);
+    if (!m) return null;
+    const tg = this.petTargets();
+    const q = tg && typeof tg.cleanTrailing === 'function' ? tg.cleanTrailing(m[2]).trim() : m[2].trim();
+    if (!q) return null;
+    const baidu = m[1].indexOf('百度') === 0;
+    const url = tg && typeof tg.searchUrl === 'function'
+      ? tg.searchUrl(q, baidu)
+      : (baidu ? 'https://www.baidu.com/s?wd=' : 'https://www.bing.com/search?q=') + encodeURIComponent(q);
+    return { q: q, baidu: baidu, url: url };
+  }
+
   // 解析"让她做什么"：只认「打开…」这一类意图；其它一律返回 null（= 不拦截，交给正常对话）
   parseIntent(text) {
-    const t = String(text || '').trim();
+    const t = this.normOpenText(text); // [local patch voice-targets@1] 先归一，正则本身一个字不动
     if (!t || t.length > 60) return null;
     const m = t.match(/^(?:帮我|给我|替我|麻烦)?\s*(?:打开|启动|运行|开一下|开个|开启)\s*[「"'']?([^」"'']+?)[」"'']?$/);
     return m ? { what: m[1].trim() } : null;
@@ -2858,17 +2901,36 @@ class PetSprite {
       this.noteAction((mr.ok ? '成功：' : '失败：') + '走到' + (mr.what || mv.place) + (mr.ok ? '' : '（' + mr.why + '）'));
       return { ok: true, reply: mr.reply, ts: Date.now() };
     }
+    // [local patch voice-targets@1] 搜索意图（「搜一下X」「百度一下X」）：与「打开网页」同一道权限
+    const se = this.parseSearchIntent(text);
+    if (se) {
+      if (!this.perm.url) {
+        const lb = this.permLabels().url;
+        this.noteAction('被拒绝（未授权' + lb + '）：搜索 ' + se.q);
+        return { ok: true, reply: '这件事要「' + lb + '」的权限，我还没有～右键我 → 权限设置 里开一下就行。', ts: Date.now() };
+      }
+      const sr = await this.execOpen(se.url, 'url', { kind: 'url', value: se.url, label: se.q });
+      this.noteAction((sr.ok ? '成功：' : '失败：') + '搜索「' + se.q + '」' + (sr.ok ? '' : '（' + sr.why + '）'));
+      return { ok: true, reply: sr.ok ? '好，帮你在' + (se.baidu ? '百度' : '必应') + '上搜「' + se.q + '」～' : sr.reply, ts: Date.now() };
+    }
     const intent = this.parseIntent(text);
     if (!intent) return null; // 普通聊天，不插手
     const target = intent.what;
-    const isUrl = /^(https?:\/\/|www\.)/i.test(target) || /^[a-z0-9-]+\.(com|cn|net|org|io|tv|cc|me)(\/|$)/i.test(target);
-    const kind = isUrl ? 'url' : 'app';
+    // [local patch voice-targets@1] 目标分三类：网址 / 本机文件夹或文件 / 软件名。
+    // 「A站首页」这种站点别名、「下载文件夹」这种系统目录，以前都被当成"要找名叫它的软件"
+    // （必然 not-found）；现在由 targets.js 一次判清，权限也跟着分类走。
+    const tg = this.petTargets();
+    const cls = tg ? tg.classify(target) : null;
+    const kind = cls && (cls.kind === 'url' || cls.kind === 'file' || cls.kind === 'app')
+      ? cls.kind
+      : (/^(https?:\/\/|www\.)/i.test(target) ? 'url' : 'app'); // targets.js 没加载成 → 退回老口径
+    const what = cls && cls.value ? cls.value : target;
     if (!this.perm[kind]) {
       const label = this.permLabels()[kind];
       this.noteAction('被拒绝（未授权' + label + '）：' + target);
       return { ok: true, reply: '这件事要「' + label + '」的权限，我还没有～右键我 → 权限设置 里开一下就行。', ts: Date.now() };
     }
-    const r = await this.execOpen(target, kind);
+    const r = await this.execOpen(what, kind, cls);
     this.noteAction((r.ok ? '成功：' : '失败：') + target + (r.ok ? '' : '（' + r.why + '）'));
     return { ok: true, reply: r.reply, ts: Date.now() };
   }
@@ -2887,6 +2949,20 @@ class PetSprite {
       const url = /^https?:\/\//i.test(target) ? target : 'https://' + target;
       const r = await this.openTarget({ kind: 'url', target: url });
       return r && r.ok ? { ok: true, reply: '好，帮你把 ' + url + ' 打开了～' } : { ok: false, why: (r && r.error) || 'open-failed', reply: '网页没打开成功…' };
+    }
+    // [local patch voice-targets@1] 本机文件夹 / 文件：目标可能是系统文件夹令牌（downloads…）、
+    // 盘符、绝对路径，或一个相对名字（主进程会在「桌面/下载/文档/图片/视频/音乐」**顶层**按名字找，
+    // 只列一层、只读）。命中多个一律只问不做 —— 与软件那条路同一条安全口径。
+    if (kind === 'file') {
+      const fr = await this.openTarget({ kind: 'file', target: target });
+      if (fr && fr.ok) return { ok: true, reply: '好，帮你打开「' + (fr.matched || target) + '」了～' };
+      if (fr && fr.error === 'ambiguous') {
+        const all = (fr.candidates || []).filter((x) => typeof x === 'string' && x);
+        const shown = all.slice(0, 4).join('、') + (all.length > 4 ? ' 等' : '');
+        return { ok: false, why: 'ambiguous', reply: '你说的是哪一个？' + (shown || '我一时想不起来都有谁') + '——说全名我就去开，我不猜。' };
+      }
+      if (fr && fr.error === 'not-found') return { ok: true, reply: '我没找到叫「' + target + '」的文件夹或文件…' };
+      return { ok: false, why: (fr && fr.error) || 'open-failed', reply: '没打开成功…（' + ((fr && fr.error) || '未知原因') + '）' };
     }
     const r = await this.openTarget({ kind: 'auto', target });
     if (r && r.ok) return { ok: true, reply: '好，帮你打开「' + r.matched + '」了～' };

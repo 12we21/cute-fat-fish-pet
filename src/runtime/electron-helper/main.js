@@ -1,4 +1,4 @@
-/* dsh-pet local patches: cursor-broadcast@1 persona-ipc@1 music-ipc@5 desktop-ipc@4 local-keepalive@2 local-think-headroom@1 pc-ipc@3 voice-ipc@5 tts-ipc@2 cache-ipc@1 bridge-auth@1 */
+/* dsh-pet local patches: cursor-broadcast@1 persona-ipc@1 music-ipc@5 desktop-ipc@4 local-keepalive@2 local-think-headroom@1 pc-ipc@4 voice-ipc@5 tts-ipc@2 cache-ipc@1 bridge-auth@1 voice-targets@1 */
 /**
  * dsh-pet desktop helper —— Electron 主进程
  *
@@ -1387,6 +1387,101 @@ function resolveAppTarget(target, list, aliases) {
   /* 5) 都不中：候选先给泛词表认识的名字，再给名单前几个 */
   return { ok: false, error: 'not-found', candidates: appNotFoundCandidates(key, apps, g) };
 }
+/* [local patch voice-targets@1] kind:'file' —— 文件夹 / 文件 / 盘符 / 系统文件夹令牌。
+ *
+ * 渲染端（sprite.js + targets.js）只给四样之一：
+ *   ① 系统文件夹令牌（downloads/documents/pictures/music/videos/desktop/home/temp）
+ *      —— 由 targets.js 把「打开下载文件夹」这类话翻成令牌；
+ *   ② 盘符（`D:\`）；③ 绝对路径（`C:\…`、`\\server\share`）；④ 相对名字。
+ * 相对名字在「桌面/下载/文档/图片/视频/音乐」**顶层**按名字找（只列一层、只读）：
+ *   命中 1 个就开，多个一律 ambiguous 只问不做（语音听错一个字的代价太大）。
+ * 顶层里的 .lnk/.url/.exe/.bat/.cmd 刻意跳过：那些是**软件**，属于 app 那条路
+ *   （要「允许她打开软件」的权限）—— 免得只有 file 权限时反而把软件拉起来了。
+ * 全程只 shell.openPath，绝不删除 / 移动 / 改名 / 写文件（与 pc-ipc 的安全口径一致）。 */
+const FOLDER_TOKENS = ['downloads', 'documents', 'pictures', 'music', 'videos', 'desktop', 'home', 'temp'];
+const FOLDER_TOKEN_LABEL = {
+  downloads: '下载',
+  documents: '文档',
+  pictures: '图片',
+  music: '音乐',
+  videos: '视频',
+  desktop: '桌面',
+  home: '主目录',
+  temp: '临时文件夹',
+};
+function localSearchRoots() {
+  const out = [];
+  for (const k of ['desktop', 'downloads', 'documents', 'pictures', 'videos', 'music']) {
+    try {
+      const p = app.getPath(k);
+      if (p && out.indexOf(p) < 0) out.push(p);
+    } catch {
+      /* 这个标准目录在本机不存在（或还没建）就算了 */
+    }
+  }
+  return out;
+}
+async function openLocalTarget(raw) {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const target = String(raw == null ? '' : raw).trim();
+  if (!target) return { ok: false, error: 'empty-target' };
+  const openOne = async (p, name) => {
+    try {
+      const err = await shell.openPath(p);
+      return err ? { ok: false, error: err } : { ok: true, matched: name || path.basename(p) };
+    } catch (e) {
+      return { ok: false, error: String((e && e.message) || e) };
+    }
+  };
+  /* ① 系统文件夹令牌 */
+  if (FOLDER_TOKENS.indexOf(target) >= 0) {
+    let p = '';
+    try {
+      p = app.getPath(target);
+    } catch {
+      p = '';
+    }
+    if (!p || !fs.existsSync(p)) return { ok: false, error: 'not-found' };
+    return openOne(p, FOLDER_TOKEN_LABEL[target] || target);
+  }
+  /* ② 盘符 / ③ 绝对路径 */
+  const drive = target.match(/^([a-zA-Z]):[\\/]?$/);
+  const abs =
+    drive
+      ? drive[1].toUpperCase() + ':\\'
+      : /^[a-zA-Z]:[\\/]/.test(target) || /^\\\\/.test(target) || /^[\\/]/.test(target)
+        ? target
+        : '';
+  if (abs) {
+    if (!fs.existsSync(abs)) return { ok: false, error: 'not-found' };
+    return openOne(abs);
+  }
+  /* ④ 相对名字：常用目录顶层按名字找（去掉扩展名再比，双向包含） */
+  const key = appNorm(target).replace(/\.[^.]*$/, '');
+  if (!key) return { ok: false, error: 'not-found' };
+  const hits = [];
+  for (const root of localSearchRoots()) {
+    let ents = [];
+    try {
+      ents = fs.readdirSync(root, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const e of ents) {
+      if (e.isFile() && /\.(lnk|url|exe|bat|cmd)$/i.test(e.name)) continue; // 软件走 app 那条路
+      const nm = appNorm(e.name.replace(/\.[^.]*$/, ''));
+      if (!nm) continue;
+      if (nm.indexOf(key) >= 0 || key.indexOf(nm) >= 0) {
+        const full = path.join(root, e.name);
+        if (!hits.some((h) => h.path === full)) hits.push({ name: e.name.replace(/\.[^.]*$/, ''), path: full });
+      }
+    }
+  }
+  if (hits.length === 1) return openOne(hits[0].path, hits[0].name);
+  if (hits.length > 1) return { ok: false, error: 'ambiguous', candidates: hits.slice(0, 12).map((h) => h.name) };
+  return { ok: false, error: 'not-found' };
+}
 ipcMain.handle('pet:list-apps', () => ({ ok: true, apps: listAppShortcuts().map((a) => a.name).slice(0, 400) }));
 ipcMain.handle('pet:open-target', async (event, payload) => {
   const fs = require('node:fs');
@@ -1403,6 +1498,7 @@ ipcMain.handle('pet:open-target', async (event, payload) => {
       return { ok: false, error: String((e && e.message) || e) };
     }
   }
+  if (kind === 'file') return openLocalTarget(target); // [local patch voice-targets@1]
   const looksPath = /[\\/]/.test(target) || /\.(exe|lnk|url|txt|docx?|xlsx?|pptx?|pdf|png|jpe?g|gif|mp4|mp3|zip|rar|7z)$/i.test(target);
   if (looksPath) {
     const p = path.isAbsolute(target) ? target : path.resolve(target);
@@ -2491,8 +2587,21 @@ ipcMain.on('pet:set-bounds', (event, bounds) => {
               } catch (err) {
                 return { threw: String(err), menuMounted: false };
               }
-              var menu = document.querySelector('.dsh-pet-menu');
+              // 菜单是**异步**弹出来的：onContextMenu 要先 await fetchWatchState()（最多 2.5s）
+              // 再 await textModelMenuInfo()（最多 1.2s），所以派发完 contextmenu 立刻查会误判
+              // 「没弹出来」。这里轮询等它挂上，最多 8s；顺带记下等了多久，便于分辨慢/坏。
+              var menu = null;
+              var waitedMs = 0;
+              for (var w = 0; w < 40; w++) {
+                menu = document.querySelector('.dsh-pet-menu');
+                if (menu) break;
+                await new Promise(function (resolve) {
+                  setTimeout(resolve, 200);
+                });
+                waitedMs += 200;
+              }
               var out = {
+                waitedMs: waitedMs,
                 threw: null,
                 menuMounted: !!menu,
                 menuOpen: d.menuOpen === true,

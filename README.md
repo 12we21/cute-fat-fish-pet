@@ -31,7 +31,7 @@ There is no patching step any more: `src/` **is** the shipped source. Building i
 | Product name | Cute Fat Fish Pet (可爱大肥鱼桌宠) |
 | The character | Blue-Haired Little Maid (蓝毛小女仆) |
 | Author / maintainer | Mikolu |
-| Version | 1.1.2 |
+| Version | 1.1.3 |
 | License | MIT — see [LICENSE](LICENSE) |
 
 ### Internal identifiers are kept on purpose (`dsh-pet` / `BlueHairMaid`)
@@ -74,7 +74,7 @@ The same list is in [NOTICE.md](NOTICE.md) (section 5), and the reasoning behind
 
 ### Option 1 — installer (recommended)
 
-Download **`cute-fat-fish-pet-1.1.2-setup.exe`** (about 330 MB, NSIS) and double-click it.
+Download **`cute-fat-fish-pet-1.1.3-setup.exe`** (about 330 MB, NSIS) and double-click it.
 
 > **Always-latest link:** every release also carries a byte-identical copy without the version in
 > its name, so this one link always points at the newest installer:
@@ -88,7 +88,7 @@ Download **`cute-fat-fish-pet-1.1.2-setup.exe`** (about 330 MB, NSIS) and double
 
 ### Option 2 — portable zip
 
-Download **`cute-fat-fish-pet-1.1.2-win-x64.zip`** (about 400 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
+Download **`cute-fat-fish-pet-1.1.3-win-x64.zip`** (about 400 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
 
 > **1.1.1 fixed this path end to end.** Unpack the zip **first** (right-click → *Extract All…*) and only then double-click
 > `安装.cmd` inside the extracted folder. It checks that the package is complete and explains the problem in Chinese if it
@@ -105,10 +105,10 @@ Use the second one on a USB stick. If you want her data to travel with the progr
 
 ### Every download comes with a `.sha256`
 
-`cute-fat-fish-pet-1.1.2-setup.exe.sha256` and `cute-fat-fish-pet-1.1.2-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
+`cute-fat-fish-pet-1.1.3-setup.exe.sha256` and `cute-fat-fish-pet-1.1.3-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.1.2-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.1.3-setup.exe -Algorithm SHA256
 ```
 
 > Release file names are ASCII on purpose: GitHub Releases deletes non-ASCII characters from
@@ -270,7 +270,7 @@ node build\build.mjs --list            # show what it would do, touch nothing
 
 Blocks: `app launcher standalone defaults assets verify electron node speech`.
 
-Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.1.2-setup.exe` and `cute-fat-fish-pet-1.1.2-win-x64.zip`.
+Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.1.3-setup.exe` and `cute-fat-fish-pet-1.1.3-win-x64.zip`.
 
 > The build contract lives in the header of `build\build.mjs` and in the root `package.json` scripts.
 > `build\check-paths.mjs` is a build gate; `--no-gate` skips it (not recommended).
@@ -291,12 +291,12 @@ Artifact names come from the `version` field in `src\package.json` and are ASCII
 
 ## Verify your download
 
-1.1.2 artifacts:
+1.1.3 artifacts:
 
 | File | Size (bytes) | SHA-256 |
 | --- | --- | --- |
-| `cute-fat-fish-pet-1.1.2-setup.exe` | 347760952 | `A35571AF44F2ED27C6512528B4B4785DA67C663FDAE60001CCF7C87E795D160D` |
-| `cute-fat-fish-pet-1.1.2-win-x64.zip` | 416993754 | `F4F9B684C5BBA85A46471C19E4E0BB7EAB43EE9346472550EBAC2FEACD1A04E5` |
+| `cute-fat-fish-pet-1.1.3-setup.exe` | 347865488 | `88A64CF8432669F230B54647D0AF35B79FE6C3035CCEF4227E9AE2F766A1202D` |
+| `cute-fat-fish-pet-1.1.3-win-x64.zip` | 417001082 | `5BAB95740EA66117E72B9060E86621242B774EC757C674BAE27C3EF5EF790A21` |
 
 The same hashes are in the `.sha256` files next to each asset, and in the release notes.
 
@@ -316,6 +316,8 @@ The build also enforces this from the other side: `build\check-release.mjs` prov
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | Development log: motivation → change → verification → commit, for every step of this project |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | Every file that differs from upstream dsh-pet 0.3.0, with sizes and SHA-256 |
+| [docs/release-notes-1.1.3.md](docs/release-notes-1.1.3.md) | 1.1.3 release notes — 「打开 X」 opens a website, a folder or a file, by voice as well as typed |
+| [docs/release-notes-1.1.2.md](docs/release-notes-1.1.2.md) | 1.1.2 release notes — the online model stops saying its thinking out loud |
 | [docs/release-notes-1.1.1.md](docs/release-notes-1.1.1.md) | 1.1.1 release notes — the portable zip installs and uninstalls on a double-click |
 | [docs/release-notes-1.1.0.md](docs/release-notes-1.1.0.md) | 1.1.0 release notes (first public release) |
 | [docs/architecture-roadmap.zh-CN.md](docs/architecture-roadmap.zh-CN.md) | Architecture roadmap: host-coupling removal, control-bridge security, long-term plans (Chinese) |

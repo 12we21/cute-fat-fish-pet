@@ -18,8 +18,8 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // >>>GENERATED 由 build\check-release.mjs --emit --write 生成，别手改这一段
 const EXPECT = {
-  app: { files: 593, bytes: 74542942, treeSha256: "3b31e37328423d2a81b416c58d863ec1ee1ac7d9b72124819934d39e05857f39" },
-  launcher: { files: 9, bytes: 343643, treeSha256: "8b30d56077b08f89da57f31c0d2a36c70eb7f27fc9a80257b4245f49d4873029" },
+  app: { files: 594, bytes: 74562356, treeSha256: "b7bb8e0c4721f9d9eb391fb8e06ef66e2cdbc9d9166dad593e79450ead001317" },
+  launcher: { files: 9, bytes: 343643, treeSha256: "4da1a3d078d0cc572b0b0ab19dbac24386772e8b20beca98b93260bc969d503a" },
   standalone: { files: 14, bytes: 106518, treeSha256: "704e11f2d4ea11dd5988947ccef86f21a935e2f1b8d7ac12d14801d132451b70" },
   defaults: { files: 4, bytes: 13967, treeSha256: "4f95360682c89202b714cbc8fca606fa6a29667c34397be08c5f081118d5229b" },
 };
@@ -27,8 +27,9 @@ const EXPECT = {
 // 我们自己写的那些关键文件：大小 + sha256（不含 verify.mjs 自己 —— 它一改哈希就变）
 const OURS = {
   'app/lib/index.js': [113465, '010458df01e70860c6f6052449f5d1d33b2779b8dbf1aefc7e88b79ad0cb9827'],
-  'app/runtime/electron-helper/main.js': [133674, '57bb9b3ca9bb52c1d6111e2388ec286d330864bdebaf09ec61fb4b6d890e4a87'],
-  'app/runtime/electron-helper/sprite.js': [245629, '711e53e500a137b1cff8cc32743e16b7ccd784c322173ae5728938bd8b3929e8'],
+  'app/runtime/electron-helper/main.js': [138421, '349604b088db422c629230ca0df6360a56071f42118fbf0f16e68a8c189412b4'],
+  'app/runtime/electron-helper/sprite.js': [250704, '13e9fa11fab41d2f17e3ff924a4cb9ba5208abe38db9b3f1832314c87e14ed1c'],
+  'app/runtime/electron-helper/targets.js': [9430, '039d0173387dfccc9d2eb6936d7f40dbc3b380eef702e590ff02b39b61712578'],
   'app/runtime/electron-helper/shared-core.js': [52708, '2f77b7a2de89bfe1fcdf8906b53babfb1e250fc87cc812727eb0843adc037e5d'],
   'app/runtime/electron-helper/events.js': [18069, 'b7a008788f51c6b68a9e5e1f25f8dcdfd9e6ed173394c409c44e30644ee0c96a'],
   'launcher/main.js': [38097, '4e0e3cfbb4b9c1af723df8f8c625d653763eea84c47da062580ed6a01835772a'],
@@ -39,7 +40,7 @@ const OURS = {
   'launcher/rec.js': [22702, 'b63c254334e3672218920ebba75b49e604602e3fd4fcd5130837ac0ff101bcd2'],
   'launcher/agent.js': [22851, '9a67364fb317724397bfa605c20692a7c9734e04d8b56562e02b828342d19651'],
   'launcher/pet.ico': [142521, 'b727ea4dcec32409cb6bc4709489276b5daaf90fe180184298e598b35bcfc6c0'],
-  'launcher/package.json': [268, 'da2d6cfacc13db47928a71cbdc8f811d2e6b27c550feede12e1a165c0fa107c1'],
+  'launcher/package.json': [268, '984150718b280a8b962d839e4a5eabc08a7024d67a52b6eb237d34087ebcf17d'],
   'standalone/main.mjs': [27034, '0ef47d97ea7bfa857c8e9e3d9d67e59a7a3f792a5c16e8518b2cdd28669f4dee'],
   'standalone/server.mjs': [8681, '07a7ca5c1e18fbb46693869603d1593b05b492f573184ac6473ab2497c85404d'],
   'standalone/context.mjs': [12059, 'ae85889600d9402743ef60bb781b7f17fcdd58f768ba42c639a1d119eaa823f8'],
