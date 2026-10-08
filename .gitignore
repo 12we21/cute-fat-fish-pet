@@ -1,0 +1,47 @@
+# ---- 构建产物 / 大文件：不进仓库（成品走 GitHub Releases）----
+/stage/
+/release/
+/_accept/
+/_nsitest/
+*.zip
+*.sha256
+
+# ---- 三块外部运行时（electron / node / speech，合起来约 690 MB）----
+# 仓库里只有定位脚本 build\toolchain.mjs，用 --toolchain 或环境变量指到别处。
+# 注意：这里**不能**写裸的 node_modules/ —— src\node_modules\ 是应用本体的一部分，必须入库。
+/electron/
+/node/
+/speech/
+
+# ---- 构建 / 测试的临时物（NSIS 与临时草稿目录都走这几条）----
+/_*/
+/build/_*
+/build/*.log
+/_*.js
+/_*.mjs
+/_*.json
+/_*.log
+/_*.nsi
+
+# ---- 运行期状态与私人数据：绝对不能进仓库 ----
+runtime.json
+online.json
+pet-control.json
+helper-control.json
+device-profile.json
+cli-result.json
+userdata/
+
+# ---- 补丁期备份 / 编辑器杂物 ----
+*.bak
+*.bak-before-*
+*~
+Thumbs.db
+.DS_Store
+
+# ---- 日志 ----
+*.log
+
+# ---- Python ----
+__pycache__/
+*.pyc

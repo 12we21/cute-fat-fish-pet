@@ -1,0 +1,30 @@
+# 默认按文本处理，行尾随各平台
+* text=auto
+
+# Windows 脚本必须是 CRLF（安装器 / 卸载器 / 快捷方式脚本）
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+
+# .vbs 是 UTF-16LE + BOM、行尾是 LF，含中文文案（"蓝毛小女仆" 等）。
+# 与 1.0.0 已发布副本逐字节一致，所以按二进制存：对 UTF-16 做行尾转换会把文件写坏。
+*.vbs binary
+
+# 二进制：一律按二进制存，别做任何行尾 / 编码转换
+*.exe binary
+*.dll binary
+*.node binary
+*.onnx binary
+*.ttf binary
+*.otf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.webm binary
+*.mp4 binary
+*.mp3 binary
+*.wav binary
+*.m4a binary
+*.ogg binary

@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>蓝毛小女仆</title>
+<style>
+  :root {
+    --bg: #191c26; --card: #222634; --card2: #1e2230; --line: #2f3547;
+    --fg: #e8ecf5; --dim: #8b93a7;
+    --ok: #4ade80; --off: #6b7280; --busy: #fbbf24;
+    --accent: #5b8def; --danger: #ef6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 13px/1.5 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+    user-select: none; overflow-x: hidden;
+  }
+  .top { display: flex; align-items: center; gap: 12px; padding: 14px 18px 10px; }
+  .avatar { width: 48px; height: 48px; }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; letter-spacing: .5px; }
+  .sub { color: var(--dim); font-size: 11.5px; margin-top: 2px; }
+  .card { margin: 0 18px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; }
+  .state { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--off); flex: 0 0 auto; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 9px rgba(74,222,128,.65); }
+  .dot.busy { background: var(--busy); box-shadow: 0 0 9px rgba(251,191,36,.6); }
+  .meta { color: var(--dim); font-size: 11.5px; margin-top: 7px; min-height: 30px; white-space: pre-line; }
+  .row { display: flex; gap: 10px; margin: 12px 18px 0; }
+  button {
+    flex: 1; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line);
+    background: #2b3143; color: var(--fg); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: filter .12s, opacity .12s;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.18); }
+  button:disabled { opacity: .38; cursor: default; }
+  #start { background: var(--accent); border-color: transparent; }
+  #stop { background: #3a2b33; border-color: #4a3540; color: #f2b8b8; }
+  .ghost { background: transparent; font-weight: 500; font-size: 12.5px; padding: 8px 10px; }
+
+  .sec { margin: 10px 18px 0; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px 12px; }
+  .sec > h2, summary.sh { font-size: 12.5px; margin: 0 0 10px; color: #b9c2d6; font-weight: 600; letter-spacing: .6px; display: flex; align-items: center; gap: 7px; }
+  summary.sh { cursor: pointer; list-style: none; }
+  summary.sh::-webkit-details-marker { display: none; }
+  summary.sh::before { content: "▸"; color: #6f7891; font-size: 11px; }
+  details[open] > summary.sh::before { content: "▾"; }
+  summary.sh .tag, .sec > h2 .tag { font-size: 10.5px; color: #6f7891; font-weight: 400; letter-spacing: 0; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg label {
+    flex: 1; min-width: 104px; text-align: center; padding: 8px 6px; border: 1px solid var(--line);
+    border-radius: 8px; background: #262b3a; cursor: pointer; font-size: 12.5px; transition: .12s;
+  }
+  .seg label:hover { filter: brightness(1.15); }
+  .seg input { display: none; }
+  .seg input:checked + span { color: #fff; }
+  .seg label:has(input:checked) { background: #34507f; border-color: #4a6fae; }
+  .field { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 12.5px; color: #c3cadb; }
+  .field > .lbl { flex: 0 0 96px; color: var(--dim); font-size: 11.5px; }
+  select, input[type=text], input[type=number] {
+    flex: 1; min-width: 0; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line);
+    background: #1b1f2b; color: var(--fg); font-family: inherit; font-size: 12.5px; outline: none;
+  }
+  input[type=number] { flex: 0 0 74px; text-align: center; }
+  select:focus, input:focus { border-color: #4a6fae; }
+  input[type=range] { flex: 1; accent-color: var(--accent); }
+  .chk { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; }
+  .chk input { accent-color: var(--accent); }
+  .hint { color: #6f7891; font-size: 11px; margin-top: 9px; line-height: 1.6; }
+  .chip {
+    display: inline-block; padding: 4px 9px; margin: 4px 5px 0 0; border: 1px solid var(--line);
+    border-radius: 20px; background: #262b3a; font-size: 11.5px; cursor: pointer; color: #c3cadb;
+  }
+  .chip:hover { filter: brightness(1.2); }
+  .term {
+    margin-top: 10px; background: #14171f; border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 10px; height: 104px; overflow-y: auto; font-size: 12px; line-height: 1.65;
+    user-select: text;
+  }
+  .term .l { margin-bottom: 4px; word-break: break-word; }
+  .term .who { color: #7c86a0; }
+  .term .me .who { color: #7fa8f0; }
+  .term .pet .who { color: #f0b8d0; }
+  .term .sys { color: #6f7891; }
+  .foot { color: #5f6678; font-size: 10.5px; text-align: center; margin: 10px 18px 12px; line-height: 1.6; }
+  .foot code { color: #7c86a0; }
+  .saved { color: var(--ok); font-size: 11.5px; margin-left: 8px; opacity: 0; transition: opacity .2s; }
+  .saved.show { opacity: 1; }
+  .err { color: var(--danger); }
+  .sub2 { margin: 14px 0 0; padding-top: 11px; border-top: 1px dashed var(--line); font-size: 11.5px; color: #9fb0cf; font-weight: 600; letter-spacing: .5px; }
+  textarea {
+    width: 100%; margin-top: 9px; min-height: 96px; resize: vertical; padding: 8px 10px;
+    border-radius: 8px; border: 1px solid var(--line); background: #1b1f2b; color: var(--fg);
+    font-family: inherit; font-size: 12.5px; line-height: 1.6; outline: none; user-select: text;
+  }
+  textarea:focus { border-color: #4a6fae; }
+  .list { max-height: 168px; overflow-y: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: #1b1f2b; }
+  .list .it { padding: 6px 10px; font-size: 12px; border-bottom: 1px solid #232838; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+  .list .it:last-child { border-bottom: 0; }
+  .list .it:hover { background: #262c3d; }
+  .list .it .p { color: #5f6678; font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
+  .logbox { max-height: 120px; overflow-y: auto; margin-top: 8px; font-size: 11.5px; color: #9aa3b8; line-height: 1.7; }
+  .logbox .l { margin-bottom: 3px; word-break: break-word; }
+  .ok { color: #6ee7a8; }
+  .warn { color: #f0b96b; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <img class="avatar" src="pet.ico" alt="" onerror="this.style.visibility='hidden'" />
+    <div>
+      <h1>蓝毛小女仆</h1>
+      <div class="sub" id="sub">正在检测…</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="state"><span class="dot" id="dot"></span><span id="stateText">检测中…</span></div>
+    <div class="meta" id="meta"> </div>
+  </div>
+
+  <div class="row">
+    <button id="start">启动桌宠</button>
+    <button id="stop">停止桌宠</button>
+  </div>
+
+  <!-- 装完自动适配：看这台电脑有什么，自动挑一套模型 -->
+  <details class="sec" id="setupSec">
+    <summary class="sh">本机适配 <span class="tag" id="setupTag">第一次装完先点这里</span></summary>
+    <div class="hint" id="setupHint">
+      点「检测这台电脑」：我看显卡和显存，再看看本机 Ollama 里已经有哪些模型，然后自动挑好「聊天 / 碎碎念」和「看屏幕」分别用哪个。
+      本机一个模型都没有的话，我会告诉你是装 Ollama 还是直接填联网 API Key。
+    </div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="detectBtn">检测这台电脑</button>
+      <button id="applyBtn" class="ghost">按推荐设置好</button>
+    </div>
+    <div class="row" style="margin:8px 0 0">
+      <button id="probeBtn" class="ghost">测一下速度</button>
+      <button id="ollamaBtn" class="ghost">启动 Ollama</button>
+    </div>
+    <div class="row" id="pullRow" style="margin:8px 0 0;display:none">
+      <button id="pullBtn">帮我装一个小模型（约 2 GB）</button>
+    </div>
+    <div class="logbox" id="setupLog"></div>
+    <div class="hint" id="setupPath"></div>
+  </details>
+
+  <!-- 模型 · AI 大脑 -->
+  <div class="sec">
+    <h2>模型 · AI 大脑 <span class="tag">跟右键菜单里那三项一模一样</span></h2>
+    <div class="seg" id="brainSeg">
+      <label><input type="radio" name="brain" value="dsh" /><span>在线（联网模型）</span></label>
+      <label><input type="radio" name="brain" value="local" /><span>本地模型</span></label>
+      <label><input type="radio" name="brain" value="auto" /><span>自动择优</span></label>
+    </div>
+    <div class="field"><span class="lbl">聊天 / 碎碎念</span><select id="quipModel"></select></div>
+    <div class="field"><span class="lbl">看屏幕用（视觉）</span><select id="localModel"></select></div>
+    <div class="row" style="margin:10px 0 0"><button id="saveModels">应用模型设置</button><span class="saved" id="savedModels">已保存</span></div>
+    <div class="hint" id="brainHint">本地模型来自本机 Ollama。</div>
+
+    <div class="sub2">联网模型（OpenAI 兼容 · 选了「在线」或「自动择优」时用）</div>
+    <div class="field"><span class="lbl">接口地址</span><input type="text" id="onlineBase" placeholder="https://api.deepseek.com" /></div>
+    <div class="field"><span class="lbl">API Key</span><input type="text" id="onlineKey" placeholder="sk-…（只存在你自己电脑上）" /></div>
+    <div class="field"><span class="lbl">聊天模型</span><input type="text" id="onlineModel" placeholder="deepseek-chat" /></div>
+    <div class="field"><span class="lbl">视觉模型</span><input type="text" id="onlineVision" placeholder="留空 = 看屏幕仍用本机模型" /></div>
+    <div class="field"><span class="lbl">视觉接口地址</span><input type="text" id="onlineVisionBase" placeholder="留空 = 跟上面聊天用同一个" /></div>
+    <div class="field"><span class="lbl">视觉 API Key</span><input type="text" id="onlineVisionKey" placeholder="留空 = 跟上面聊天用同一个 Key" /></div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="saveOnline">保存联网设置</button>
+      <button id="testOnline" class="ghost">测一下通不通</button>
+      <button id="testVision" class="ghost">测「看屏幕」那条通不通</button>
+      <span class="saved" id="savedOnline">已保存</span>
+    </div>
+    <div class="hint" id="onlineHint">没填 API Key 也不会坏：桌宠会自动只用本机模型。</div>
+    <div class="hint" id="visionHint"></div>
+  </div>
+
+  <!-- 屏幕监测 -->
+  <details class="sec">
+    <summary class="sh">屏幕监测 <span class="tag">实时监测桌面 + 表达方式</span></summary>
+    <div class="field">
+      <span class="lbl">监测</span>
+      <label class="chk"><input type="checkbox" id="swRunning" /> 开着（关掉就不看屏幕了）</label>
+    </div>
+    <div class="field">
+      <span class="lbl">表达方式</span>
+      <select id="verb">
+        <option value="chatty">碎碎念（话多一点）</option>
+        <option value="auto">只说高光（自动挑选）</option>
+        <option value="manual">只听我的（不主动说话）</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">多久看一次</span>
+      <input type="number" id="intervalSec" min="5" max="3600" /> <span style="color:var(--dim)">秒</span>
+      <span class="lbl" style="flex:0 0 auto;margin-left:6px">最短间隔</span>
+      <input type="number" id="minGapSec" min="5" max="3600" /> <span style="color:var(--dim)">秒</span>
+    </div>
+    <div class="field">
+      <span class="lbl">变化阈值</span>
+      <input type="number" id="changeThreshold" min="1" max="100" />
+      <span class="lbl" style="flex:0 0 auto;margin-left:6px">每小时上限</span>
+      <input type="number" id="maxCallsPerHour" min="1" max="600" /> <span style="color:var(--dim)">次</span>
+    </div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="saveWatch">保存监测设置</button>
+      <button id="reviewNow" class="ghost">点评一下现在</button>
+    </div>
+    <span class="saved" id="savedWatch">已保存</span>
+  </details>
+
+  <!-- 性格 -->
+  <details class="sec">
+    <summary class="sh">性格 <span class="tag">内置两套 + 你自己写的，写完立刻生效</span></summary>
+    <div class="seg" id="personaSeg">
+      <label><input type="radio" name="persona" value="whale" /><span>鲸鱼娘（傲娇甜）</span></label>
+      <label><input type="radio" name="persona" value="none" /><span>默认蓝发小女仆</span></label>
+    </div>
+    <div class="hint" id="personaHint"></div>
+
+    <div class="field" style="margin-top:11px">
+      <span class="lbl">性格库</span>
+      <select id="personaSaved"><option value="">（选一个我存过的）</option></select>
+      <button id="personaLoad" class="ghost" style="flex:0 0 auto">载入</button>
+      <button id="personaDel" class="ghost" style="flex:0 0 auto">删除</button>
+    </div>
+
+    <textarea id="personaText" spellcheck="false" placeholder="像给 AI 写提示词那样写：她是谁、说话什么语气、爱做什么动作、情绪怎么表现……&#10;例：你是「小猫娘」，说话短、爱用「喵」，被夸会得意地甩尾巴，累了会撒娇让你休息。"></textarea>
+    <div class="field" style="margin-top:9px">
+      <input type="text" id="personaName" placeholder="给它起个名字（存进性格库用）" />
+      <button id="personaApply" style="flex:0 0 132px">就用这段性格</button>
+      <button id="personaSave" class="ghost" style="flex:0 0 96px">存进库</button>
+    </div>
+    <span class="saved" id="savedPersona">已保存</span>
+    <div class="hint">写的是「说话的人设」（<code>main-config.json</code> 的 <code>whisperPrompt</code>），宿主每次开口都重读，所以<b>不用重启</b>。语气、动作、情绪都靠这段提示词——想让她演得更足，就把动作和情绪写细一点。</div>
+  </details>
+
+  <!-- 外观 -->
+  <details class="sec">
+    <summary class="sh">名字 · 外观 <span class="tag">叫什么 / 多大 / 待在哪 / 显示方式</span></summary>
+    <div class="field">
+      <span class="lbl">名字</span>
+      <input type="text" id="petName" placeholder="蓝毛小女仆" />
+    </div>
+    <div class="field">
+      <span class="lbl">大小</span>
+      <input type="range" id="size" min="150" max="900" step="2" />
+      <span id="sizeVal" style="flex:0 0 44px;text-align:right;color:var(--dim)">462</span>
+    </div>
+    <div class="field">
+      <span class="lbl">待在哪角</span>
+      <select id="corner">
+        <option value="top-right">右上</option>
+        <option value="top-left">左上</option>
+        <option value="bottom-right">右下</option>
+        <option value="bottom-left">左下</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">显示在</span>
+      <select id="display">
+        <option value="desktop">桌面（独立窗口）</option>
+        <option value="web">网页里</option>
+        <option value="both">两边都要</option>
+        <option value="none">都不显示</option>
+      </select>
+    </div>
+    <!-- [主人第 7 条] 余额这项只有「联网模型真的接上了」才有意义，所以在下面加了说明行，
+         由 syncForm 按联网状态禁用 / 自动取消勾选（见 updateBalanceGate） -->
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="balance" /> 显示「查看余额」</label></div>
+    <div class="hint" id="balanceHint"></div>
+    <div class="row" style="margin:10px 0 0"><button id="saveLook">保存外观</button><span class="saved" id="savedLook">已保存</span></div>
+  </details>
+
+  <!-- 活跃度 · 自主说话（这两块住在桌宠自己的 localStorage 里，靠副本 helper 的控制桥读写）-->
+  <details class="sec">
+    <summary class="sh">活跃度 · 自主说话 <span class="tag">跟她自己那半边实时同步</span></summary>
+    <div class="field">
+      <span class="lbl">活跃度</span>
+      <select id="moodActivity">
+        <option value="quiet">安静（几乎不动）</option>
+        <option value="normal">正常</option>
+        <option value="lively">活跃</option>
+        <option value="hyper">嗨起来</option>
+      </select>
+    </div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="talkOn" /> 自主说话（自己找话说）</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="talkDirector" /> AI 导演（动作 / 台词都由 AI 按人设演）</label></div>
+    <div class="field">
+      <span class="lbl">本地文本模型</span>
+      <select id="textModel">
+        <option value="">跟随设置（配置文件里那个）</option>
+        <option value="__auto__">自动择优（短句用快的，演戏用 R1）</option>
+        <option value="__share__">和看屏幕共用一个（最省显存）</option>
+      </select>    </div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="saveMood">应用</button>
+      <button id="moodOnce" class="ghost">让她说句话</button>
+      <span class="saved" id="savedMood">已保存</span>
+    </div>
+    <div class="hint" id="moodHint">这几个值存在桌宠渲染进程里，改完她自己的窗口会重载一下（一秒内）。</div>
+  </details>
+
+  <!-- 权限 · 打开东西 -->
+  <details class="sec">
+    <summary class="sh">权限 · 打开东西 <span class="tag">她能不能动你的电脑，你说了算</span></summary>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="permApp" /> 允许她打开软件</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="permFile" /> 允许她打开文件夹 / 文件</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="permUrl" /> 允许她打开网页</label></div>
+    <div class="row" style="margin:10px 0 0"><button id="savePerm">保存权限</button><span class="saved" id="savedPerm">已保存</span></div>
+    <div class="logbox" id="permLog"></div>
+
+    <div class="sub2">直接打开一个东西（这一步是控制台替你开，不经过她）</div>
+    <div class="field">
+      <span class="lbl">软件</span>
+      <input type="text" id="appPath" placeholder="粘一个 exe / lnk 路径，或点右边列出开始菜单" />
+      <button id="appList" class="ghost" style="flex:0 0 auto">列出软件</button>
+      <button id="appOpen" class="ghost" style="flex:0 0 auto">打开</button>
+    </div>
+    <div class="list" id="appListBox" style="display:none"></div>
+    <div class="field">
+      <span class="lbl">文件 / 文件夹</span>
+      <input type="text" id="filePath" placeholder="C:\Users\…" />
+      <button id="fileOpen" class="ghost" style="flex:0 0 auto">打开</button>
+    </div>
+    <div class="field">
+      <span class="lbl">网页</span>
+      <input type="text" id="urlPath" placeholder="www.example.com" />
+      <button id="urlOpen" class="ghost" style="flex:0 0 auto">打开</button>
+    </div>
+  </details>
+
+  <!-- 语音模式 -->
+  <details class="sec">
+    <summary class="sh">语音模式 <span class="tag">麦克风听你说话</span></summary>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="voiceOn" /> 开着（开着才会听你说话）</label></div>
+    <div class="field">
+      <span class="lbl">灵敏度</span>
+      <select id="voiceSens">
+        <option value="low">低（要大声点）</option>
+        <option value="mid">中（默认）</option>
+        <option value="high">高（小声也听得见）</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">识别语言</span>
+      <select id="voiceLang">
+        <option value="zh">中文（推荐）</option>
+        <option value="auto">自动（噪声多时会猜成韩文 / 日文）</option>
+      </select>
+    </div>
+    <div class="row" style="margin:10px 0 0"><button id="saveVoice">应用语音设置</button><span class="saved" id="savedVoice">已保存</span></div>
+    <div class="hint" id="voiceHint">只在本机转写，不上传、不联网。麦克风设备还是要在右键菜单里挑。</div>
+  </details>
+
+  <!-- 她的声音（TTS 音色） -->
+  <details class="sec">
+    <summary class="sh">她的声音 <span class="tag">音色 / 语速 / 音高 / 音量 · 点一下就能试听</span></summary>
+    <div class="field">
+      <span class="lbl">音色</span>
+      <select id="ttsVoice"></select>
+    </div>
+    <div class="field">
+      <span class="lbl">语速</span>
+      <select id="ttsRate">
+        <option value="+0%">正常（默认）</option>
+        <option value="-15%">慢</option>
+        <option value="+15%">快</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">音高</span>
+      <select id="ttsPitch">
+        <option value="-15Hz">低一点</option>
+        <option value="+0Hz">原声（默认）</option>
+        <option value="+30Hz">软萌</option>
+        <option value="+45Hz">更萌</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">音量</span>
+      <select id="ttsVol">
+        <option value="0.35">小</option>
+        <option value="0.6">中</option>
+        <option value="0.9" selected>大（默认）</option>
+      </select>
+    </div>
+    <!-- 默认勾选＝桌宠出厂默认（ttsDefaults() 里 on:true）；桌宠没跑时也不会显示成「静音」，
+         不然主人点一下「保存」就会把她的声音关掉 -->
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="ttsOn" checked /> 说话出声（关掉她就只打字不出声）</label></div>
+    <!-- [主人第 1 条] 什么时候该出声，也放在这里（与右键菜单里那四项是同一份设置）。
+         默认勾选状态照桌宠出厂值写（chat/notice/sing 开、autotalk 关）——桌宠没跑时也不会显示成「全关」 -->
+    <div class="field"><span class="lbl">什么时候说话</span><label class="chk"><input type="checkbox" id="ttsChat" checked /> 聊天回复</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="ttsNotice" checked /> 系统提示（启动 / 看屏幕 / 干完活）</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="ttsAutotalk" /> 自己找话说（碎碎念）</label></div>
+    <div class="field"><span class="lbl"></span><label class="chk"><input type="checkbox" id="ttsSing" checked /> 唱歌</label></div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="ttsTry">试听这句</button>
+      <button id="saveTts">保存</button>
+      <span class="saved" id="savedTts">已保存</span>
+    </div>
+    <div class="hint" id="ttsHint">试听是用桌宠自己的嗓子念（要先点「启动桌宠」）。音高改完立刻生效；音色 / 语速 / 音量要等她自己的窗口重载一下（一秒内）。</div>
+  </details>
+
+  <!-- 录屏 · 浏览器 -->
+  <details class="sec">
+    <summary class="sh">录屏 · 浏览器 <span class="tag">用哪个软件 / 存到哪 / 打开哪个网站，交给她自己决定</span></summary>
+    <div class="field">
+      <span class="lbl">录屏软件</span>
+      <select id="recSoft"></select>
+    </div>
+    <div class="field"><span class="lbl">软件路径</span><input type="text" id="recPath" placeholder="一般不用填，自动检测（OBS 会自己找）" /></div>
+    <div class="field">
+      <span class="lbl">保存到</span>
+      <input type="text" id="recDir" placeholder="录像存到哪个文件夹" />
+      <button id="recPick" style="flex:0 0 86px">选文件夹</button>
+    </div>
+    <div class="row" style="margin:8px 0 0">
+      <button id="recStart">开始录</button>
+      <button id="recStop" class="ghost">停止</button>
+      <button id="recOpen" class="ghost">打开软件</button>
+      <button id="recRefresh" class="ghost">重新检测</button>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <span class="lbl">浏览器</span>
+      <input type="text" id="recBrowser" placeholder="留空就用系统默认浏览器" />
+    </div>
+    <div class="field">
+      <span class="lbl">搜索用</span>
+      <select id="recSearch">
+        <option value="bing">Bing</option>
+        <option value="baidu">百度</option>
+      </select>
+    </div>
+    <div class="row" style="margin:10px 0 0"><button id="saveRec">保存这些设置</button><span class="saved" id="savedRec">已保存</span><button id="recHelp" class="ghost">她怎么自己动手？</button></div>
+    <div class="hint" id="recHint">选好软件和保存位置就行。你也可以直接对她说「打开B站」「录一段」「录到 D:\\录像 里」—— 她会自己挑工具动手。</div>
+  </details>
+
+  <!-- 口令终端 -->
+  <div class="sec">
+    <h2>终端 <span class="tag">说中文，或者说下面的命令</span></h2>
+    <div class="field">
+      <input type="text" id="cmdInput" placeholder="比如：换本地 / 碎碎念模式 / 点评一下 / 监测状态" />
+      <button id="sendCmd" style="flex:0 0 62px">发送</button>
+    </div>
+    <div id="chips"></div>
+    <div class="term" id="term"></div>
+  </div>
+
+  <details class="sec" style="padding:12px 14px">
+    <summary style="cursor:pointer;color:#b9c2d6;font-size:12.5px;font-weight:600;letter-spacing:.6px">还剩这些只能在右键菜单里点</summary>
+    <div class="hint" style="margin-top:10px">
+      唱歌 · 走到哪边（14 个方位，也可以直接对她说「到左边去」）· 麦克风设备 · 清理缓存 · 动作菜单（待机 / 转向 / 拖拽 / 点击回应 / 移动）。<br />
+      录屏、打开网站、说话的声音（音色 / 语速 / 音高 / 音量 / 什么时候出声）都已经搬进来了 —— 分别在「录屏 · 浏览器」和「她的声音」那两栏，或者直接在终端里说。原来菜单里那些一行行的注释说明，现在都搬到这个控制台里了 —— 所以右键菜单已经清爽了。
+    </div>
+  </details>
+
+  <div class="row">
+    <button id="health" class="ghost">打开状态页</button>
+    <button id="folder" class="ghost">打开程序目录</button>
+  </div>
+  <div class="row">
+    <button id="openData" class="ghost">打开数据目录</button>
+    <button id="openLogs" class="ghost">打开日志</button>
+  </div>
+
+  <div class="foot">
+    程序在 <code id="footRoot">…</code><br />
+    人设与记忆在 <code id="footData">…</code><br />
+    不依赖 DSH，也不受插件更新影响 · 关掉这个窗口，桌宠照样在跑
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let busy = false;
+let lastPort = 3080;
+let lastModel = "";
+let modelList = [];
+let dirty = false;
+// [主人第 2 条] 她现在的边距（改名字 / 大小 / 开关时沿用，别把人挪回默认位置）
+let lastPos = null;
+
+const PHRASES = ["检测", "监测状态", "换本地", "换在线", "自动择优", "碎碎念模式", "只说高光", "只听我的", "看着点", "别看了", "点评一下", "录屏 开", "录屏 停", "打开B站", "试听"];
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// ---------------------------------------------------------------- 状态卡
+function renderStatus(s) {
+  const dot = $("dot"), st = $("stateText"), meta = $("meta"), sub = $("sub");
+  const startBtn = $("start"), stopBtn = $("stop"), healthBtn = $("health");
+  if (s.running) {
+    lastPort = s.port || lastPort;
+    if (s.model) lastModel = s.model;
+    if (s.starting) {
+      dot.className = "dot busy";
+      st.textContent = "启动中…";
+      meta.textContent = `进程 ${s.pid} 已经起来了，端口 ${s.port} 还在等它响应。`;
+    } else {
+      dot.className = "dot on";
+      st.textContent = "运行中";
+      const model = s.model ? `${s.provider || "ollama"} / ${s.model}` : "未知";
+      meta.textContent =
+        `进程 ${s.pid} · 端口 ${s.port} · 起于 ${fmtTime(s.startedAt)}\n` +
+        `出话模型 ${model}${s.ollama === true ? "（本机 Ollama 在线）" : s.ollama === false ? "（Ollama 没连上）" : ""}` +
+        `${s.effects != null ? ` · 路由 ${s.effects} 项就绪` : ""}`;
+    }
+    startBtn.disabled = true;
+    stopBtn.disabled = busy;
+    healthBtn.disabled = false;
+    sub.textContent = `运行中 · 端口 ${s.port}`;
+  } else {
+    dot.className = "dot";
+    st.textContent = "已停止";
+    meta.textContent = s.stale
+      ? "残留了一个单实例锁文件（上次没退干净），下一次启动会自动清掉。"
+      : "点「启动桌宠」就会在桌面右上角出现。";
+    startBtn.disabled = busy;
+    stopBtn.disabled = true;
+    healthBtn.disabled = true;
+    sub.textContent = "没在跑";
+  }
+}
+
+// ---------------------------------------------------------------- 表单
+function modelSelect(el, current, emptyLabel) {
+  const names = modelList.slice();
+  if (current && !names.includes(current)) names.unshift(current);
+  el.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = emptyLabel;
+  el.appendChild(opt0);
+  for (const n of names) {
+    const o = document.createElement("option");
+    o.value = n;
+    o.textContent = n;
+    el.appendChild(o);
+  }
+  el.value = current || "";
+}
+
+function syncForm(o) {
+  const s = o.state, p = o.pet || {};
+  document.querySelectorAll('input[name=brain]').forEach((r) => { r.checked = r.value === s.brain; });
+  modelSelect($("quipModel"), s.quipModel || "", "跟随「看屏幕用」（默认）");
+  modelSelect($("localModel"), s.localModel || "", "自动（本机第一个模型）");
+  $("swRunning").checked = !!s.running;
+  $("verb").value = s.verbosity;
+  $("intervalSec").value = s.intervalSec;
+  $("minGapSec").value = s.minGapSec;
+  $("changeThreshold").value = s.changeThreshold;
+  $("maxCallsPerHour").value = s.maxCallsPerHour;
+  if (p && p.position) {
+    $("size").value = p.size;
+    $("sizeVal").textContent = p.size;
+    $("corner").value = p.position.corner;
+    $("display").value = p.display;
+    $("balance").checked = !!p.balanceEnabled;
+    lastPos = { marginX: Number(p.position.marginX) || 0, marginY: Number(p.position.marginY) || 0 };
+  }
+  const prov = s.localProvider || "ollama";
+  $("brainHint").textContent = modelList.length
+    ? `本机 ${prov}（${s.localApi}）里有 ${modelList.length} 个模型。「在线（联网模型）」用上面填的联网模型；` +
+      `本机 Ollama 不响应时它也会自动兜过去。「本地模型」只走本机，绝不偷偷联网。`
+    : `本机 ${prov}（${s.localApi}）里一个模型都没有。要么先装一个（ollama pull …），要么在下面填联网模型再选「在线（联网模型）」。`;
+  const per = o.persona === "custom" ? "custom" : o.persona;
+  document.querySelectorAll('input[name=persona]').forEach((r) => { r.checked = r.value === per; });
+  $("personaHint").textContent =
+    o.persona === "whale" ? "现在是「鲸鱼娘」。"
+    : o.persona === "none" ? "现在是默认的蓝发小女仆。"
+    : "现在的人设是自定义的（不是这两套之一），点上面任一个都会覆盖掉它。";
+
+  // ---- 名字 / 联网 ----
+  if (document.activeElement !== $("petName")) $("petName").value = (p && p.name) || "";
+  const on1 = o.online || {};
+  for (const [id, val] of [["onlineBase", on1.baseUrl], ["onlineKey", on1.apiKey], ["onlineModel", on1.model], ["onlineVision", on1.visionModel], ["onlineVisionBase", on1.visionBaseUrl], ["onlineVisionKey", on1.visionApiKey]]) {
+    const el = $(id);
+    if (document.activeElement !== el) el.value = val || "";
+  }
+  const oh = $("onlineHint");
+  if (on1.enabled) {
+    oh.textContent = `联网已启用（${on1.name || "联网模型"} @ ${on1.baseUrl}）。选「在线」时会走它；本机 Ollama 没响应也会自动兜过去。`;
+    oh.className = "hint";
+  } else if (!modelList.length) {
+    oh.textContent = "⚠ 本机一个模型都没有：请填「接口地址 + API Key + 模型名」，然后上面选「在线（联网模型）」。";
+    oh.className = "hint warn";
+  } else {
+    oh.textContent = "填上「接口地址 + API Key + 模型名」就会自动启用；不填也不影响，她只用本机模型。";
+    oh.className = "hint";
+  }
+  // 看屏幕（视觉）这条路现在到底走谁
+  const vh = $("visionHint");
+  const vReady = on1.visionReady === true;
+  if (vReady) {
+    vh.textContent = `看屏幕：用联网视觉模型 ${on1.visionModel} @ ${on1.visionBaseUrl || on1.baseUrl}${on1.visionBaseUrl ? "（单独地址）" : ""}。`;
+    vh.className = "hint";
+  } else if (on1.visionModel) {
+    vh.textContent = "看屏幕：视觉模型名填了，但地址 / Key 还缺一块 ⇒ 现在还是用本机模型看屏幕。";
+    vh.className = "hint warn";
+  } else {
+    vh.textContent = "看屏幕：留空就用本机模型（Ollama 的视觉模型）。想让她用联网的眼睛，就填「视觉模型 + 视觉接口地址 + 视觉 API Key」——后两样留空会自动跟聊天共用一套。";
+    vh.className = "hint";
+  }
+  // [主人第 7 条] 余额这项有没有意义：只有联网模型真接上了才查得到（本地模型没有余额这回事）
+  updateBalanceGate(on1.enabled === true);
+
+  // 性格库下拉：只在名单变了的时候重建，免得每 2.5 秒把选择冲掉
+  const plist = o.personas || [];
+  const psig = plist.map((x) => x.name).join("|");
+  if ($("personaSaved").dataset.sig !== psig) {
+    $("personaSaved").dataset.sig = psig;
+    $("personaSaved").innerHTML = '<option value="">（选一个我存过的）</option>' +
+      plist.map((x) => `<option value="${esc(x.name)}">${esc(x.name)}（${x.length} 字）</option>`).join("");
+  }
+  if (document.activeElement !== $("personaText") && !$("personaText").dataset.touched) {
+    $("personaText").value = o.personaText || "";
+  }
+
+  // ---- 控制桥：桌宠渲染进程自己的状态（权限 / 活跃度 / 语音）----
+  const c = o.control || {};
+  const bridgeOk = o.controlOk !== false && Object.keys(c).length > 0;
+  const cHint = bridgeOk ? "" : "（控制桥还没连上：桌宠得先跑着，这块才读得到，起来以后会自动好）";
+  // 音高不住在她那边（冻结代码里 SSML 写死了 +0Hz），而是数据根里一个小文件 —— 跟控制桥无关，先回填
+  if (TTS_PITCHES.includes(o.ttsPitch)) $("ttsPitch").value = o.ttsPitch;
+  if (bridgeOk) {
+    const mood = c.mood || {}, talk = c.talk || {}, voice = c.voice || {}, pm = (c.perm && c.perm.perm) || {};
+    $("moodActivity").value = mood.activity || "normal";
+    // [主人第 2 条] 键不存在时桌宠那边是「开」（hookAutoTalk 的默认），这里必须跟着——
+    //   老版本用 !!talk.on 会显示成没勾，一点「应用」就把主人本来开着的自主说话/导演写成关。
+    $("talkOn").checked = typeof talk.on === "boolean" ? talk.on : true;
+    $("talkDirector").checked = typeof talk.director === "boolean" ? talk.director : true;
+    // [主人第 2 条] 菜单里可以存任意本机模型名，下拉里没有就临时补一项，别把主人的选择吃掉
+    const tm = typeof c.textmodel === "string" ? c.textmodel : "";
+    const sel = $("textModel");
+    if (tm && !Array.from(sel.options).some((o) => o.value === tm)) {
+      const opt = document.createElement("option");
+      opt.value = tm;
+      opt.textContent = tm + "（她在右键菜单里选的）";
+      sel.appendChild(opt);
+    }
+    sel.value = tm;
+    $("permApp").checked = !!pm.app;
+    $("permFile").checked = !!pm.file;
+    $("permUrl").checked = !!pm.url;
+    $("voiceOn").checked = !!voice.on;
+    $("voiceSens").value = voice.sens || "mid";
+    $("voiceLang").value = voice.lang || "zh";
+    const tts = c.tts || {};
+    if (TTS_VOICES.some((v) => v[0] === tts.voice)) $("ttsVoice").value = tts.voice;
+    if (["-15%", "+0%", "+15%"].includes(tts.rate)) $("ttsRate").value = tts.rate;
+    if ([0.35, 0.6, 0.9].includes(tts.vol)) $("ttsVol").value = String(tts.vol);
+    $("ttsOn").checked = tts.on !== false;
+    // [主人第 1 条] 四项「什么时候说话」的回填：桌宠那边的出厂默认是 chat/notice/sing 开、autotalk 关
+    $("ttsChat").checked = tts.chat !== false;
+    $("ttsNotice").checked = tts.notice !== false;
+    $("ttsAutotalk").checked = tts.autotalk === true;
+    $("ttsSing").checked = tts.sing !== false;
+    const logs = (c.perm && c.perm.log) || [];
+    $("permLog").textContent = logs.length
+      ? "她最近做了什么：" + logs.slice(-6).reverse().map((x) => x.text || "").filter(Boolean).join(" ／ ")
+      : "她还没动过你的电脑。";
+  }
+  $("moodHint").textContent = "这几个值住在桌宠自己的窗口里，改完它会重载一下（一秒内）。" + cHint;
+  $("voiceHint").textContent = "只在本机转写，不上传、不联网。麦克风设备还是要去右键菜单里挑。" + cHint;
+  $("ttsHint").textContent = "试听是用桌宠自己的嗓子念（要先点「启动桌宠」）。音高改完立刻生效；音色 / 语速 / 音量要等她自己的窗口重载一下（一秒内）。" + cHint;
+
+  dirty = false;
+}
+
+async function reload(syncToo = true) {
+  const o = await window.pet.options();
+  modelList = o.models || [];
+  renderStatus(o.status);
+  lastPort = o.status.port || lastPort;
+  if (syncToo && !dirty) syncForm(o);
+  syncRec(false).catch(() => {});
+  return o;
+}
+
+function flash(id, text, isErr) {
+  const el = $(id);
+  el.textContent = text;
+  el.className = "saved show" + (isErr ? " err" : "");
+  setTimeout(() => { el.className = "saved"; }, 2600);
+}
+
+// ---------------------------------------------------------------- 日志
+function log(who, text) {
+  const t = $("term");
+  const cls = who === "我" ? "me" : who === "桌宠" ? "pet" : "sys";
+  const d = document.createElement("div");
+  d.className = "l " + cls;
+  d.innerHTML = `<span class="who">${who}：</span>`;
+  const span = document.createElement("span");
+  span.textContent = text;
+  d.appendChild(span);
+  t.appendChild(d);
+  while (t.childElementCount > 120) t.removeChild(t.firstChild);
+  t.scrollTop = t.scrollHeight;
+}
+
+// ---------------------------------------------------------------- 本机适配
+// 第一次装完：看显卡显存 + 本机 Ollama 里有什么模型，自动挑一套；一个都没有就引导装/联网
+const PULL_MODEL = "qwen2.5vl:3b";
+let appMeta = null;
+
+function setupLine(text, cls) {
+  const box = $("setupLog");
+  const d = document.createElement("div");
+  d.className = "l" + (cls ? " " + cls : "");
+  d.textContent = text;
+  box.appendChild(d);
+  while (box.childElementCount > 200) box.removeChild(box.firstChild);
+  box.scrollTop = box.scrollHeight;
+}
+
+function gb(mb) { return (Number(mb || 0) / 1024).toFixed(1) + " GB"; }
+
+async function refreshAppInfo(force) {
+  if (appMeta && !force) return appMeta;
+  try { appMeta = await window.pet.appInfo(); } catch { appMeta = null; }
+  if (!appMeta) return null;
+  $("footRoot").textContent = appMeta.root || "—";
+  $("footData").textContent = appMeta.dataRoot || "—";
+  const dataNote =
+    appMeta.dataRootSource === "portable"
+      ? " · 便携模式（数据就在程序目录里）"
+      : appMeta.dataRootSource === "file" || appMeta.dataRootSource === "env"
+        ? " · 数据目录是自定义的"
+        : "";
+  $("setupPath").innerHTML =
+    `程序目录 <code>${esc(appMeta.root || "")}</code><br />` +
+    `人设与记忆 <code>${esc(appMeta.dataRoot || "")}</code>${dataNote}`;
+  const prof = appMeta.profile;
+  if (prof && prof.picks) {
+    $("setupTag").textContent = `上次适配：聊天 ${prof.picks.chat || "—"} / 看屏幕 ${prof.picks.vision || "—"}`;
+  } else if (appMeta.firstRun) {
+    $("setupSec").open = true;
+    $("setupTag").textContent = "第一次运行：先点「检测这台电脑」";
+  }
+  $("pullBtn").textContent = `帮我装一个小模型：${PULL_MODEL}（约 3 GB，能聊天也能看屏幕）`;
+  return appMeta;
+}
+
+// 主进程在第一次运行时自己检测；检测结果到了就在这里报一次（只报一次）
+let autoShown = false;
+function showAutoProfile(p, quiet) {
+  if (autoShown || !p || !p.picks) return;
+  autoShown = true;
+  $("setupSec").open = true;
+  renderProfile(p);
+  const pk = p.picks || {};
+  if (quiet) setupLine(`已经按这台电脑设置好了：聊天 ${pk.chat || "—"} · 看屏幕 ${pk.vision || "—"}（想重来就点「检测这台电脑」）`, "ok");
+  else {
+    setupLine(`已经自动检测并设置好了：聊天 ${pk.chat || "—"} · 看屏幕 ${pk.vision || "—"}`, "ok");
+    log("系统", `第一次运行：已经按这台电脑设置好模型 —— 聊天 ${pk.chat || "—"} / 看屏幕 ${pk.vision || "—"}。`);
+  }
+  refreshAppInfo(true).then(() => reload(true)).catch(() => {});
+}
+
+function renderProfile(p) {
+  const box = $("setupLog");
+  box.innerHTML = "";
+  const gpus = (p.gpus || []).filter((g) => g.vramMB > 0);
+  if (gpus.length) setupLine(`显卡：${gpus.map((g) => `${g.name || "未知"}（${gb(g.vramMB)} 显存）`).join(" / ")}`);
+  else setupLine(p.cpuOnly ? "显卡：没找到独立显卡，只能靠 CPU（会很慢，建议用联网模型）" : "显卡：没识别出显存大小", "warn");
+  const ol = p.ollama || {};
+  if (ol.running) setupLine(`Ollama：在跑（${ol.api || "本机"}），里面已经有 ${(p.models || []).length} 个模型`);
+  else if (ol.installed) setupLine("Ollama：装了，但服务没在跑 —— 点「启动 Ollama」", "warn");
+  else setupLine("Ollama：没装 —— 本机不能用本地模型（不影响用联网模型）", "warn");
+  const picks = p.picks || {};
+  if (picks.chat || picks.vision) {
+    setupLine(`推荐聊天 / 碎碎念：${picks.chat || "（没有合适的）"}${picks.chatMB ? `（${gb(picks.chatMB)}）` : ""}`);
+    setupLine(`推荐看屏幕（视觉）：${picks.vision || "（本机没有视觉模型）"}${picks.visionMB ? `（${gb(picks.visionMB)}）` : ""}`);
+  }
+  // notes 里前几条和上面那几行是重复的，这里只留补充说明
+  const DUP = /^(显卡：|本机 Ollama 有|聊天 \/ 碎碎念建议用|看屏幕（视觉）建议用)/;
+  for (const n of (p.notes || []).filter((n) => !DUP.test(n))) setupLine("· " + n);
+  const noModels = !(p.models || []).length;
+  $("pullRow").style.display = ol.running && noModels ? "block" : "none";
+  if (noModels && !ol.installed) {
+    setupLine("本机一个模型都没有：要么装 Ollama（ollama.com/download）后回来点「帮我装一个小模型」，要么在下面「联网模型」里填 API Key。", "warn");
+  }
+  $("setupHint").innerHTML = noModels
+    ? `本机现在没有可用模型。两条路任选：<b>装 Ollama 拉一个小模型</b>（本机跑，不要钱、不联网），或者<b>填联网 API Key</b>（下面「模型 · AI 大脑」里的联网模型，快但要走网络）。`
+    : `检测好了：聊天用 <b>${esc(picks.chat || "—")}</b>，看屏幕用 <b>${esc(picks.vision || "—")}</b>。点「按推荐设置好」写进去。`;
+}
+
+async function doDetect(apply) {
+  const db = $("detectBtn"), ab = $("applyBtn");
+  db.disabled = true; ab.disabled = true;
+  setupLine("正在看这台电脑……（显卡 / 显存 / 本机模型，可能要十几秒）");
+  try {
+    const r = await window.pet.detect();
+    const p = r && r.profile;
+    if (!p) { setupLine("检测没成功，看看日志。", "err"); return null; }
+    renderProfile(p);
+    if (apply) {
+      const a = await window.pet.detectApply(true);
+      const picks = p.picks || {};
+      setupLine(`已写进设置：聊天 ${picks.chat || "—"} · 看屏幕 ${picks.vision || "—"}`, "ok");
+      log("系统", `已按这台电脑设置好模型：聊天 ${picks.chat || "—"} / 看屏幕 ${picks.vision || "—"}。`);
+      await reload(true);
+    }
+    await refreshAppInfo(true);
+    return p;
+  } catch (e) {
+    setupLine("检测出错：" + (e && e.message ? e.message : String(e)), "err");
+    return null;
+  } finally {
+    db.disabled = false; ab.disabled = false;
+  }
+}
+
+async function doProbe() {
+  const p = (appMeta && appMeta.profile) || null;
+  const o = await reload(false).catch(() => null);
+  const picks = (p && p.picks) || {};
+  const list = [picks.chat, picks.vision, lastModel].filter(Boolean);
+  const models = Array.from(new Set(list)).slice(0, 3);
+  if (!models.length) { setupLine("先点「检测这台电脑」。", "warn"); return; }
+  $("probeBtn").disabled = true;
+  setupLine(`正在真跑一下量速度：${models.join(" / ")}（每张要几秒到几十秒）`);
+  try {
+    const r = await window.pet.probe(models);
+    for (const it of (r && r.results) || []) {
+      if (it.ok) setupLine(`　${it.model}：${it.tokPerSec ? it.tokPerSec.toFixed(1) + " tok/s" : "—"}${it.loadMs ? ` · 装载 ${(it.loadMs / 1000).toFixed(1)}s` : ""}`);
+      else setupLine(`　${it.model}：测不了 —— ${it.error || "未知原因"}`, "warn");
+    }
+    setupLine("tok/s 越高越跟手；低于 10 会明显卡。", "ok");
+  } catch (e) {
+    setupLine("测速出错：" + (e && e.message ? e.message : String(e)), "err");
+  } finally {
+    $("probeBtn").disabled = false;
+  }
+}
+
+async function doOllamaStart() {
+  $("ollamaBtn").disabled = true;
+  setupLine("正在启动本机 Ollama……");
+  try {
+    const r = await window.pet.ollamaStart();
+    if (r && r.ok) { setupLine("Ollama 起来了。", "ok"); await doDetect(false); }
+    else setupLine("没起来：" + ((r && r.error) || "未知原因"), "err");
+  } finally {
+    $("ollamaBtn").disabled = false;
+  }
+}
+
+async function doPull() {
+  $("pullBtn").disabled = true;
+  setupLine(`开始下载 ${PULL_MODEL}（几百 MB ~ 3 GB，取决于网速）……`);
+  try {
+    const off = window.pet.onPullLine((t) => setupLine("　" + t));
+    const r = await window.pet.ollamaPull(PULL_MODEL);
+    if (typeof off === "function") off();
+    if (r && r.ok) {
+      setupLine(`装好了：${PULL_MODEL}`, "ok");
+      log("系统", "小模型下载完了，正在按它重新适配。");
+      await doDetect(true);
+    } else {
+      setupLine("没装上：" + ((r && r.error) || "未知原因"), "err");
+    }
+  } finally {
+    $("pullBtn").disabled = false;
+  }
+}
+
+// ---------------------------------------------------------------- 动作
+async function act(kind) {
+  if (busy) return;
+  busy = true;
+  $("start").disabled = true;
+  $("stop").disabled = true;
+  $("stateText").textContent = kind === "start" ? "正在启动…" : "正在停止…";
+  $("dot").className = "dot busy";
+  log("系统", kind === "start" ? "正在启动桌宠…" : "正在停止桌宠…");
+  if (kind === "start" && appMeta && !appMeta.profile) {
+    log("系统", "提醒：还没适配过这台电脑 —— 等「本机适配」检测完（或点一下「检测这台电脑」）再启动，不然她不知道该用哪个模型说话。");
+  }
+  try {
+    const r = await (kind === "start" ? window.pet.start() : window.pet.stop());
+    renderStatus(r);
+    log("系统", kind === "start" ? (r.running ? `已启动（进程 ${r.pid}）` : "没能启动，看看 standalone\\pet-control.log") : "已停止");
+  } catch (e) {
+    log("系统", "操作失败：" + (e && e.message ? e.message : String(e)));
+  } finally {
+    busy = false;
+    await reload(false);
+  }
+}
+
+async function saveState(patch, savedId) {
+  try {
+    const o = await window.pet.setState(patch);
+    modelList = o.models || [];
+    renderStatus(o.status);
+    syncForm(o);
+    if (savedId) flash(savedId, "已保存");
+    log("系统", "设置已写入 " + "screen-watch\\state.json");
+  } catch (e) {
+    flash(savedId, "保存失败", true);
+    log("系统", "保存失败：" + (e && e.message ? e.message : String(e)));
+  }
+}
+
+$("start").onclick = () => act("start");
+$("stop").onclick = () => act("stop");
+$("health").onclick = () => window.pet.openHealth(lastPort);
+$("folder").onclick = () => window.pet.openFolder();
+
+document.querySelectorAll('input[name=brain]').forEach((r) => {
+  r.onchange = async () => {
+    const label = { dsh: "在线（联网模型）", local: "本地模型", auto: "自动择优" }[r.value];
+    log("我", "切成：" + label);
+    await saveState({ brain: r.value }, "savedModels");
+    log("桌宠", "好，现在用「" + label + "」。（下一句话就按这个来）");
+  };
+});
+
+$("swRunning").onchange = async () => {
+  const on = $("swRunning").checked;
+  log("我", on ? "开始监测桌面" : "别看屏幕了");
+  await saveState({ running: on }, "savedWatch");
+  log("桌宠", on ? "好，我盯着你的屏幕啦。" : "那我先不看了。");
+};
+
+$("verb").onchange = async () => {
+  const v = $("verb").value;
+  await saveState({ verbosity: v }, "savedWatch");
+  log("系统", "表达方式 → " + $("verb").selectedOptions[0].textContent);
+};
+
+document.querySelectorAll('input[name=persona]').forEach((r) => {
+  r.onchange = async () => {
+    const label = r.value === "whale" ? "鲸鱼娘" : "默认蓝发小女仆";
+    try {
+      const o = await window.pet.setPersona(r.value);
+      modelList = o.models || [];
+      renderStatus(o.status);
+      syncForm(o);
+      const ok = o.personaResult && o.personaResult.ok;
+      flash("savedPersona", ok ? "已保存" : "写入复验没过", !ok);
+      log("系统", `人设已写成「${label}」（${o.personaResult ? o.personaResult.length : 0} 字），下一句话就是新性格。`);
+    } catch (e) {
+      flash("savedPersona", "写入失败", true);
+      log("系统", "人设写入失败：" + (e && e.message ? e.message : String(e)));
+    }
+  };
+});
+
+$("saveWatch").onclick = () =>
+  saveState({
+    intervalSec: $("intervalSec").value,
+    minGapSec: $("minGapSec").value,
+    changeThreshold: $("changeThreshold").value,
+    maxCallsPerHour: $("maxCallsPerHour").value,
+  }, "savedWatch");
+
+$("saveModels").onclick = () =>
+  saveState({ quipModel: $("quipModel").value, localModel: $("localModel").value }, "savedModels");
+
+$("size").oninput = () => { $("sizeVal").textContent = $("size").value; dirty = true; };
+
+$("saveLook").onclick = async () => {
+  try {
+    // [主人第 2 条] 位置偏移必须沿用她现在的值：老版本这里硬写 240/220，
+    //   主人只是改个名字，她就被挪回默认位置了。
+    const pos = lastPos || { marginX: 240, marginY: 220 };
+    const o = await window.pet.setPet({
+      name: $("petName").value.trim() || undefined,
+      size: Number($("size").value),
+      position: { corner: $("corner").value, marginX: pos.marginX, marginY: pos.marginY },
+      display: $("display").value,
+      // [主人第 7 条] 没接联网时不写入「显示查看余额」：本机模型查不到余额，留着只会点出一句「无法查询」
+      balanceEnabled: $("balance").disabled ? false : $("balance").checked,
+    });
+    renderStatus(o.status);
+    if (o.configResult && !o.configResult.ok) {
+      flash("savedLook", "宿主拒绝：" + (o.configResult.error || "").slice(0, 40), true);
+      log("系统", "外观没保存成功：" + (o.configResult.error || ""));
+    } else {
+      syncForm(o);
+      flash("savedLook", "已保存");
+      log("系统", "外观已保存（桌宠会立刻变）");
+    }
+  } catch (e) {
+    flash("savedLook", "保存失败", true);
+    log("系统", "外观保存失败：" + (e && e.message ? e.message : String(e)));
+  }
+};
+
+$("reviewNow").onclick = async () => {
+  log("我", "点评一下");
+  log("系统", "正在看图…（最多等 60 秒）");
+  try {
+    const r = await window.pet.ask("点评一下");
+    log("桌宠", r.ok ? r.reply : "（没说出来：" + r.reply + "）");
+  } catch (e) {
+    log("系统", "失败：" + (e && e.message ? e.message : String(e)));
+  }
+};
+
+// ---------------------------------------------------------------- 终端：先认本地命令，认不出才说给她听
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const CMD_HELP = [
+  "帮助 ｜ 状态 ｜ 名字 <新名字>",
+  "权限 开|关 软件|文件|网页|全部",
+  "语音 开|关 ｜ 麦克风 低|中|高 ｜ 语言 中文|自动",
+  "音色 晓伊|晓晓|云希|云夏|小北|小妮 ｜ 语速 慢|正常|快 ｜ 音高 低一点|原声(默认)|软萌|更萌 ｜ 音量 小|中|大 ｜ 试听",
+  "活跃度 安静|正常|活跃|嗨起来",
+  "自主说话 开|关 ｜ 导演 开|关",
+  "文本模型 跟随|自动择优|共用|<本机模型名>",
+  "性格 <提示词> ｜ 性格 存 <名字> ｜ 人设",
+  "联网 测试 ｜ 大脑 在线|本地|自动 ｜ 监测 开|关",
+  "打开 软件|文件|网页 <路径或网址>",
+  "检测 ｜ 按推荐设置 ｜ 测速 ｜ 启动 Ollama",
+  "录屏 开|停|状态 ｜ 录屏软件 <名字> ｜ 录屏位置 <文件夹> ｜ 打开录屏软件",
+  "其余的话直接说 —— 会交给她现在的模型，它自己能开网站、挑录屏软件、起停录屏",
+].join("\n");
+
+const YES = ["开", "开吧", "打开", "启用", "on", "true", "是", "1"];
+const NO = ["关", "关了", "关掉", "禁用", "off", "false", "否", "0"];
+const KIND_CN = { app: "软件", file: "文件", url: "网页" };
+
+async function kv(kind) {
+  const r = await window.pet.control();
+  return r && r.data ? r.data[kind] : undefined;
+}
+async function putK(kind, value) {
+  const r = await window.pet.controlSet(kind, value);
+  if (!r || !r.ok) throw new Error((r && (r.message || r.reason)) || "控制桥写不进去");
+  return r;
+}
+async function putMerge(kind, patch) {
+  const cur = (await kv(kind)) || {};
+  const next = Object.assign({}, cur, patch);
+  await putK(kind, next);
+  return next;
+}
+const toBool = (v) => (YES.includes(v) ? true : NO.includes(v) ? false : null);
+
+// ---------------------------------------------------------------- 录屏 · 浏览器
+const REC_KIND_CN = { obs: "OBS（能起停、能改保存位置）", xbox: "Xbox Game Bar（只能帮你按 Win+Alt+R）", psr: "步骤记录器（手动存）", other: "其它（只能替你打开）" };
+const SEP = "\u0001";
+let recList = [];
+
+function recStatusLine(st) {
+  const s = (st && st.software) || {};
+  const bits = [`用的是「${s.name || "还没选"}」`];
+  if (st && st.obsRunning) bits.push(st.recording ? `正在录（${st.timecode || "0"}，${((st.bytes || 0) / 1048576).toFixed(1)} MB）` : "OBS 开着，没在录");
+  else if (st && s.kind === "obs") bits.push("OBS 没开（要录的时候会自己拉起来）");
+  if (st && st.outDir) bits.push(`存到 ${st.outDir}`);
+  if (st && st.error) bits.push("出错了：" + st.error);
+  return bits.join("；") + "。";
+}
+
+function recSelParts() {
+  const [name, path, kind] = String($("recSoft").value || "").split(SEP);
+  return { name: name || "", path: path || "", kind: kind || "other" };
+}
+function recPathFromSel(force) {
+  const p = recSelParts();
+  if (force || document.activeElement !== $("recPath")) $("recPath").value = p.path || "";
+}
+
+async function syncRec(force) {
+  let o;
+  try { o = await window.pet.recGet(); } catch (e) { return null; }
+  if (!o || !o.ok) return null;
+  recList = o.recorders || [];
+  const soft = (o.record && o.record.software) || {};
+  const sig = recList.map((x) => x.name + "|" + x.kind + "|" + x.path).join("~") + "@@" + soft.name + "|" + soft.path + "|" + soft.kind;
+  if (force || $("recSoft").dataset.sig !== sig) {
+    $("recSoft").dataset.sig = sig;
+    const sel = $("recSoft");
+    sel.innerHTML = "";
+    const mk = (name, path, kind, label) => {
+      const op = document.createElement("option");
+      op.value = `${name}${SEP}${path || ""}${SEP}${kind || "other"}`;
+      op.textContent = label;
+      sel.appendChild(op);
+    };
+    for (const it of recList) mk(it.name, it.path, it.kind, `${it.name} — ${REC_KIND_CN[it.kind] || "其它"}`);
+    mk(soft.name || "OBS Studio", soft.path || "", soft.kind || "obs", `当前：${soft.name || "OBS Studio"}`);
+    sel.value = `${soft.name || "OBS Studio"}${SEP}${soft.path || ""}${SEP}${soft.kind || "obs"}`;
+  }
+  if (document.activeElement !== $("recDir")) $("recDir").value = o.record.outDir || "";
+  if (document.activeElement !== $("recBrowser")) $("recBrowser").value = o.record.browser || "";
+  $("recSearch").value = o.record.search === "baidu" ? "baidu" : "bing";
+  recPathFromSel(false);
+  $("recHint").textContent = recStatusLine(o.status) + " 也可以直接对她说「录一段」—— 她自己挑工具。";
+  return o;
+}
+
+async function recAct(action, extra) {
+  log("系统", action === "start" ? "开始录…" : action === "stop" ? "停止录屏…" : action === "open" ? "打开录屏软件…" : "改保存位置…");
+  let r;
+  try { r = await window.pet.recAction(action, extra); } catch (e) { r = { ok: false, message: String((e && e.message) || e) }; }
+  if (action === "start") log("系统", r && r.ok ? (r.already ? "已经在录了" : "开始录了") : "没能开始：" + ((r && r.message) || (r && r.reason) || ""));
+  else if (action === "stop") log("系统", r && r.ok ? `停了，文件在 ${r.path || "（软件自己的目录）"}` : "没停成：" + ((r && r.message) || ""));
+  else if (action === "open") log("系统", r && r.ok ? "已打开：" + (r.opened || "") : "打不开：" + ((r && r.message) || ""));
+  await syncRec(true);
+  return r;
+}
+
+$("recSoft").onchange = () => recPathFromSel(true);
+$("recStart").onclick = () => recAct("start");
+$("recStop").onclick = () => recAct("stop");
+$("recOpen").onclick = () => recAct("open");
+$("recRefresh").onclick = async () => {
+  const o = await syncRec(true);
+  log("系统", "重新检测了一遍：" + ((o && o.recorders) || []).map((x) => x.name).join(" / "));
+};
+$("recPick").onclick = async () => {
+  let r;
+  try { r = await window.pet.recPickDir(); } catch (e) { r = { ok: false, message: String((e && e.message) || e) }; }
+  if (r && r.canceled) return;
+  if (r && r.ok) { $("recDir").value = r.dir || ""; await syncRec(true); log("系统", r.applied ? `保存位置已改成 ${r.dir}` : (r.message || "记下了")); }
+  else log("系统", "选文件夹失败：" + ((r && r.message) || ""));
+};
+$("saveRec").onclick = async () => {
+  const p = recSelParts();
+  const patch = {
+    software: { name: p.name, path: $("recPath").value.trim() || p.path, kind: p.kind },
+    outDir: $("recDir").value.trim(),
+    browser: $("recBrowser").value.trim(),
+    search: $("recSearch").value,
+  };
+  const r = await window.pet.recSet(patch);
+  flash("savedRec", r && r.ok ? "已保存" : "失败", !(r && r.ok));
+  if (r && r.ok) { dirty = false; await syncRec(true); log("系统", `录屏软件＝${p.name}；保存位置＝${patch.outDir || "（软件自己的）"}；浏览器＝${patch.browser || "系统默认"}；搜索＝${patch.search}`); }
+  else log("系统", "保存失败：" + ((r && r.message) || ""));
+};
+$("recHelp").onclick = () => {
+  log("系统", "她怎么自己动手：你在终端里说一句人话（比如「打开B站」「录一段」「录到 D:\\录像 里」），这句话会交给她现在用的那个模型（本地 / 联网 / 自动择优，跟「AI 大脑」那一栏一致）。模型回一个工具调用——开网址 / 搜索 / 列录屏软件 / 挑录屏软件 / 起停录屏 / 改保存位置 / 开软件 / 说话——控制台照着做完，再把结果喂回模型，直到它说 done。要动手的动作都会先看「权限 · 打开东西」那三个开关。");
+  log("系统", "挑模型的门道：本机 qwen3:4b 是「思考型」，会先想几百个字才写正文，这台机器上每秒只出 2–4 个字，一个动作可能要等好几分钟（所以她常常想一半就被掐断）。本机 qwen2.5vl:3b 每秒能出 40 多个字、不想就直接写，十来秒就动完手；填了联网模型并切到「在线」则更快。");
+};
+
+async function runLocal(s) {
+  const m = s.match(/^(\S+)\s*([\s\S]*)$/);
+  const w = (m ? m[1] : s).replace(/[：:，,。！!]$/, "");
+  const arg = (m && m[2] ? m[2] : "").trim();
+  const answer = (t) => { log("系统", t); return true; };
+  try {
+    // [主人第 2 条] 这 8 句与右键菜单同一套语义：整句直接落到 state.json。
+    //   老版本会走到 agent → 宿主 /quip，被当成普通提问回答 ⇒ 看上去「说了没反应」。
+    const QUICK_CMD = {
+      看着点: ["running", true, "好，我盯着你的屏幕啦。"],
+      别看了: ["running", false, "那我先不看了。"],
+      换本地: ["brain", "local", "好，只用本机模型。"],
+      换在线: ["brain", "dsh", "好，走联网模型（Key 填好了就直接用）。"],
+      自动择优: ["brain", "auto", "好，本机先上，卡了再联网。"],
+      碎碎念模式: ["verbosity", "chatty", "好，我多念叨几句。"],
+      只说高光: ["verbosity", "auto", "好，只说重要的。"],
+      只听我的: ["verbosity", "manual", "好，你不问我就不主动开口。"],
+    };
+    const quick = QUICK_CMD[s.trim()];
+    if (quick) {
+      await saveState({ [quick[0]]: quick[1] }, quick[0] === "brain" ? "savedModels" : quick[0] === "verbosity" ? "savedWatch" : "savedWatch");
+      log("我", s.trim());
+      log("桌宠", quick[2]);
+      return true;
+    }
+    if (["帮助", "help", "?", "？", "命令", "cmd"].includes(w)) return answer(CMD_HELP);
+    if (["清空", "clear", "cls"].includes(w)) { $("term").innerHTML = ""; return true; }
+    if (["状态", "status"].includes(w)) {
+      const r = await window.pet.status();
+      return answer(r && r.running ? `她跑着呢：进程 ${r.pid}，端口 ${r.port}。` : "她现在没跑（点上面「启动桌宠」）。");
+    }
+    if (w === "名字") {
+      if (!arg) return answer("用法：名字 小蓝");
+      const o = await window.pet.setPet({ name: arg });
+      syncForm(o);
+      return answer(`名字改成「${arg}」了（她自己的窗口刷一下就看到）。`);
+    }
+    if (["权限", "许可"].includes(w)) {
+      const mm = arg.match(/^(开|关|打开|关闭|允许|禁止)\s*(软件|应用|程序|文件|文件夹|网页|网址|全部|所有)$/);
+      if (!mm) return answer("用法：权限 开 网页 ／ 权限 关 全部");
+      const want = YES.includes(mm[1]);
+      const t = mm[2];
+      const patch = {};
+      if (["全部", "所有"].includes(t)) { patch.app = want; patch.file = want; patch.url = want; }
+      else if (["软件", "应用", "程序"].includes(t)) patch.app = want;
+      else if (["文件", "文件夹"].includes(t)) patch.file = want;
+      else patch.url = want;
+      const cur = (await kv("perm")) || {};
+      await putK("perm", {
+        perm: Object.assign({ app: false, file: false, url: false }, cur.perm || {}, patch),
+        log: cur.log || [],
+      });
+      return answer("权限更新：" + Object.keys(patch).map((k) => KIND_CN[k] + (patch[k] ? "＝开" : "＝关")).join("，"));
+    }
+    if (w === "语音") {
+      const on = toBool(arg);
+      if (on === null) return answer("用法：语音 开 ／ 语音 关");
+      await putMerge("voice", { on });
+      return answer(on ? "语音模式开了，她开始听你说话（只在本机转写，不联网）。" : "语音模式关了。");
+    }
+    if (["麦克风", "灵敏度"].includes(w)) {
+      const v = /低|low/i.test(arg) ? "low" : /高|high/i.test(arg) ? "high" : /中|mid/i.test(arg) ? "mid" : null;
+      if (!v) return answer("用法：麦克风 低 ／ 中 ／ 高");
+      await putMerge("voice", { sens: v });
+      return answer("麦克风灵敏度＝" + { low: "低", mid: "中", high: "高" }[v]);
+    }
+    if (w === "语言") {
+      const v = /自动|auto/i.test(arg) ? "auto" : /中|zh/i.test(arg) ? "zh" : null;
+      if (!v) return answer("用法：语言 中文 ／ 语言 自动");
+      await putMerge("voice", { lang: v });
+      return answer("识别语言＝" + (v === "zh" ? "中文" : "自动"));
+    }
+    if (["音色", "声音"].includes(w)) {
+      const hit = TTS_VOICES.find((v) => arg && (arg.includes(v[1].split(" ")[0]) || arg.toLowerCase() === v[0].toLowerCase()));
+      if (!hit) {
+        const list = TTS_VOICES.map((v) => v[1].split(" ")[0] + "（" + v[0] + "）").join(" ／ ");
+        return answer(arg ? "认不出这个音色，可以用的有：" + list : "用法：音色 晓伊 ／ 音色 晓晓 …　可以用的：" + list);
+      }
+      await putMerge("tts", { voice: hit[0] });
+      return answer("音色换成「" + hit[1] + "」了（她自己的窗口重载了一下）。想听就点上面的「试听这句」，或者说「试听」。");
+    }
+    if (["语速"].includes(w)) {
+      const v = /慢/.test(arg) ? "-15%" : /快/.test(arg) ? "+15%" : /正常|中|默认/.test(arg) ? "+0%" : null;
+      if (!v) return answer("用法：语速 慢 ／ 正常 ／ 快");
+      await putMerge("tts", { rate: v });
+      return answer("语速＝" + { "-15%": "慢", "+0%": "正常", "+15%": "快" }[v]);
+    }
+    if (["音量"].includes(w)) {
+      const v = /小/.test(arg) ? 0.35 : /中/.test(arg) ? 0.6 : /大/.test(arg) ? 0.9 : null;
+      if (!v) return answer("用法：音量 小 ／ 中 ／ 大");
+      await putMerge("tts", { vol: v });
+      return answer("她说话的音量＝" + { 0.35: "小", 0.6: "中", 0.9: "大" }[v]);
+    }
+    if (["音高", "调子"].includes(w)) {
+      const v = /低|沉/.test(arg) ? "-15Hz" : /原声|不升|0/.test(arg) ? "+0Hz" : /更萌|甜|高/.test(arg) ? "+45Hz" : /软|萌/.test(arg) ? "+30Hz" : null;
+      if (!v) return answer("用法：音高 低一点 ／ 原声（默认） ／ 软萌 ／ 更萌");
+      const r = await window.pet.ttsPitchSet(v);
+      if (!r || !r.ok) return answer("音高没改成功：" + ((r && (r.message || r.reason)) || "写不进去"));
+      $("ttsPitch").value = v;
+      return answer("音高＝" + v + "（立刻生效，下一次说话就是这个调了）");
+    }
+    if (["试听", "念一句"].includes(w)) {
+      await putMerge("tts", { on: true });
+      $("ttsOn").checked = true;
+      const pr = await window.pet.ttsPitchSet($("ttsPitch").value);
+      $("ttsPitch").value = (pr && pr.pitch) || $("ttsPitch").value;
+      await new Promise((r) => setTimeout(r, 1200));
+      const r = await window.pet.say(TTS_TRY);
+      return answer(r && r.ok ? "让她念了一句：" + TTS_TRY : "念不出来：" + ((r && (r.message || r.reason)) || "桌宠没在跑（先点「启动桌宠」）"));
+    }
+    if (w === "活跃度") {
+      const table = { 安静: "quiet", 正常: "normal", 活跃: "lively", 嗨起来: "hyper", 嗨: "hyper" };
+      const v = table[arg] || (/^(quiet|normal|lively|hyper)$/i.test(arg) ? arg.toLowerCase() : null);
+      if (!v) return answer("用法：活跃度 安静|正常|活跃|嗨起来");
+      await putMerge("mood", { activity: v });
+      return answer(`活跃度＝${v}（她自己的窗口重载了一下，一秒内就变）`);
+    }
+    if (["自主说话", "自言自语", "说话"].includes(w)) {
+      const on = toBool(arg);
+      if (on === null) return answer("用法：自主说话 开 ／ 关");
+      await putMerge("talk", { on });
+      return answer(on ? "好，让她自己找话说。" : "好，不许自己说话了。");
+    }
+    if (["导演", "AI导演", "ai导演"].includes(w)) {
+      const on = toBool(arg);
+      if (on === null) return answer("用法：导演 开 ／ 关");
+      await putMerge("talk", { director: on });
+      return answer(on ? "AI 导演开了：动作和台词都按人设演。" : "AI 导演关了。");
+    }
+    if (["文本模型", "小模型"].includes(w)) {
+      const v = /跟随|配置|默认/.test(arg) ? "" : /自动|择优/.test(arg) ? "__auto__" : /共用|共享|省显存/.test(arg) ? "__share__" : arg;
+      await putK("textmodel", v);
+      return answer("本地文本模型＝" + (v || "跟随配置"));
+    }
+    if (["人设", "性格提示词"].includes(w)) {
+      const txt = (await window.pet.options()).personaText || "";
+      return answer(`现在的人设（${txt.length} 字）：${txt.slice(0, 160)}${txt.length > 160 ? "…" : ""}`);
+    }
+    if (w === "性格") {
+      const mm = arg.match(/^存\s*(\S+)\s*([\s\S]*)$/);
+      if (mm) {
+        const r = await window.pet.savePersona(mm[1], (mm[2] || "").trim() || $("personaText").value.trim());
+        if (r && r.ok) { await reload(true); return answer(`已存进性格库：「${mm[1]}」`); }
+        return answer("存不进去：" + ((r && r.message) || ""));
+      }
+      if (!arg) return answer("用法：性格 <提示词>（也可以写在下面的性格框里，点按钮生效）");
+      const o = await window.pet.setPersonaText(arg);
+      syncForm(o);
+      return answer("人设写进去了，她下一句话就按这个演。");
+    }
+    if (w === "联网") {
+      if (/测|test/i.test(arg)) {
+        log("系统", "正在问联网模型……（最多 20 秒）");
+        const r = await window.pet.testOnline();
+        return answer(r && r.ok ? `通了：${r.ms} ms，它回「${r.text}」` : "没通：" + ((r && (r.message || r.reason)) || ""));
+      }
+      const cfg = await window.pet.online();
+      return answer(cfg && cfg.enabled ? `联网：${cfg.name} @ ${cfg.baseUrl}，模型 ${cfg.model}` : "联网还没启用（在「模型 · AI 大脑」里填地址 + Key + 模型名就会自动启用）。");
+    }
+    if (w === "大脑") {
+      const v = /在线|联网|dsh/i.test(arg) ? "dsh" : /本地|local/i.test(arg) ? "local" : /自动|auto/i.test(arg) ? "auto" : null;
+      if (!v) return answer("用法：大脑 在线|本地|自动");
+      await saveState({ brain: v }, "savedModels");
+      return true;
+    }
+    if (["监测", "看屏幕"].includes(w)) {
+      const on = toBool(arg);
+      if (on === null) return answer("用法：监测 开 ／ 关");
+      await saveState({ running: on }, "savedWatch");
+      return true;
+    }
+    if (["检测", "重新检测", "适配", "本机适配"].includes(w)) {
+      $("setupSec").open = true;
+      const p = await doDetect(/推荐|设置|适配/.test(arg));
+      if (!p) return answer("检测失败，看看「本机适配」那一栏里的日志。");
+      const picks = p.picks || {};
+      return answer(`聊天用 ${picks.chat || "（没有）"}，看屏幕用 ${picks.vision || "（没有）"}。` + (/推荐|设置|适配/.test(arg) ? "已经写进设置了。" : "想直接用它，就说「按推荐设置」。"));
+    }
+    if (["测速", "测速度"].includes(w)) {
+      $("setupSec").open = true;
+      await doProbe();
+      return true;
+    }
+    if (["录屏", "录制"].includes(w)) {
+      const a = arg.trim();
+      if (!a || /状态|status|好了没/i.test(a)) {
+        const st = await window.pet.recStatus();
+        return answer(recStatusLine(st));
+      }
+      if (/^(开|开始|录|start)/i.test(a)) {
+        const r = await recAct("start");
+        return answer(r && r.ok ? (r.already ? "已经在录了。" : "开始录了。") : "没能开始：" + ((r && r.message) || ""));
+      }
+      if (/^(停|停止|结束|别录|stop)/i.test(a)) {
+        const r = await recAct("stop");
+        return answer(r && r.ok ? `停了，文件在 ${r.path || "（软件自己的目录）"}` : "没停成：" + ((r && r.message) || ""));
+      }
+      return answer("用法：录屏 开 ／ 录屏 停 ／ 录屏 状态");
+    }
+    if (["录屏软件", "录制软件"].includes(w)) {
+      const det = await window.pet.recDetect();
+      const list = (det && det.list) || [];
+      if (!arg) return answer("检测到：" + list.map((x) => `${x.name}（${x.kind}）`).join(" / ") + "。用法：录屏软件 OBS Studio");
+      const key = arg.toLowerCase();
+      const hit = list.find((x) => x.name.toLowerCase().includes(key) || key.includes(x.name.toLowerCase().split(" ")[0]));
+      if (!hit) return answer(`没找到叫「${arg}」的录屏软件。检测到的是：` + list.map((x) => x.name).join(" / "));
+      await window.pet.recSet({ software: { name: hit.name, path: hit.path, kind: hit.kind } });
+      await syncRec(true);
+      return answer(`录屏软件＝${hit.name}（${REC_KIND_CN[hit.kind] || hit.kind}）`);
+    }
+    if (["录屏位置", "录像位置", "录像目录", "录像存哪"].includes(w)) {
+      if (!arg) return answer("用法：录屏位置 D:\\录像");
+      const r = await recAct("dir", { dir: arg });
+      return answer((r && r.message) || "记下了");
+    }
+    if (["打开录屏软件", "开录屏软件"].includes(w)) {
+      const r = await recAct("open");
+      return answer(r && r.ok ? "已打开：" + (r.opened || "") : "打不开：" + ((r && r.message) || ""));
+    }
+    if (w === "打开") {
+      const mm = arg.match(/^(软件|应用|程序|文件|文件夹|网页|网址)\s*([\s\S]+)$/);
+      if (!mm) return answer("用法：打开 网页 www.baidu.com ／ 打开 文件 D:\\somewhere ／ 打开 软件 路径.exe");
+      const kind = ["网页", "网址"].includes(mm[1]) ? "url" : ["文件", "文件夹"].includes(mm[1]) ? "file" : "app";
+      const r = await window.pet.openTarget(kind, mm[2].trim());
+      return answer(r && r.ok ? "已打开：" + mm[2].trim() : "打不开：" + ((r && r.message) || "路径不存在，或者系统不让开"));
+    }
+    if (["逗一下", "说句话", "冒泡"].includes(w)) {
+      const r = await window.pet.ask("用你自己的语气随口说一句短话，别问我问题");
+      log("桌宠", r.ok ? r.reply : "（没说出来）");
+      return true;
+    }
+  } catch (e) {
+    return answer("这条命令没跑成：" + (e && e.message ? e.message : String(e)));
+  }
+  return false;
+}
+
+const TOOL_CN = {
+  list_recorders: "看了有哪些录屏软件", use_recorder: "挑好录屏软件", open_recorder: "打开录屏软件",
+  record: "录屏", record_dir: "改保存位置", list_apps: "翻了一遍开始菜单", open_app: "打开软件",
+  open_file: "打开文件", open_url: "打开网址", search: "搜索", speak: "说了一句话", done: "收尾",
+};
+function stepLine(st) {
+  const a = st.args || {};
+  const extra =
+    st.tool === "open_url" || st.tool === "open_file" ? a.url || a.path || "" :
+    st.tool === "search" ? a.q || "" :
+    st.tool === "record" ? a.action || "" :
+    st.tool === "record_dir" ? a.dir || "" :
+    st.tool === "open_app" || st.tool === "use_recorder" ? a.name || "" : "";
+  const ok = !(st.result && st.result.ok === false);
+  const why = ok ? "" : " ✗ " + ((st.result && (st.result.message || st.result.reason)) || "");
+  return `${TOOL_CN[st.tool] || st.tool}${extra ? "：" + extra : ""}（${st.ms || 0}ms）${ok ? "" : why}`;
+}
+
+async function sendCmd(text) {
+  const s = String(text || "").trim();
+  if (!s) return;
+  log("我", s);
+  try {
+    if (await runLocal(s)) { await reload(true).catch(() => {}); return; }
+    // 本机「思考型」模型（qwen3 / r1 这些）会先想几百个字才写正文，这台机器上每秒只出 2–4 个字，
+    // 一个动作要等好几分钟 —— 先提醒一句，免得主人以为卡死了。
+    if (/qwen3|deepseek-r1|r1-|thinking|reason/i.test(lastModel)) {
+      log("系统", `提醒：她现在用的是 ${lastModel}（思考型本机模型）。这台机器上它每秒只出 2–4 个字，动手可能要等几分钟；换成「在线（联网模型）」，或把聊天模型换成 qwen2.5vl:3b，就会快很多。交给她现在的模型去想办法……`);
+    } else {
+      log("系统", "交给她现在的模型去想办法……");
+    }
+    const r = await window.pet.agent(s);
+    if (r && r.ok) {
+      for (const st of r.steps || []) {
+        if (st.tool === "done") log("她决定收尾", stepLine(st));
+        else log("她动手了", stepLine(st));
+      }
+      log("桌宠", r.reply || "（她没说话）");
+    } else if (r && r.fallback) {
+      log("系统", "她的模型这次没给出动作（" + (r.message || "只想了没写正文") + "），先当聊天回你。");
+      const a = await window.pet.ask(s);
+      log("桌宠", a.ok ? a.reply : "（失败了：" + a.reply + "）");
+    } else {
+      log("系统", "失败：" + ((r && r.message) || "说不清哪里出了问题"));
+    }
+    await reload(true);
+  } catch (e) {
+    log("系统", "失败：" + (e && e.message ? e.message : String(e)));
+  }
+}
+
+$("sendCmd").onclick = async () => { const v = $("cmdInput").value; $("cmdInput").value = ""; await sendCmd(v); };
+$("cmdInput").onkeydown = async (e) => { if (e.key === "Enter") { const v = $("cmdInput").value; $("cmdInput").value = ""; await sendCmd(v); } };
+
+// ---------------------------------------------------------------- 性格
+$("personaApply").onclick = async () => {
+  const t = $("personaText").value.trim();
+  if (t.length < 10) { flash("savedPersona", "太短了（至少 10 个字）", true); return; }
+  try {
+    const o = await window.pet.setPersonaText(t);
+    if (o.personaResult && !o.personaResult.ok) { flash("savedPersona", "写不进去", true); return; }
+    syncForm(o);
+    flash("savedPersona", "已生效");
+    log("系统", `人设已写进 main-config.json（${t.length} 字）——她下一句话就按这个演，不用重启。`);
+  } catch (e) { flash("savedPersona", "失败", true); log("系统", "人设失败：" + e.message); }
+};
+
+$("personaSave").onclick = async () => {
+  const n = $("personaName").value.trim(), t = $("personaText").value.trim();
+  if (!n) { flash("savedPersona", "先起个名字", true); return; }
+  const r = await window.pet.savePersona(n, t);
+  if (r && r.ok) { flash("savedPersona", `已存进库（共 ${r.count} 套）`); await reload(true); }
+  else flash("savedPersona", (r && r.message) || "存不进去", true);
+};
+
+$("personaLoad").onclick = async () => {
+  const n = $("personaSaved").value;
+  if (!n) { flash("savedPersona", "先在下拉里选一套", true); return; }
+  const r = await window.pet.personas();
+  const x = ((r && r.list) || []).find((p) => p.name === n);
+  if (!x) { flash("savedPersona", "没找到这一套", true); return; }
+  $("personaText").value = x.text;
+  $("personaName").value = n;
+  $("personaText").dataset.touched = "1";
+  flash("savedPersona", "已载入，点「就用这段性格」生效");
+};
+
+$("personaDel").onclick = async () => {
+  const n = $("personaSaved").value;
+  if (!n) { flash("savedPersona", "先选一套", true); return; }
+  const r = await window.pet.deletePersona(n);
+  if (r && r.ok) { flash("savedPersona", "已删"); await reload(true); }
+  else flash("savedPersona", "删不掉", true);
+};
+
+$("personaText").oninput = () => { $("personaText").dataset.touched = "1"; dirty = true; };
+
+// ---------------------------------------------------------------- 联网模型
+/** [主人第 7 条] 「显示『查看余额』」只有联网模型真接上了才有意义：
+ *  本地模型没有余额这回事，没接联网时点它只会看到「当前服务商 OLLAMA，无法查询」。
+ *  所以没接联网时把勾选框禁用并说明原因；勾选状态不硬改（联网一恢复就照旧生效）。 */
+function updateBalanceGate(onlineOn) {
+  const box = $("balance");
+  const hint = $("balanceHint");
+  if (!box || !hint) return;
+  box.disabled = !onlineOn;
+  if (onlineOn) {
+    hint.textContent = "联网模型接上了，这项能查到余额（右键菜单里会出现「查看余额」）。";
+    hint.className = "hint";
+  } else {
+    hint.textContent = "现在是本机模型，没有余额可查 ⇒ 这一项先灰着。填好「联网模型」的接口地址 + API Key + 模型名并保存，它就会亮起来。";
+    hint.className = "hint warn";
+  }
+}
+
+function currentBrain() {
+  const el = document.querySelector("input[name=brain]:checked");
+  return el ? el.value : "";
+}
+
+/** 收集并保存联网设置（含视觉那两栏）。autoSwitch=true 时才动「模型 · AI 大脑」——
+ *  单纯点「测一下」不该改大脑档位。返回保存后的 cfg，失败返回 null。 */
+async function saveOnlineFields(autoSwitch) {
+  const cfg = {
+    baseUrl: $("onlineBase").value.trim(),
+    apiKey: $("onlineKey").value.trim(),
+    model: $("onlineModel").value.trim(),
+    visionModel: $("onlineVision").value.trim(),
+    visionBaseUrl: $("onlineVisionBase").value.trim(),
+    visionApiKey: $("onlineVisionKey").value.trim(),
+  };
+  cfg.enabled = !!(cfg.baseUrl && cfg.apiKey && cfg.model);
+  const was = currentBrain();
+  const r = await window.pet.saveOnline(cfg);
+  if (!r || !r.ok) { flash("savedOnline", "保存失败", true); return null; }
+  flash("savedOnline", cfg.enabled ? "已保存并启用" : "已保存");
+  log("系统", cfg.enabled
+    ? `联网模型启用了：${cfg.model} @ ${cfg.baseUrl}。`
+    : "联网设置存下了，但地址 / Key / 模型名没填全 ⇒ 暂时不会启用（她只用本机模型）。");
+  await reload(false);
+
+  // 联网接通 / 断开时，「模型 · AI 大脑」跟着切（主人第 3 条：桌宠选项状态与终端是连起来的）
+  if (autoSwitch && cfg.enabled && was !== "dsh") {
+    await saveState({ brain: "dsh" }, "savedModels");
+    log("桌宠", "联网接上了，我把「模型 · AI 大脑」切成「在线（联网模型）」——下一句就走它。");
+  } else if (autoSwitch && !cfg.enabled && was === "dsh") {
+    await saveState({ brain: "auto" }, "savedModels");
+    log("桌宠", "联网断了，我切回「自动择优」：本机模型照常用，绝不偷偷联网。");
+  }
+  return cfg;
+}
+
+$("saveOnline").onclick = async () => { await saveOnlineFields(true); };
+
+$("testOnline").onclick = async () => {
+  log("系统", "正在问联网模型……（最多 20 秒）");
+  const r = await window.pet.testOnline();
+  log("系统", r && r.ok ? `通了：${r.ms} ms，它回「${r.text}」` : "没通：" + ((r && (r.message || r.reason)) || ""));
+};
+
+// [主人第 4 条] 「看屏幕」是另一套目标（视觉模型 / 视觉地址 / 视觉 Key，后两样留空自动跟聊天共用）——
+// 所以要能单独测：先把框里的值存下来，再按视觉那套探测一次。
+$("testVision").onclick = async () => {
+  const cfg = await saveOnlineFields(false);
+  if (!cfg) return;
+  if (!cfg.visionModel && !cfg.visionBaseUrl && !cfg.visionApiKey) {
+    log("系统", "现在「看屏幕」用的是本机视觉模型（Ollama），没走联网 ⇒ 没什么可测的。想让她用联网的眼睛，先填上面「视觉模型」。");
+    return;
+  }
+  log("系统", "正在按「看屏幕」那套问一次视觉端点……（最多 20 秒）");
+  const r = await window.pet.testOnline({ which: "vision" });
+  log("系统", r && r.ok ? `视觉端点通了：${r.ms} ms，它回「${r.text}」` : "视觉端点没通：" + ((r && (r.message || r.reason)) || ""));
+};
+
+// ---------------------------------------------------------------- 活跃度 · 自主说话
+$("saveMood").onclick = async () => {
+  try {
+    await putMerge("mood", { activity: $("moodActivity").value });
+    await putMerge("talk", { on: $("talkOn").checked, director: $("talkDirector").checked });
+    await putK("textmodel", $("textModel").value);
+    flash("savedMood", "已保存");
+    log("系统", "活跃度 / 自主说话 / 本地文本模型 都写进她了（她自己的窗口刚重载了一下）。");
+    await reload(true);
+  } catch (e) { flash("savedMood", "失败", true); log("系统", "改不动：" + e.message); }
+};
+
+$("moodOnce").onclick = () => sendCmd("逗一下");
+
+// ---------------------------------------------------------------- 权限 · 打开东西
+$("savePerm").onclick = async () => {
+  try {
+    const cur = (await kv("perm")) || {};
+    await putK("perm", { perm: { app: $("permApp").checked, file: $("permFile").checked, url: $("permUrl").checked }, log: cur.log || [] });
+    flash("savedPerm", "已保存");
+    log("系统", "权限已写入她自己那边。她只做你勾的事，没勾的一律拒绝。");
+    await reload(true);
+  } catch (e) { flash("savedPerm", "失败", true); log("系统", "改不动：" + e.message); }
+};
+
+async function openIt(kind, target) {
+  const t = String(target || "").trim();
+  if (!t) { log("系统", "先填个路径或网址。"); return; }
+  const r = await window.pet.openTarget(kind, t);
+  log("系统", r && r.ok ? "已打开：" + t : "打不开：" + ((r && r.message) || "路径不存在，或者系统不让开"));
+}
+
+$("appOpen").onclick = () => openIt("app", $("appPath").value);
+$("fileOpen").onclick = () => openIt("file", $("filePath").value);
+$("urlOpen").onclick = () => openIt("url", $("urlPath").value);
+
+$("appList").onclick = async () => {
+  const box = $("appListBox");
+  if (box.style.display !== "none") { box.style.display = "none"; return; }
+  log("系统", "正在列开始菜单里的软件……");
+  const r = await window.pet.listApps();
+  const apps = (r && r.apps) || [];
+  box.innerHTML = apps.map((a) => `<div class="it"><span>${esc(a.name)}</span><span class="p">${esc(a.path)}</span></div>`).join("");
+  Array.from(box.children).forEach((el, i) => {
+    el.onclick = () => { $("appPath").value = apps[i].path; box.style.display = "none"; log("系统", "填好了：" + apps[i].name + "，点「打开」就开。"); };
+  });
+  box.style.display = apps.length ? "block" : "none";
+  log("系统", apps.length ? `找到 ${apps.length} 个（在开始菜单里的），点一个就填进上面的框。` : "开始菜单里没找到可执行的东西。");
+};
+
+// ---------------------------------------------------------------- 语音模式
+$("saveVoice").onclick = async () => {
+  try {
+    await putMerge("voice", { on: $("voiceOn").checked, sens: $("voiceSens").value, lang: $("voiceLang").value });
+    flash("savedVoice", "已保存");
+    log("系统", "语音设置已写入她自己那边（她自己的窗口刚重载了一下）。");
+    await reload(true);
+  } catch (e) { flash("savedVoice", "失败", true); log("系统", "改不动：" + e.message); }
+};
+
+// ---------------------------------------------------------------- 她的声音（TTS 音色）
+// 这几组值必须跟桌宠渲染端 ttsVoiceTable / ttsRateTable / ttsVolTable **一模一样**：
+// 她那边的 ttsConfig() 会逐个白名单校验，给了表外的值会被静默换成默认值（等于白改）。
+const TTS_VOICES = [
+  ["zh-CN-XiaoyiNeural", "晓伊 · 活泼软萌（默认）"],
+  ["zh-CN-XiaoxiaoNeural", "晓晓 · 温柔"],
+  ["zh-CN-YunxiNeural", "云希 · 男声 · 阳光"],
+  ["zh-CN-YunxiaNeural", "云夏 · 男声 · 可爱"],
+  ["zh-CN-liaoning-XiaobeiNeural", "小北 · 东北话"],
+  ["zh-CN-shaanxi-XiaoniNeural", "小妮 · 陕西话"],
+];
+// 音高档位：跟 app 里 ttsPitchFromConfig() 的规则一致（±80Hz 以内，认不出来当 +0Hz）
+const TTS_PITCHES = ["-15Hz", "+0Hz", "+30Hz", "+45Hz"];
+const TTS_TRY = "主人主人，我是你的小女仆，今天也要开开心心的哦～";
+
+function fillTtsVoices() {
+  const sel = $("ttsVoice");
+  if (sel.options.length) return;
+  for (const [id, label] of TTS_VOICES) {
+    const o = document.createElement("option");
+    o.value = id;
+    o.textContent = label;
+    sel.appendChild(o);
+  }
+}
+fillTtsVoices();
+
+function ttsForm() {
+  return {
+    on: $("ttsOn").checked,
+    voice: $("ttsVoice").value,
+    rate: $("ttsRate").value,
+    vol: Number($("ttsVol").value),
+    // [主人第 1 条] 「什么时候说话」也交回主人手里（从前只有右键菜单里有，控制台看不见）
+    chat: $("ttsChat").checked,
+    notice: $("ttsNotice").checked,
+    autotalk: $("ttsAutotalk").checked,
+    sing: $("ttsSing").checked,
+  };
+}
+/** 音高单独存：它不在她那边，而是数据目录里的一个小文件（发布版补丁 T2 每次合成时读） */
+async function savePitch() {
+  const want = $("ttsPitch").value;
+  const r = await window.pet.ttsPitchSet(want);
+  if (!r || !r.ok) throw new Error((r && (r.message || r.reason)) || "写不进音高文件");
+  return r.pitch;
+}
+$("saveTts").onclick = async () => {
+  try {
+    await putMerge("tts", ttsForm());
+    const pitch = await savePitch();
+    flash("savedTts", "已保存");
+    const lbl = $("ttsVoice").selectedOptions[0];
+    log("系统", "她的声音改成「" + (lbl ? lbl.textContent : $("ttsVoice").value) + "」、音高 " + pitch + "（她自己的窗口刚重载了一下）。");
+    await reload(true);
+  } catch (e) { flash("savedTts", "失败", true); log("系统", "改不动：" + e.message); }
+};
+$("ttsTry").onclick = async () => {
+  try {
+    await putMerge("tts", Object.assign(ttsForm(), { on: true }));
+    $("ttsOn").checked = true;
+    const pitch = await savePitch(); // 音高不用等重载，写完下一次合成就生效
+    await new Promise((r) => setTimeout(r, 1200)); // 音色/语速要等她那边的窗口重载一下
+    const r = await window.pet.say(TTS_TRY);
+    log("系统", r && r.ok ? "用这个嗓子念了一句（音高 " + pitch + "），听得到吗？" : "试听没成功：" + ((r && (r.message || r.reason)) || "桌宠没在跑"));
+  } catch (e) { log("系统", "试听没成功：" + e.message); }
+};
+
+// ---------------------------------------------------------------- 本机适配按钮
+$("detectBtn").onclick = () => { doDetect(false); };
+$("applyBtn").onclick = () => { doDetect(true); };
+$("probeBtn").onclick = () => { doProbe(); };
+$("ollamaBtn").onclick = () => { doOllamaStart(); };
+$("pullBtn").onclick = () => { doPull(); };
+$("openData").onclick = async () => { const r = await window.pet.openAppPath("data"); if (r && r.ok) log("系统", "打开数据目录：" + r.path); };
+$("openLogs").onclick = async () => { const r = await window.pet.openAppPath("logs"); if (r && r.ok) log("系统", "打开日志目录：" + r.path); };
+
+// [主人第 2 条] 有些口令只是给主人看的短标签，真正发出去的是完整写法。
+//   「打开B站」老版本会落到 agent → 宿主 /quip，被当成聊天问题回答（点上去没反应）。
+const CHIP_SEND = { "打开B站": "打开 网页 https://www.bilibili.com" };
+for (const p of PHRASES) {
+  const c = document.createElement("span");
+  c.className = "chip";
+  c.textContent = p;
+  c.onclick = () => sendCmd(CHIP_SEND[p] || p);
+  $("chips").appendChild(c);
+}
+
+// 输入框里改过就先不覆盖用户的输入（数字 / 文本 / 人设框都算）
+document.querySelectorAll("input[type=number], input[type=text], textarea").forEach((el) => {
+  const own = el.oninput;
+  el.addEventListener("input", () => { dirty = true; if (typeof own === "function") own.call(el); });
+});
+setInterval(() => {
+  reload(false);
+  // 第一次运行时主进程在后台自动检测：profile 一出现就报一次（事件丢了的兜底）
+  if (appMeta && !appMeta.profile) {
+    refreshAppInfo(true).then((m) => { if (m && m.profile) showAutoProfile(m.profile, false); }).catch(() => {});
+  }
+}, 2500);
+
+// 打开就停在最上面：Chromium 偶尔会"恢复"到之前滚动过的位置，得手动压回去
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
+
+(async () => {
+  // 主进程第一次运行会自动检测，结果从这里推回来
+  if (window.pet.onDetectDone) {
+    window.pet.onDetectDone((r) => {
+      if (r && r.profile) showAutoProfile(r.profile, false);
+      else if (r && r.error) setupLine("自动检测没成功：" + r.error + "　可以点「检测这台电脑」再试一次。", "warn");
+    });
+  }
+  try { await reload(true); } catch (e) { log("系统", "读不到桌宠状态：" + (e && e.message ? e.message : String(e))); }
+  try {
+    const meta = await refreshAppInfo(true);
+    if (meta && meta.firstRun) {
+      $("setupSec").open = true;
+      setupLine("欢迎！先让我自己看一下这台电脑适合用什么模型……（十几秒）");
+      log("系统", "第一次运行：正在自动检测这台电脑，挑好模型后直接写进设置。");
+    } else if (meta && meta.profile) {
+      showAutoProfile(meta.profile, true);
+    }
+  } catch (e) { log("系统", "读不到程序目录信息：" + (e && e.message ? e.message : String(e))); }
+  log("系统", "控制台就绪。上面所有开关都是直接改桌宠自己的配置，桌宠不用重启。");
+})();
+</script>
+</body>
+</html>

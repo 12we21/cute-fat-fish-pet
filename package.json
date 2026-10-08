@@ -1,0 +1,24 @@
+{
+  "name": "cute-fat-fish-pet",
+  "version": "1.1.0",
+  "private": true,
+  "description": "可爱大肥鱼桌宠 —— 一只住在 Windows 桌面上的 Q 版蓝发小女仆（源码仓库，构建入口）",
+  "license": "MIT",
+  "author": "Mikolu",
+  "homepage": "https://github.com/12we21/cute-fat-fish-pet",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "toolchain": "node build/toolchain.mjs",
+    "build": "node build/build.mjs",
+    "list": "node build/build.mjs --list",
+    "clean": "node build/build.mjs --clean",
+    "paths": "node build/check-paths.mjs",
+    "verify": "node stage/verify.mjs",
+    "check": "node build/check-release.mjs",
+    "nsi": "python build/nsi-syntax-check.py",
+    "zip": "python build/mkzip.py",
+    "exe": "python build/mkexe.py"
+  }
+}

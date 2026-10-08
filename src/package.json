@@ -1,0 +1,111 @@
+{
+  "name": "dsh-pet",
+  "version": "1.1.0",
+  "description": "「可爱大肥鱼桌宠」的桌宠本体（宿主半侧入口）：待机动画、随机动作、桌面漫步、陪聊与看屏幕。由 Mikolu 独立开发和维护；早期基础架构来自上游 dsh-pet 0.3.0（MIT，作者 PC2005-cloud）。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "desktop-pet",
+    "pet",
+    "floating-widget",
+    "web-ui",
+    "cordis",
+    "react"
+  ],
+  "homepage": "https://github.com/12we21/cute-fat-fish-pet#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/12we21/cute-fat-fish-pet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/12we21/cute-fat-fish-pet/issues"
+  },
+  "_comment": [
+    "=============== 包清单说明（1.1.0 独立仓库） ===============",
+    "type: module —— 本包是 ESM",
+    "main: lib/index.js —— 宿主半侧入口（Cordis 插件：name/inject/apply）",
+    "exports['./client'] —— 浏览器半侧入口，DSH 模块系统按它提供 /plugins/dsh-pet/client.js",
+    "dsh.bundle.patch —— 声明本包是 bundle，patch 文件是 cordis.patch.yml（安装后自动进层栈）",
+    "dsh.client —— 声明浏览器半侧的注入依赖和平台（web）",
+    "files —— npm publish 只发这些目录/文件（assets/webm 播放资源（VP9-alpha，浏览器 Chrome/Edge/Firefox 与桌面模式共用））",
+    "scripts.ensure:electron —— 自动下载 Electron（装到没预装 Electron 的机器时用）",
+    "scripts.test —— 单元素测试（用 node 自带的类型擦除，不需要额外依赖）。已知：上游的 routes / work-status-lifecycle / displays 三个文件要 DSH 宿主包（@deepseek-ai/*），本仓库不带，会报 ERR_MODULE_NOT_FOUND；host-liveness 里有 2 条断言查上游构建脚本（scripts/start-desktop.mjs、scripts/prepack-check.js），本仓库没有这两个文件。其余文件应全绿。",
+    "peerDependencies —— 运行时由宿主（DSH）提供的模块，本包不打包它们",
+    "上游的构建/发布流水线（tsdown、prepare、prepack、typecheck、lint）不随本仓库分发：本仓库的构建入口在仓库根的 package.json（build/build.mjs 等）",
+    "================================================"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./src/*": "./src/*",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "assets/webm",
+    "runtime/electron-helper",
+    "assets/fonts",
+    "assets/pic",
+    "assets/memes",
+    "assets/config.jsonc",
+    "scripts/ensure-electron.mjs",
+    "cordis.patch.yml"
+  ],
+  "scripts": {
+    "ensure:electron": "node scripts/ensure-electron.mjs",
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "license": "MIT",
+  "author": "Mikolu",
+  "dependencies": {
+    "@electron-internal/extract-zip": "^1.0.5",
+    "@electron/get": "^5.1.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-connection"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-agent-default-model": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-client-connection": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-commands": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-credentials": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-home-paths": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-host-webserver": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-llm": "^0.2.0-rc.1",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.2.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^10.9.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.9.6",
+    "rolldown": "1.0.0-beta.7",
+    "tsdown": "^0.8.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.67.0"
+  }
+}

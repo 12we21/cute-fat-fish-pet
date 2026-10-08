@@ -1,0 +1,14 @@
+{
+  "running": false,
+  "trigger": "watch",
+  "verbosity": "chatty",
+  "brain": "auto",
+  "intervalSec": 20,
+  "minGapSec": 45,
+  "changeThreshold": 10,
+  "maxCallsPerHour": 35,
+  "localProvider": "ollama",
+  "localApi": "http://127.0.0.1:11434",
+  "localModel": "",
+  "quipModel": ""
+}
