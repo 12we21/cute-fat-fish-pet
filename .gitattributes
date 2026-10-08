@@ -1,9 +1,12 @@
 # 默认按文本处理，行尾随各平台
 * text=auto
 
-# Windows 脚本必须是 CRLF（安装器 / 卸载器 / 快捷方式脚本）
-*.ps1 text eol=crlf
-*.cmd text eol=crlf
+# Windows 脚本按 LF 存：1.1.1 修 KI-3 时把安装器/卸载器两个 .cmd 重写成
+# 纯 ASCII + 无 BOM + LF，发布出去的 zip / exe 里就是这份字节；
+# 让检出结果与发布字节一致（eol=crlf 会让新克隆出来的副本变成 CRLF，
+# 与包内文件对不上）。cmd.exe 与 PowerShell 两种行尾都能跑。
+*.ps1 text eol=lf
+*.cmd text eol=lf
 
 # .vbs 是 UTF-16LE + BOM、行尾是 LF，含中文文案（"蓝毛小女仆" 等）。
 # 与 1.0.0 已发布副本逐字节一致，所以按二进制存：对 UTF-16 做行尾转换会把文件写坏。
