@@ -65,22 +65,28 @@ git push -u origin main
 3. Release title：`可爱大肥鱼桌宠 1.1.0`
 4. 说明：把 `docs\发布说明-1.1.0.md` 的内容整段粘进去（**记得先把指纹表里的「打包后填写」换成真值**）
 5. 附件（Attach binaries）：拖进 `release\` 里这四个文件
-   - `可爱大肥鱼桌宠-1.1.0-安装程序.exe`（**主推**，双击就能装；GitHub 附件单文件上限 2 GB，够）
-   - `可爱大肥鱼桌宠-1.1.0-安装程序.exe.sha256`
-   - `可爱大肥鱼桌宠-1.1.0-win-x64.zip`（绿色包）
-   - `可爱大肥鱼桌宠-1.1.0-win-x64.zip.sha256`
+   - `cute-fat-fish-pet-1.1.0-setup.exe`（**主推**，双击就能装；GitHub 附件单文件上限 2 GB，够）
+   - `cute-fat-fish-pet-1.1.0-setup.exe.sha256`
+   - `cute-fat-fish-pet-1.1.0-win-x64.zip`（绿色包）
+   - `cute-fat-fish-pet-1.1.0-win-x64.zip.sha256`
 6. **Publish release**
 
 用 `gh` 一条命令也行：
 
 ```powershell
 gh release create v1.1.0 `
-  "release\可爱大肥鱼桌宠-1.1.0-安装程序.exe" `
-  "release\可爱大肥鱼桌宠-1.1.0-安装程序.exe.sha256" `
-  "release\可爱大肥鱼桌宠-1.1.0-win-x64.zip" `
-  "release\可爱大肥鱼桌宠-1.1.0-win-x64.zip.sha256" `
+  "release\cute-fat-fish-pet-1.1.0-setup.exe" `
+  "release\cute-fat-fish-pet-1.1.0-setup.exe.sha256" `
+  "release\cute-fat-fish-pet-1.1.0-win-x64.zip" `
+  "release\cute-fat-fish-pet-1.1.0-win-x64.zip.sha256" `
   --title "可爱大肥鱼桌宠 1.1.0" --notes-file "docs\发布说明-1.1.0.md"
 ```
+
+> **附件名必须全是 ASCII。** GitHub 会把资产名里的非 ASCII 字符直接删掉：上传
+> `可爱大肥鱼桌宠-1.1.0-安装程序.exe` 之后页面上显示成 `-1.1.0-.exe`，用 API
+> 改名（`gh api -X PATCH repos/<owner>/<repo>/releases/assets/<id> --input name.json`，
+> payload 是 UTF-8 无 BOM 的 `{"name":"…"}`）也会被同样地净化掉。所以 `build\mkexe.py`
+> 与 `build\mkzip.py` 现在都产出 ASCII 文件名；中文只留在产品名、快捷方式、「应用和功能」里。
 
 > 产物名和版本号都是从 `src\package.json` 的 `version` 生成的，改名之前先改那里。
 

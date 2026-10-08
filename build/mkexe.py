@@ -4,7 +4,9 @@
 
 为什么单独写一个：makensis 的路径、版本号、输出文件名这三件事不该手打。
 版本号取自 src\\package.json（唯一来源），产物固定是
-    release\\可爱大肥鱼桌宠-<版本>-安装程序.exe
+    release\\cute-fat-fish-pet-<版本>-setup.exe
+（文件名只用 ASCII：GitHub Release 会删掉资产名里的非 ASCII 字符，中文产品名
+仍然留在安装界面、「应用和功能」和快捷方式里。）
 并顺手算好 SHA256 写成同名 .sha256（UTF-8 带 BOM，格式 <哈希>  <文件名>）。
 
 用法：
@@ -61,7 +63,7 @@ def main():
 
     ver = app_version()
     stage = ROOT / "stage"
-    exe = ROOT / "release" / ("可爱大肥鱼桌宠-%s-安装程序.exe" % ver)
+    exe = ROOT / "release" / ("cute-fat-fish-pet-%s-setup.exe" % ver)
 
     # 打包前先看看 stage 是不是像样的（省得编了 9 分钟才发现是空的）
     must = [stage / "electron" / "electron.exe", stage / "launcher" / "pet.ico", stage / "app" / "package.json"]

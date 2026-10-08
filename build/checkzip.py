@@ -4,7 +4,7 @@
 报告写 <解压到哪>\\..\\_zipreport.txt（UTF-8），避免控制台编码干扰。
 
 三个参数都可以不给，默认值全部**从脚本自身位置推导**，克隆到哪台机器都在仓库里：
-    zip      <仓库根>\\release\\可爱大肥鱼桌宠-<版本>-win-x64.zip（版本取自 src\\package.json）
+    zip      <仓库根>\\release\\cute-fat-fish-pet-<版本>-win-x64.zip（版本取自 src\\package.json）
    原树      <仓库根>\\stage\\     ← build\\build.mjs 铺出来的那棵发布树
    解压到哪  <仓库根>\\_accept\\ziptest\\
 「解压到哪」这块临时目录也认环境变量 BLUEHAIRMAID_ACCEPT_ROOT：
@@ -40,7 +40,7 @@ def default_zip():
     rel = os.path.join(ROOT, "release")
     cand = None
     if ver:
-        named = os.path.join(rel, "可爱大肥鱼桌宠-%s-win-x64.zip" % ver)
+        named = os.path.join(rel, "cute-fat-fish-pet-%s-win-x64.zip" % ver)
         if os.path.isfile(named):
             cand = named
     if cand is None:
@@ -50,7 +50,7 @@ def default_zip():
             cand = max(got, key=os.path.getmtime)
     if cand is None:
         raise SystemExit("release\\ 里没有 .zip：先跑 python build\\mkzip.py" +
-                         ("（期望 可爱大肥鱼桌宠-%s-win-x64.zip）" % ver if ver else ""))
+                         ("（期望 cute-fat-fish-pet-%s-win-x64.zip）" % ver if ver else ""))
     return cand
 
 

@@ -4,7 +4,7 @@
 > 本文件是桌宠本体 **dsh-pet** 的原版说明，随本仓库 1.1.0 的源码一起分发，以保留上游（MIT，作者 PC2005-cloud）的完整文档与署名。下面正文一字未改。
 >
 > - 「可爱大肥鱼桌宠 / 蓝毛小女仆」由 **Mikolu** 独立开发和维护；早期基础架构与灵感来自原作者 PC2005-cloud 在 0.3.0 版本的工作。
-> - 下面「快速开始（安装插件）」里的 `dsh plugin --profile web add dsh-pet` 是**宿主插件安装法**，**不适用于独立版**：独立版是装 `可爱大肥鱼桌宠-1.1.0-安装程序.exe`，或解压 zip 后跑 `安装.cmd`。
+> - 下面「快速开始（安装插件）」里的 `dsh plugin --profile web add dsh-pet` 是**宿主插件安装法**，**不适用于独立版**：独立版是装 `cute-fat-fish-pet-1.1.0-setup.exe`，或解压 zip 后跑 `安装.cmd`。
 > - 只想用这只桌宠的话，请看仓库根目录的 [README](../README.md)、[NOTICE](../NOTICE.md) 与 [发布说明](../docs/发布说明-1.1.0.md)。
 > - 独立版为什么还叫 `dsh-pet`、数据目录为什么还叫 `BlueHairMaid`：见 [NOTICE](../NOTICE.md) 第 5 节（改这些标识会让老用户的人设与记忆搬家）。
 

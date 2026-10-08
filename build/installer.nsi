@@ -1,7 +1,7 @@
 ; ============================================================================
 ;  可爱大肥鱼桌宠 · 安装程序（NSIS）——给小白用的一路「下一步」安装
 ; ----------------------------------------------------------------------------
-;  产物：release\可爱大肥鱼桌宠-<版本>-安装程序.exe
+;  产物：release\cute-fat-fish-pet-<版本>-setup.exe（文件名只用 ASCII，见下方 OutFile 注释）
 ;  安装到用户目录（默认 %LOCALAPPDATA%\BlueHairMaid），不需要管理员权限。
 ;  在桌面 + 开始菜单放快捷方式，在「设置 → 应用」登记卸载项，自带 Uninstall.exe。
 ;  人设/记忆/聊天记录在 %APPDATA%\BlueHairMaid，卸载时会问要不要一起删。
@@ -29,7 +29,10 @@ Unicode true
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}"
 
 Name "${APP_NAME}"
-OutFile "${ROOT}\release\可爱大肥鱼桌宠-${APP_VER}-安装程序.exe"
+; 产物文件名只用 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
+; （中文名上传后会变成 "-1.1.0-.exe"），所以对外发布的文件名保持英文，
+; 中文只留在产品名 / 快捷方式 / 「应用和功能」里。
+OutFile "${ROOT}\release\cute-fat-fish-pet-${APP_VER}-setup.exe"
 InstallDir "$LOCALAPPDATA\${APP_ID}"
 InstallDirRegKey HKCU "Software\${APP_ID}" "InstallDir"
 RequestExecutionLevel user

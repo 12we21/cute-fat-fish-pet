@@ -5,7 +5,7 @@ r"""打发布包：把 stage\\ 压成 zip。
 Python 的 zipfile 遇到非 ASCII 名字会自动带上 UTF-8 标志位，Explorer / 7-Zip 都认。
 
 用法：
-    python build\\mkzip.py                 # stage\ -> release\可爱大肥鱼桌宠-<版本>-win-x64.zip
+    python build\\mkzip.py                 # stage\ -> release\cute-fat-fish-pet-<版本>-win-x64.zip
     python build\\mkzip.py <源目录> <输出.zip>
 版本号取自 src\\package.json（唯一来源）。
 """
@@ -28,7 +28,9 @@ def app_version():
 
 VER = app_version()
 SRC = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "stage"
-OUT = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else ROOT / "release" / ("可爱大肥鱼桌宠-%s-win-x64.zip" % VER)
+OUT = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else ROOT / "release" / ("cute-fat-fish-pet-%s-win-x64.zip" % VER)
+# 文件名只用 ASCII：GitHub Release 会删掉资产名里的非 ASCII 字符（"可爱大肥鱼桌宠-1.1.0-…"
+# 上传后变成 "-1.1.0-…"），所以对外发布的文件名保持英文。
 SKIP_DIRS = {"_newpc", "_testuser"}
 SKIP_NAMES = {"portable.txt"}
 

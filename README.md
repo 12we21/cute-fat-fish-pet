@@ -63,7 +63,7 @@
 
 ### 方式一：安装程序（推荐）
 
-下载 **`可爱大肥鱼桌宠-1.1.0-安装程序.exe`**（约 330 MB，NSIS 安装器）双击。
+下载 **`cute-fat-fish-pet-1.1.0-setup.exe`**（约 330 MB，NSIS 安装器）双击。
 
 - 默认装到 `%LOCALAPPDATA%\BlueHairMaid`——**不需要管理员权限**。
 - 想装到别处（D 盘 / 移动硬盘）就在「选择安装位置」那一步改；装完会建开始菜单项和桌面快捷方式。
@@ -73,7 +73,7 @@
 
 ### 方式二：绿色 zip 包
 
-下载 **`可爱大肥鱼桌宠-1.1.0-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+下载 **`cute-fat-fish-pet-1.1.0-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
 
 - 双击 `安装.cmd`：建快捷方式、写卸载登记（想让它像装过一样）；
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
@@ -82,11 +82,14 @@
 
 ### 每个包都带 `.sha256`
 
-`可爱大肥鱼桌宠-1.1.0-安装程序.exe.sha256`、`可爱大肥鱼桌宠-1.1.0-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
+`cute-fat-fish-pet-1.1.0-setup.exe.sha256`、`cute-fat-fish-pet-1.1.0-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
 
 ```powershell
-Get-FileHash .\可爱大肥鱼桌宠-1.1.0-安装程序.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
 ```
+
+> 发布用的文件名一律是 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
+> （中文名上传后会变成 `-1.1.0-.exe`）。中文只留在产品名、快捷方式和「应用和功能」里。
 
 ### 装完怎么开、怎么关、怎么卸
 
@@ -209,8 +212,8 @@ Get-FileHash .\可爱大肥鱼桌宠-1.1.0-安装程序.exe -Algorithm SHA256
 ```powershell
 npm run toolchain                                   # 先看缺什么、去哪儿拿
 node build\build.mjs --toolchain <一份已装好的可爱大肥鱼桌宠目录>   # 按发布结构铺进 stage\
-npm run exe                                         # python build\mkexe.py  → release\...安装程序.exe
-npm run zip                                         # python build\mkzip.py  → release\...win-x64.zip
+npm run exe                                         # python build\mkexe.py  → release\cute-fat-fish-pet-<版本>-setup.exe
+npm run zip                                         # python build\mkzip.py  → release\cute-fat-fish-pet-<版本>-win-x64.zip
 npm run verify                                      # 核对 stage\ 的整树指纹（应全 OK）
 npm run paths                                       # 构建期隐私路径门禁：本机绝对路径 / 私人目录不得进包
 ```
@@ -222,7 +225,7 @@ node build\build.mjs launcher assets   # 只铺这几块（块名：app launcher
 node build\build.mjs --list            # 只看会做什么，不动磁盘
 ```
 
-产物名由 `src\package.json` 的 `version` 生成，所以这一版就是 `可爱大肥鱼桌宠-1.1.0-安装程序.exe` 和 `可爱大肥鱼桌宠-1.1.0-win-x64.zip`。
+产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.0-setup.exe` 和 `cute-fat-fish-pet-1.1.0-win-x64.zip`。
 
 > 构建脚本口径以 `build\build.mjs` 头部注释和根 `package.json` 的 `scripts` 为准；`build\check-paths.mjs` 是构建期门禁，`--no-gate` 能跳过（不推荐）。
 
