@@ -89,17 +89,30 @@ gh release create v1.1.0 `
 ```
 
 > **另外每次都要传一个不带版本号的别名资产**，README / 发布说明里那条「永远指向最新版」的链接才一直有效：
-> `cute-fat-fish-pet-setup.exe`（内容与带版本号的完全相同，可以理解为给下载链接用的稳定门牌号）与它的 `.sha256`。
-> GitHub 的 `…/releases/latest/download/<文件名>` 是按**文件名**去最新那一版里找资产的，文件名里带版本号的话，下一版就 404 了。
-> 上传办法（用 `#` 指定资产显示名，避免在本地复制一份 330 MB 的文件）：
+> `cute-fat-fish-pet-setup.exe`（内容与带版本号的完全相同，等于给下载链接一个固定的门牌号）与它的 `.sha256`。
+> GitHub 的 `…/releases/latest/download/<文件名>` 是按**资产名**去最新那一版里找资产的，名字里带版本号的话，下一版就 404。
+>
+> 做法：本地复制一份改过名的副本再上传。
+> ⚠️ 别用 `gh` 的 `文件名#标签` 语法去改名 —— 它设的是**显示标签**，不是资产名：2026-10-08 实测，
+> 用 `#` 传上去之后资产名仍然是带版本号的那个，永久链接照样 404，而那个多余的标签还得用
+> `gh api -X PATCH repos/<owner>/<repo>/releases/assets/<数字 id> --input label.json` 清掉
+> （payload 必须是 `{"label":""}`；`{"label":null}` 会被 422 拒绝。数字 id 从
+> `gh api repos/<owner>/<repo>/releases/latest` 的 `.assets[].id` 取，`gh release view --json assets`
+> 给的是 `RA_…` 形式的 node id，拿去 PATCH 会 404）。
 >
 > ```powershell
-> gh release upload v1.1.0 "release\cute-fat-fish-pet-1.1.0-setup.exe#cute-fat-fish-pet-setup.exe" --clobber
-> gh release upload v1.1.0 "release\cute-fat-fish-pet-1.1.0-setup.exe.sha256#cute-fat-fish-pet-setup.exe.sha256" --clobber
+> Copy-Item "release\cute-fat-fish-pet-1.1.0-setup.exe" "release\cute-fat-fish-pet-setup.exe"
+> $h = ((Get-Content "release\cute-fat-fish-pet-1.1.0-setup.exe.sha256" -Raw).Trim() -split '\s+')[0]
+> Set-Content "release\cute-fat-fish-pet-setup.exe.sha256" "$h  cute-fat-fish-pet-setup.exe" -Encoding ASCII
+> gh release upload v1.1.0 "release\cute-fat-fish-pet-setup.exe" "release\cute-fat-fish-pet-setup.exe.sha256"
+> Remove-Item "release\cute-fat-fish-pet-setup.exe"   # 传完就删，别白占 348 MB
 > ```
 >
-> 注意 `.sha256` 文件里写的是**带版本号**的文件名，别名资产的核对命令要相应写成
-> `Get-FileHash .\cute-fat-fish-pet-setup.exe` 再跟文件里的哈希值比。
+> 传完自己验一下永久链接（要 200，且 `Content-Length` 等于 exe 大小，v1.1.0 是 347902120）：
+>
+> ```powershell
+> Invoke-WebRequest -Method Head "https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe"
+> ```
 
 > **附件名必须全是 ASCII。** GitHub 会把资产名里的非 ASCII 字符直接删掉：上传
 > `可爱大肥鱼桌宠-1.1.0-安装程序.exe` 之后页面上显示成 `-1.1.0-.exe`，用 API
