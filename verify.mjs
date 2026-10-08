@@ -18,8 +18,8 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // >>>GENERATED 由 build\check-release.mjs --emit --write 生成，别手改这一段
 const EXPECT = {
-  app: { files: 593, bytes: 74542741, treeSha256: "c891b47932c513c10947fc28fd12c604115178cf5bee61c9ce5978035530bb40" },
-  launcher: { files: 9, bytes: 343634, treeSha256: "c2c27623ae9972185a1fb7b099e0ca0acd37e44b5a369cc7295247f3ac06b6c3" },
+  app: { files: 593, bytes: 74542823, treeSha256: "abd218fd6d429d2853d3df175ace73166750620756337935b2bd0cfca318077b" },
+  launcher: { files: 9, bytes: 343634, treeSha256: "2fd87113e02970cbecabc9cffbb9ac8cff88623282b311774d13168cb02c389e" },
   standalone: { files: 14, bytes: 104951, treeSha256: "b8811f15a6462d4e7a9daa6e81269cfa94949612f25a6897cea63eb56f8a82cc" },
   defaults: { files: 4, bytes: 13967, treeSha256: "4f95360682c89202b714cbc8fca606fa6a29667c34397be08c5f081118d5229b" },
 };
@@ -39,7 +39,7 @@ const OURS = {
   'launcher/rec.js': [22702, 'b63c254334e3672218920ebba75b49e604602e3fd4fcd5130837ac0ff101bcd2'],
   'launcher/agent.js': [22851, '9a67364fb317724397bfa605c20692a7c9734e04d8b56562e02b828342d19651'],
   'launcher/pet.ico': [142521, 'b727ea4dcec32409cb6bc4709489276b5daaf90fe180184298e598b35bcfc6c0'],
-  'launcher/package.json': [259, 'f2aaf135cf30b5ded24bf18530068c84657b5432727ab72a04d3745143b38e1f'],
+  'launcher/package.json': [259, 'ab8e65c5e4e4e82fa339642d304383f793a1ce981d01dcd95ed77b1ab2f0c1c4'],
   'standalone/main.mjs': [27034, '0ef47d97ea7bfa857c8e9e3d9d67e59a7a3f792a5c16e8518b2cdd28669f4dee'],
   'standalone/server.mjs': [8681, '07a7ca5c1e18fbb46693869603d1593b05b492f573184ac6473ab2497c85404d'],
   'standalone/context.mjs': [12059, 'ae85889600d9402743ef60bb781b7f17fcdd58f768ba42c639a1d119eaa823f8'],

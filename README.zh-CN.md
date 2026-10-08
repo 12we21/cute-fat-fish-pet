@@ -67,7 +67,7 @@
 
 ### 方式一：安装程序（推荐）
 
-下载 **`cute-fat-fish-pet-1.1.0-setup.exe`**（约 330 MB，NSIS 安装器）双击。
+下载 **`cute-fat-fish-pet-1.1.1-setup.exe`**（约 330 MB，NSIS 安装器）双击。
 
 > **永远指向最新版的链接**：每一版都会额外放一份去掉版本号、内容完全相同的副本，
 > 所以下面这条链接永远是最新安装包：
@@ -81,7 +81,12 @@
 
 ### 方式二：绿色 zip 包
 
-下载 **`cute-fat-fish-pet-1.1.0-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+下载 **`cute-fat-fish-pet-1.1.1-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+
+> **1.1.1 把这条绿色包的路整条修好了。** 一定要**先解压**（右键 →「全部解压缩…」），再到解压出来的目录里双击
+> `安装.cmd`：它会先检查包是否完整，缺件时用中文说明（旧版是一闪而过、什么都不说）；
+> 装出来的名字是「可爱大肥鱼桌宠」、版本号是真的；`卸载.cmd` 也会真的把整个目录删干净，而不是留下 714 个文件。
+> 细节见 [1.1.1 发布说明](docs/release-notes-1.1.1.md) 与 [已确认缺陷](docs/known-issues.md)。
 
 - 双击 `安装.cmd`：建快捷方式、写卸载登记（想让它像装过一样）；
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
@@ -90,10 +95,10 @@
 
 ### 每个包都带 `.sha256`
 
-`cute-fat-fish-pet-1.1.0-setup.exe.sha256`、`cute-fat-fish-pet-1.1.0-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
+`cute-fat-fish-pet-1.1.1-setup.exe.sha256`、`cute-fat-fish-pet-1.1.1-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.1.1-setup.exe -Algorithm SHA256
 ```
 
 > 发布用的文件名一律是 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
@@ -252,7 +257,7 @@ node build\build.mjs launcher assets   # 只铺这几块（块名：app launcher
 node build\build.mjs --list            # 只看会做什么，不动磁盘
 ```
 
-产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.0-setup.exe` 和 `cute-fat-fish-pet-1.1.0-win-x64.zip`。
+产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.1-setup.exe` 和 `cute-fat-fish-pet-1.1.1-win-x64.zip`。
 
 > 构建脚本口径以 `build\build.mjs` 头部注释和根 `package.json` 的 `scripts` 为准；`build\check-paths.mjs` 是构建期门禁，`--no-gate` 能跳过（不推荐）。
 
@@ -260,12 +265,12 @@ node build\build.mjs --list            # 只看会做什么，不动磁盘
 
 ## 核对下载
 
-1.1.0 的两个成品：
+1.1.1 的两个成品：
 
 | 文件 | 字节数 | SHA-256 |
 | --- | --- | --- |
-| `cute-fat-fish-pet-1.1.0-setup.exe` | 347902120 | `6C87705E890D020E95D23040A65F1DA6EB6224DDF4FB156AA1816D295F12C882` |
-| `cute-fat-fish-pet-1.1.0-win-x64.zip` | 416989171 | `7915809C79C9AE7F58FE7DB766BC68C399F8224CB9F024F05AE3CDE45D5075A9` |
+| `cute-fat-fish-pet-1.1.1-setup.exe` | 347882493 | `9A0DBB160E92C9192E1F7BB7D37D620B45F0F77DCE462A9ACC1AEB3908FC2022` |
+| `cute-fat-fish-pet-1.1.1-win-x64.zip` | 416992984 | `18A22ED88D221F71BA3872D3CA9A854B09BEF8C07B3EEBE6E71F8C0544C4C4DC` |
 
 每个成品旁边都有同名 `.sha256`，发布说明里也有一份。
 
@@ -285,6 +290,7 @@ node verify.mjs
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | 开发日志：每一步的动机 → 改动 → 验证 → 提交 |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | 与上游 dsh-pet 0.3.0 的逐文件差异（含大小与 SHA-256） |
+| [docs/release-notes-1.1.1.md](docs/release-notes-1.1.1.md) | 1.1.1 发布说明 —— 绿色包双击即装、卸载不留残骸 |
 | [docs/release-notes-1.1.0.md](docs/release-notes-1.1.0.md) | 1.1.0 发布说明（首次公开发布） |
 | [docs/architecture-roadmap.zh-CN.md](docs/architecture-roadmap.zh-CN.md) | 架构路线图：去宿主化、控制桥安全、长期计划 |
 | [docs/how-to-publish.zh-CN.md](docs/how-to-publish.zh-CN.md) | 发布流程 |

@@ -31,7 +31,7 @@ There is no patching step any more: `src/` **is** the shipped source. Building i
 | Product name | Cute Fat Fish Pet (可爱大肥鱼桌宠) |
 | The character | Blue-Haired Little Maid (蓝毛小女仆) |
 | Author / maintainer | Mikolu |
-| Version | 1.1.0 |
+| Version | 1.1.1 |
 | License | MIT — see [LICENSE](LICENSE) |
 
 ### Internal identifiers are kept on purpose (`dsh-pet` / `BlueHairMaid`)
@@ -74,7 +74,7 @@ The same list is in [NOTICE.md](NOTICE.md) (section 5), and the reasoning behind
 
 ### Option 1 — installer (recommended)
 
-Download **`cute-fat-fish-pet-1.1.0-setup.exe`** (about 330 MB, NSIS) and double-click it.
+Download **`cute-fat-fish-pet-1.1.1-setup.exe`** (about 330 MB, NSIS) and double-click it.
 
 > **Always-latest link:** every release also carries a byte-identical copy without the version in
 > its name, so this one link always points at the newest installer:
@@ -88,7 +88,13 @@ Download **`cute-fat-fish-pet-1.1.0-setup.exe`** (about 330 MB, NSIS) and double
 
 ### Option 2 — portable zip
 
-Download **`cute-fat-fish-pet-1.1.0-win-x64.zip`** (about 400 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
+Download **`cute-fat-fish-pet-1.1.1-win-x64.zip`** (about 400 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
+
+> **1.1.1 fixed this path end to end.** Unpack the zip **first** (right-click → *Extract All…*) and only then double-click
+> `安装.cmd` inside the extracted folder. It checks that the package is complete and explains the problem in Chinese if it
+> is not (the old one just flashed and closed), installs under the name 「可爱大肥鱼桌宠」 with the real version number, and
+> `卸载.cmd` now really removes the directory instead of leaving all 714 files behind.
+> Details: [release notes 1.1.1](docs/release-notes-1.1.1.md) · [confirmed defects](docs/known-issues.md).
 
 - double-click `安装.cmd` — creates the shortcuts and the uninstall entry (as if it had been installed), or
 - double-click `standalone\start-pet.vbs` to start her and `standalone\stop-pet.vbs` to stop her (fully portable, writes no registry keys).
@@ -99,10 +105,10 @@ Use the second one on a USB stick. If you want her data to travel with the progr
 
 ### Every download comes with a `.sha256`
 
-`cute-fat-fish-pet-1.1.0-setup.exe.sha256` and `cute-fat-fish-pet-1.1.0-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
+`cute-fat-fish-pet-1.1.1-setup.exe.sha256` and `cute-fat-fish-pet-1.1.1-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.1.1-setup.exe -Algorithm SHA256
 ```
 
 > Release file names are ASCII on purpose: GitHub Releases deletes non-ASCII characters from
@@ -264,7 +270,7 @@ node build\build.mjs --list            # show what it would do, touch nothing
 
 Blocks: `app launcher standalone defaults assets verify electron node speech`.
 
-Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.1.0-setup.exe` and `cute-fat-fish-pet-1.1.0-win-x64.zip`.
+Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.1.1-setup.exe` and `cute-fat-fish-pet-1.1.1-win-x64.zip`.
 
 > The build contract lives in the header of `build\build.mjs` and in the root `package.json` scripts.
 > `build\check-paths.mjs` is a build gate; `--no-gate` skips it (not recommended).
@@ -285,12 +291,12 @@ Artifact names come from the `version` field in `src\package.json` and are ASCII
 
 ## Verify your download
 
-1.1.0 artifacts:
+1.1.1 artifacts:
 
 | File | Size (bytes) | SHA-256 |
 | --- | --- | --- |
-| `cute-fat-fish-pet-1.1.0-setup.exe` | 347902120 | `6C87705E890D020E95D23040A65F1DA6EB6224DDF4FB156AA1816D295F12C882` |
-| `cute-fat-fish-pet-1.1.0-win-x64.zip` | 416989171 | `7915809C79C9AE7F58FE7DB766BC68C399F8224CB9F024F05AE3CDE45D5075A9` |
+| `cute-fat-fish-pet-1.1.1-setup.exe` | 347882493 | `9A0DBB160E92C9192E1F7BB7D37D620B45F0F77DCE462A9ACC1AEB3908FC2022` |
+| `cute-fat-fish-pet-1.1.1-win-x64.zip` | 416992984 | `18A22ED88D221F71BA3872D3CA9A854B09BEF8C07B3EEBE6E71F8C0544C4C4DC` |
 
 The same hashes are in the `.sha256` files next to each asset, and in the release notes.
 
@@ -310,6 +316,7 @@ The build also enforces this from the other side: `build\check-release.mjs` prov
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | Development log: motivation → change → verification → commit, for every step of this project |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | Every file that differs from upstream dsh-pet 0.3.0, with sizes and SHA-256 |
+| [docs/release-notes-1.1.1.md](docs/release-notes-1.1.1.md) | 1.1.1 release notes — the portable zip installs and uninstalls on a double-click |
 | [docs/release-notes-1.1.0.md](docs/release-notes-1.1.0.md) | 1.1.0 release notes (first public release) |
 | [docs/architecture-roadmap.zh-CN.md](docs/architecture-roadmap.zh-CN.md) | Architecture roadmap: host-coupling removal, control-bridge security, long-term plans (Chinese) |
 | [docs/how-to-publish.zh-CN.md](docs/how-to-publish.zh-CN.md) | How a release is published (Chinese) |

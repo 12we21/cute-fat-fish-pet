@@ -1,7 +1,7 @@
 # NOTICE — copyright, attribution and third-party components
 
 Cute Fat Fish Pet (the character is called 蓝毛小女仆, "Blue-Haired Little Maid").
-Developed and maintained by **Mikolu**; version 1.1.0.
+Developed and maintained by **Mikolu**; version 1.1.1.
 
 This file answers three questions: **whose work is this, whose code does it use, and which legal texts ship inside the package.** The plain-language version for users is in [`assets/使用说明.txt`](assets/使用说明.txt) (sections 7 and 8); the per-component list is [`assets/第三方声明.txt`](assets/第三方声明.txt).
 
@@ -59,7 +59,7 @@ Questions, ideas or feature requests: open an issue in this repository. Security
 
 ## 中文版
 
-**可爱大肥鱼桌宠**（她叫「蓝毛小女仆」），由 **Mikolu** 独立开发与维护，当前版本 1.1.0。
+**可爱大肥鱼桌宠**（她叫「蓝毛小女仆」），由 **Mikolu** 独立开发与维护，当前版本 1.1.1。
 
 1. **本项目**：MIT，见 [`LICENSE`](LICENSE)；`LICENSE` 里保留两段版权 —— 上游桌宠 dsh-pet（<https://github.com/PC2005-cloud/dsh-pet>）原作者 `PC2005-cloud`，以及本整合发布版 `Mikolu`。特别感谢原作者在 0.3.0 版本提供的早期基础架构与灵感。
 2. **上游署名一个字都没删**：上游 MIT 全文以 [`assets/LICENSE.txt`](assets/LICENSE.txt) **逐字节原样**随包分发；[`assets/第三方声明.txt`](assets/第三方声明.txt) 第 1 段保留上游名称、作者与许可证指向。逐文件差异（含大小与 SHA-256）公开在 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)。

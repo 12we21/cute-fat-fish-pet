@@ -1,9 +1,11 @@
 ﻿# ============================================================================
-#  蓝毛小女仆 · 一键安装（绿色版）
+#  可爱大肥鱼桌宠 · 一键安装（绿色版）
 # ----------------------------------------------------------------------------
 #  这个脚本做的事（全部只动你自己的用户目录，不需要管理员）：
 #    1. 把这一整包文件复制到安装目录（默认 %LOCALAPPDATA%\BlueHairMaid）
-#    2. 在桌面和开始菜单各放一个「蓝毛小女仆」快捷方式
+#    2. 在桌面和开始菜单各放一个「可爱大肥鱼桌宠」快捷方式
+#       （名字和安装程序装出来的那只完全一样，所以两者可以互相覆盖、
+#        也可以互相卸载 —— 见下面的 $DisplayName）
 #    3. 在「设置 → 应用」里登记一条卸载项（卸载用同目录的 卸载.cmd）
 #    4. 问你要不要现在就打开控制台
 #  人设、记忆、聊天记录、模型设置全部放在 %APPDATA%\BlueHairMaid\，
@@ -23,9 +25,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 $AppName    = "BlueHairMaid"
-$DisplayName = "蓝毛小女仆"
-$Version    = "1.0.0"
+# 对外显示的名字必须和安装程序（build\installer.nsi 的 APP_NAME）一致，
+# 否则便携装出来的快捷方式/「应用和功能」里是另一个名字，两者还会互相打架（KI-2）。
+$DisplayName = "可爱大肥鱼桌宠"
 $Src        = $PSScriptRoot
+# 版本号唯一来源 = 包内 app\package.json（和 zip/exe 的产物名同一个来源），
+# 不写死 —— 以前写死 "1.0.0"，于是便携安装登记出来的版本号一直是错的（KI-2）。
+$Version = ""
+try { $Version = (Get-Content (Join-Path $Src "app\package.json") -Raw -Encoding UTF8 | ConvertFrom-Json).version } catch {}
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = "0.0.0" }
 
 function Say($text, $color = "Gray") { Write-Host $text -ForegroundColor $color }
 function Line() { Say ("-" * 66) "DarkGray" }
@@ -55,9 +63,11 @@ Line
 Say ""
 
 # ---------------------------------------------------- 2. 检查源是否完整/空间
-foreach ($need in @("electron\electron.exe", "app\lib\index.js", "launcher\main.js", "standalone\main.mjs")) {
+foreach ($need in @("electron\electron.exe", "app\package.json", "app\lib\index.js", "launcher\main.js", "standalone\main.mjs")) {
   if (-not (Test-Path (Join-Path $Src $need))) {
     Say "  [x] 源目录不完整，缺少 $need —— 请把压缩包完整解压后再运行。" "Red"
+    Say "      （直接双击 安装.cmd 之前，先右键 zip →「全部解压缩…」到一个短路径，" "DarkGray"
+    Say "        确认这个文件夹里有 electron、app、install.ps1。）" "DarkGray"
     exit 1
   }
 }
@@ -121,7 +131,7 @@ if (-not $NoShortcut) {
   $targets += (Join-Path $startMenu "$DisplayName.lnk")
   foreach ($lnkPath in $targets) {
     try {
-      # 桌面上可能已经有同名的「蓝毛小女仆」（比如以前装的别的副本）——先挪到一边，别直接覆盖
+      # 同名快捷方式已存在：如果它指向别处（别的目录里还装着一份），先改名留档再覆盖
       if (Test-Path $lnkPath) {
         $old = $null
         try { $old = $ws.CreateShortcut($lnkPath).TargetPath } catch {}
@@ -142,6 +152,19 @@ if (-not $NoShortcut) {
       Say "    ✓ $lnkPath" "Green"
     } catch { Say "    [!] 快捷方式创建失败：$lnkPath （$($_.Exception.Message)）" "Yellow" }
   }
+
+  # 1.0.0 / 1.1.0 的 zip 留下的快捷方式叫「蓝毛小女仆」。重新装一遍之后桌面上会多出
+  # 一个旧名图标；只要它还指向这次的安装目录，就改名留档，别让桌面上留两个图标。
+  $legacyLnk = Join-Path ([Environment]::GetFolderPath("Desktop")) "蓝毛小女仆.lnk"
+  if (Test-Path $legacyLnk) {
+    $pointsHere = $false
+    try { $pointsHere = ($ws.CreateShortcut($legacyLnk).TargetPath -like "$Target*") } catch {}
+    if ($pointsHere) {
+      $bak = "$legacyLnk.bak-$(Get-Date -Format yyyyMMdd-HHmmss)"
+      Move-Item $legacyLnk $bak -Force -ErrorAction SilentlyContinue
+      Say "    旧版快捷方式「蓝毛小女仆」已改名留档：$(Split-Path $bak -Leaf)" "Yellow"
+    }
+  }
 }
 
 # ---------------------------------------------------------------- 6. 登记卸载
@@ -151,7 +174,7 @@ try {
   $unins = Join-Path $Target "卸载.cmd"
   Set-ItemProperty -Path $key -Name "DisplayName"     -Value $DisplayName
   Set-ItemProperty -Path $key -Name "DisplayVersion"  -Value $Version
-  Set-ItemProperty -Path $key -Name "Publisher"       -Value "本地版本（基于 dsh-pet 改造）"
+  Set-ItemProperty -Path $key -Name "Publisher"       -Value "Mikolu · MIT 开源（早期架构来自 PC2005-cloud 的 dsh-pet 0.3.0）"
   Set-ItemProperty -Path $key -Name "InstallLocation" -Value $Target
   Set-ItemProperty -Path $key -Name "DisplayIcon"     -Value "$icon,0"
   Set-ItemProperty -Path $key -Name "UninstallString" -Value "`"$unins`""

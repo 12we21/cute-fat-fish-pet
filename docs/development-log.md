@@ -91,6 +91,22 @@ That import is the baseline for everything else. **232 of the 243 files in the p
 - The repository was created as a public repository and the first push landed (`git rev-list --left-right --count origin/main...main` → `0 0`).
 - Release **v1.1.0** was published with the two artifacts and their two `.sha256` files.
 
+### 11. 2026-10-08 21:4x — 1.1.1: a double-click really installs, and really uninstalls
+
+- **Goal** (a direct request): anyone who downloads the zip, unpacks it and double-clicks `安装.cmd` should end up with a working installation on the first try — and uninstalling must not leave debris behind.
+- **Root causes** (three old, one new — full write-ups in [known-issues.md](known-issues.md)):
+  - KI-1: when `install.ps1` was missing (the "double-clicked inside the zip preview" case) Windows PowerShell printed an error and exited **0**, so the old wrapper's `if errorlevel 1` never paused and the window vanished without a word.
+  - KI-2: the portable installer still wrote the old product name and version `1.0.0` into the shortcut and the uninstall entry.
+  - KI-3: Chinese text in a UTF-8 `.cmd` plus `chcp 65001` made `cmd.exe` mis-parse the following lines (`'onPolicy' is not recognized …`).
+  - KI-5 (found by testing this release): the uninstaller ran **from inside the directory it was deleting** — `cmd.exe`'s CWD was the install dir and it was reading `卸载.cmd` itself — so `Remove-Item -Recurse -Force -ErrorAction SilentlyContinue` failed as a whole, silently, leaving all 714 files.
+- **Changes**:
+  - `assets\安装.cmd` 285 B → **3,941 B**, `assets\卸载.cmd` 1,086 B → **1,298 B**: pure ASCII / no BOM / LF; they check for the files they need before doing anything, print the Chinese explanation through `powershell -EncodedCommand` (code-page independent), always `pause`, and the uninstall wrapper parks its working directory in `%TEMP%` instead of the install folder.
+  - `assets\install.ps1` 9,284 B → **11,085 B**: `$DisplayName = "可爱大肥鱼桌宠"` (same string as the NSIS `APP_NAME`), `$Version` read from the packaged `app\package.json`, `Publisher` shared with `APP_PUB`, legacy 「蓝毛小女仆」 shortcuts migrated to `.lnk.bak-<timestamp>` instead of leaving two icons.
+  - `assets\uninstall.ps1` 5,221 B → **8,191 B**: handles both product names, deletes everything except the `.cmd` files that are still open (deleting the running batch file breaks the rest of the batch), and hands the leftovers to a detached hidden PowerShell helper that waits for the window to close and retries for up to ~2 minutes.
+  - Version 1.1.1 in the four `package.json` files and in the `!define APP_VER` default of `build/installer.nsi`; `src/README.md` no longer names a version so future releases do not have to touch a packaged file.
+- **Verification**: real acceptance run on the shipped zip — unpack (714 entries) → run `安装.cmd` (10.2 s, English header + correct Chinese messages + `[ok] Setup finished.`) → `python build\verify-install.py stage <dir>`: **710 of 710 files byte-identical (797,834,384 B)** → registry `DisplayName=可爱大肥鱼桌宠`, `DisplayVersion=1.1.1`, `UninstallString` → that directory's `卸载.cmd` → run that uninstaller: shortcuts and uninstall entry removed, user data kept, **the install directory was gone two seconds after the window closed**. Gates all green: `build\check-release.mjs`, `build\nsi-syntax-check.py`, `build\mkzip.py`, `build\mkexe.py`, and the packaged `verify.mjs`.
+- **Commit**: _（提交后填哈希）_
+
 ---
 
 ## How to verify any line in this log
@@ -131,5 +147,7 @@ Then reproduce the acceptance run: install the setup silently into a scratch dir
 - **12:23（`82411e7`）**：1.1.0 —— 删掉 overlay/补丁机制、`src/` 即成品源码、独立构建链（`build.mjs` + `toolchain.mjs`）、隐私路径门禁 `check-paths.mjs`、**控制口鉴权与来源白名单**（含 `/shutdown` 必须 POST + token）、英文优先的 README 与安全/贡献文档。
 - **12:52（`325b460`）**：产物名一律 ASCII（GitHub 会删掉资产名里的非 ASCII 字符）。
 - **12:31 / 12:34 UTC**：仓库公开发布，Release **v1.1.0** 上线（两个成品 + 两个 `.sha256`）。
+- **21:4x（`<哈希>`）**：1.1.1 —— 绿色包「解压 → 双击 `安装.cmd`」第一次就能装成功：修好闪退（KI-1）、装出来的名字/版本（KI-2）、`.cmd` 里的中文导致解析错乱（KI-3），并修掉测试中新发现的「卸载后安装目录整个还在」（KI-5，卸载器自己就在被删的目录里跑）。四个脚本全部重写/加固，包内 `README` 不再写死版本号。
 
 装好之后的验收数字：静默安装 **711 个文件**，其中 **710 个与 `stage/` 逐字节一致**（`build\verify-install.py`），数据根未被改动，卸载干净。
+1.1.1 的绿色包另外真跑了一遍「解压 → `安装.cmd` → 卸载」：装出来 **710/710 逐字节一致**、登记项版本 **1.1.1**、卸载后 **安装目录在窗口关闭后 2 秒内被完整清掉**。
