@@ -69,6 +69,10 @@
 
 下载 **`cute-fat-fish-pet-1.1.0-setup.exe`**（约 330 MB，NSIS 安装器）双击。
 
+> **永远指向最新版的链接**：每一版都会额外放一份去掉版本号、内容完全相同的副本，
+> 所以下面这条链接永远是最新安装包：
+> <https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe>
+
 - 默认装到 `%LOCALAPPDATA%\BlueHairMaid`——**不需要管理员权限**。
 - 想装到别处（D 盘 / 移动硬盘）就在「选择安装位置」那一步改；装完会建开始菜单项和桌面快捷方式。
 - 包里自带 Electron 运行时、语音引擎与模型、语音识别要用的真 `node.exe`，装完就是**离线可用**的。
@@ -103,6 +107,22 @@ Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
 - **开机自启和自动更新目前没做**，需要的话自己把控制台快捷方式丢进「启动」文件夹。
 - **卸载**：控制面板 / 设置里的「可爱大肥鱼桌宠」，或安装目录里的 `卸载.cmd`。
   卸载**不会**删你的数据（人设、记忆、聊天记录都留着），想彻底清干净就自己删数据目录（见下一节）。
+
+### 以后怎么升级
+
+目前**没有自动更新**——升级就是下新版安装包、覆盖安装一遍。只换程序文件，你的数据不动。
+
+1. **先把她关掉**：托盘图标右键 → 退出，或双击 `standalone\stop-pet.vbs`。
+   安装器故意不杀进程（免得误杀同一台电脑上**另外一只**桌宠），她还在跑的时候它会停下来，让你先关掉再继续。
+2. **下载新安装包**：上面那条「永远指向最新版」的链接，或到 [Releases 页面](https://github.com/12we21/cute-fat-fish-pet/releases) 拿最新一版。
+3. **双击安装、一路「下一步」**：安装器会从 `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\BlueHairMaid` 读出上一版装在哪个目录，**装回同一个目录**，不会多出一份 761 MB 的副本；桌面与开始菜单快捷方式会重建。
+4. **从控制台重新启动她**。
+
+什么会留下：人设、记忆、聊天记录、设置与模型配置都在数据目录 `%APPDATA%\BlueHairMaid` 里，安装器一个字节都不碰。
+
+绿色 zip 用户：把新 zip 解压覆盖旧目录即可；自己加的 `standalone\online.json`（联网模型设置）和 `portable.txt` 留着。
+
+> 脚本安装：`cute-fat-fish-pet-setup.exe /S /D=D:\要装的目录`。两点注意——静默模式**不会**自动认旧目录，`/D=` 得自己给；她还在跑的时候它同样不会替换文件。
 
 ---
 

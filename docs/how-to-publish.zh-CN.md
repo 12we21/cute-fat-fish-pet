@@ -88,6 +88,19 @@ gh release create v1.1.0 `
   --title "可爱大肥鱼桌宠 1.1.0" --notes-file "docs\release-notes-1.1.0.md"
 ```
 
+> **另外每次都要传一个不带版本号的别名资产**，README / 发布说明里那条「永远指向最新版」的链接才一直有效：
+> `cute-fat-fish-pet-setup.exe`（内容与带版本号的完全相同，可以理解为给下载链接用的稳定门牌号）与它的 `.sha256`。
+> GitHub 的 `…/releases/latest/download/<文件名>` 是按**文件名**去最新那一版里找资产的，文件名里带版本号的话，下一版就 404 了。
+> 上传办法（用 `#` 指定资产显示名，避免在本地复制一份 330 MB 的文件）：
+>
+> ```powershell
+> gh release upload v1.1.0 "release\cute-fat-fish-pet-1.1.0-setup.exe#cute-fat-fish-pet-setup.exe" --clobber
+> gh release upload v1.1.0 "release\cute-fat-fish-pet-1.1.0-setup.exe.sha256#cute-fat-fish-pet-setup.exe.sha256" --clobber
+> ```
+>
+> 注意 `.sha256` 文件里写的是**带版本号**的文件名，别名资产的核对命令要相应写成
+> `Get-FileHash .\cute-fat-fish-pet-setup.exe` 再跟文件里的哈希值比。
+
 > **附件名必须全是 ASCII。** GitHub 会把资产名里的非 ASCII 字符直接删掉：上传
 > `可爱大肥鱼桌宠-1.1.0-安装程序.exe` 之后页面上显示成 `-1.1.0-.exe`，用 API
 > 改名（`gh api -X PATCH repos/<owner>/<repo>/releases/assets/<id> --input name.json`，

@@ -78,6 +78,18 @@ Upgrading keeps everything: the internal identifiers (`BlueHairMaid` app folder,
 - `src/lib/` is the compiled output of the TypeScript sources in `src/src/`; editing the TypeScript requires rebuilding `lib/` with the upstream toolchain.
 - GitHub reports the license as `NOASSERTION`: `LICENSE` is MIT but carries two copyright lines (upstream author + this project), which the license detector does not recognize as a standard MIT file.
 
+## Updating to a newer version
+
+There is no automatic updater yet — updating means downloading the new installer and running it over the old copy. Only program files are replaced.
+
+1. Close the pet first (right-click her tray icon → exit, or double-click `standalone\stop-pet.vbs`). The installer will not replace files while she is running.
+2. Download the newest installer. This link always points at the latest one:
+   <https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe>
+3. Run it and click Next: it detects the folder of the previous installation and installs back into it, so you do not end up with a second copy. Desktop and Start-menu shortcuts are recreated.
+4. Start her again from the console.
+
+Persona, memory, chat history, settings and model configuration live in `%APPDATA%\BlueHairMaid`, which the installer never touches. Portable-zip users unpack the new zip over the old folder.
+
 ## License and attribution
 
 MIT — see [LICENSE](../../LICENSE). The upstream MIT text ships unmodified as [`assets/LICENSE.txt`](../../assets/LICENSE.txt), with the original author's attribution intact; third-party components are listed in [`assets/第三方声明.txt`](../../assets/第三方声明.txt) and [NOTICE.md](../../NOTICE.md).
@@ -159,6 +171,18 @@ Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
 - **包内**的文件名与文案仍是中文（`安装.cmd`、`卸载.cmd`、`assets\使用说明.txt` 等）：改这些会动到包的布局，留到后面的版本，不混进这一版。
 - `src/lib/` 是 `src/src/` 里 TypeScript 的编译产物；要改 TypeScript 得用上游工具链重新构建 `lib/`。
 - GitHub 把许可证识别成 `NOASSERTION`：`LICENSE` 是 MIT，只是带了两段版权（上游作者 + 本项目），识别器不认。
+
+### 以后怎么升级
+
+目前没有自动更新：升级就是下新版安装包、覆盖安装一遍，只换程序文件。
+
+1. 先把她关掉（托盘图标右键 → 退出，或双击 `standalone\stop-pet.vbs`）——她在跑的时候安装器不会替换文件。
+2. 下载最新安装包，这条链接永远指向最新版：
+   <https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe>
+3. 双击安装、一路「下一步」：它会认出上一版装在哪，装回同一个目录，不会多出一份；桌面与开始菜单快捷方式重建。
+4. 从控制台重新启动她。
+
+人设、记忆、聊天记录、设置与模型配置都在 `%APPDATA%\BlueHairMaid`，安装器一个字节都不动。绿色 zip 用户把新 zip 解压覆盖旧目录即可。
 
 ### 许可与署名
 

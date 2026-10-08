@@ -76,6 +76,10 @@ The same list is in [NOTICE.md](NOTICE.md) (section 5), and the reasoning behind
 
 Download **`cute-fat-fish-pet-1.1.0-setup.exe`** (about 330 MB, NSIS) and double-click it.
 
+> **Always-latest link:** every release also carries a byte-identical copy without the version in
+> its name, so this one link always points at the newest installer:
+> <https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe>
+
 - Installs to `%LOCALAPPDATA%\BlueHairMaid` by default — **no administrator rights needed**.
 - Want it elsewhere (D: drive, external disk)? Change it on the "Choose install location" page. Start-menu entry and desktop shortcut are created for you.
 - The package already contains the Electron runtime, the speech engine and models, and the real `node.exe` used for speech recognition, so it works **offline** right after installing.
@@ -113,6 +117,22 @@ Get-FileHash .\cute-fat-fish-pet-1.1.0-setup.exe -Algorithm SHA256
 - **Autostart and auto-update are not implemented yet.** If you want autostart, put a shortcut to the console into your Startup folder.
 - **Uninstall**: "可爱大肥鱼桌宠" in Settings → Apps, or `卸载.cmd` in the install directory.
   Uninstalling **does not** delete your data (persona, memory, chat history stay). To remove everything, delete the data directory yourself (next section).
+
+### Updating to a newer version
+
+There is **no automatic updater yet** — updating means downloading the new installer and running it over the old copy. Only program files are replaced; your data is not touched.
+
+1. **Close the pet first.** Right-click her tray icon → exit, or double-click `standalone\stop-pet.vbs`.
+   The installer deliberately never kills processes (it must not kill a *different* pet on the same PC), so while `electron.exe` is running it stops and asks you to close her.
+2. **Download the new installer** — the always-latest link above, or the newest release on the [releases page](https://github.com/12we21/cute-fat-fish-pet/releases).
+3. **Double-click it and click Next.** The installer reads the folder used by the previous version from `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\BlueHairMaid` and installs **back into the same folder**, so you do not end up with a second 761 MB copy. The desktop and Start-menu shortcuts are recreated.
+4. **Start her again** from the console.
+
+What survives: persona, memory, chat history, settings and model configuration live in the data directory (`%APPDATA%\BlueHairMaid`), which the installer never touches.
+
+Portable zip: unpack the new zip over the old folder. Keep your own `standalone\online.json` (your online-model settings) and your `portable.txt` if you made one.
+
+> Scripted installs: `cute-fat-fish-pet-setup.exe /S /D=D:\path\to\install`. Two things to know — silent mode does **not** auto-detect the previous folder, so pass `/D=` yourself, and it will not replace files while she is running.
 
 ---
 
