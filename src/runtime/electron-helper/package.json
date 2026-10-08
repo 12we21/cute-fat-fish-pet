@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-electron-helper",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "description": "「蓝毛小女仆」桌面渲染端 —— Electron 透明覆盖层窗口（动画、气泡、语音与桥接）",
   "author": "Mikolu",

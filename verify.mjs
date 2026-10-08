@@ -18,9 +18,9 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // >>>GENERATED 由 build\check-release.mjs --emit --write 生成，别手改这一段
 const EXPECT = {
-  app: { files: 593, bytes: 74542823, treeSha256: "abd218fd6d429d2853d3df175ace73166750620756337935b2bd0cfca318077b" },
-  launcher: { files: 9, bytes: 343634, treeSha256: "2fd87113e02970cbecabc9cffbb9ac8cff88623282b311774d13168cb02c389e" },
-  standalone: { files: 14, bytes: 104951, treeSha256: "b8811f15a6462d4e7a9daa6e81269cfa94949612f25a6897cea63eb56f8a82cc" },
+  app: { files: 593, bytes: 74542942, treeSha256: "3b31e37328423d2a81b416c58d863ec1ee1ac7d9b72124819934d39e05857f39" },
+  launcher: { files: 9, bytes: 343643, treeSha256: "8b30d56077b08f89da57f31c0d2a36c70eb7f27fc9a80257b4245f49d4873029" },
+  standalone: { files: 14, bytes: 106518, treeSha256: "704e11f2d4ea11dd5988947ccef86f21a935e2f1b8d7ac12d14801d132451b70" },
   defaults: { files: 4, bytes: 13967, treeSha256: "4f95360682c89202b714cbc8fca606fa6a29667c34397be08c5f081118d5229b" },
 };
 
@@ -39,13 +39,13 @@ const OURS = {
   'launcher/rec.js': [22702, 'b63c254334e3672218920ebba75b49e604602e3fd4fcd5130837ac0ff101bcd2'],
   'launcher/agent.js': [22851, '9a67364fb317724397bfa605c20692a7c9734e04d8b56562e02b828342d19651'],
   'launcher/pet.ico': [142521, 'b727ea4dcec32409cb6bc4709489276b5daaf90fe180184298e598b35bcfc6c0'],
-  'launcher/package.json': [259, 'ab8e65c5e4e4e82fa339642d304383f793a1ce981d01dcd95ed77b1ab2f0c1c4'],
+  'launcher/package.json': [268, 'da2d6cfacc13db47928a71cbdc8f811d2e6b27c550feede12e1a165c0fa107c1'],
   'standalone/main.mjs': [27034, '0ef47d97ea7bfa857c8e9e3d9d67e59a7a3f792a5c16e8518b2cdd28669f4dee'],
   'standalone/server.mjs': [8681, '07a7ca5c1e18fbb46693869603d1593b05b492f573184ac6473ab2497c85404d'],
   'standalone/context.mjs': [12059, 'ae85889600d9402743ef60bb781b7f17fcdd58f768ba42c639a1d119eaa823f8'],
   'standalone/detect.mjs': [15523, '30d78c0f459ba1226e864133da4ad02ed0c12785abd952dfcbc9587582f9e1bc'],
   'standalone/paths.mjs': [5781, '6197fa05773452fb30e8db0bf241c3fb04c3468fee74ee374106fd30d1c99847'],
-  'standalone/online.mjs': [12661, '37d35a04f2a12d6a52b6aa91d66b082af088531f1f0b5c019aca01e062cbc9eb'],
+  'standalone/online.mjs': [14228, '7ea52dfdd6d49df910222133ddd2b6036ebed64c2e3b31bc7095e6f5f690246e'],
   'standalone/ollama.mjs': [8793, '57420589a878591f9ba411f643975a238f9ebfdb3404f7008bf8a6f63218a1a8'],
   'standalone/check.mjs': [5714, '7defb820c9b1eef8c9de33b28a4453ca9e367287e4b3fff31c06d93735c5489a'],
   'standalone/stop-pet.mjs': [3294, 'c2ee5afc98472b013d8e64c50c0ff608ea2ecb334a08eb5594145fa19b315518'],

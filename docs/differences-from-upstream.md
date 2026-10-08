@@ -54,7 +54,7 @@ Where the 232 identical files live:
 | `runtime/electron-helper/shared-core.js` | 51,376 | 52,708 | 2 | chat-send hook (a question is answered before idle chatter) |
 | `runtime/electron-helper/events.js` | 17,500 | 18,069 | 0 | permission/chat-priority adjustments; no marker text of its own |
 | `lib/index.js` | 82,799 | 113,465 | 16 | balance display, "follow the global switch", chat-priority routing; this file is a build output |
-| `package.json` | 4,615 | 4,277 | 0 | our identity: description, author, `homepage`/`repository`/`bugs` → this repository, version `1.1.1`; `version` and `scripts` are ours |
+| `package.json` | 4,615 | 4,277 | 0 | our identity: description, author, `homepage`/`repository`/`bugs` → this repository, version `1.1.2`; `version` and `scripts` are ours |
 | `runtime/electron-helper/package.json` | 185 | 258 | 0 | declares the two files we added |
 | `README.md` | 30,116 | 31,136 | 0 | a short note at the top of the packaged readme pointing at this repository |
 | `src/host/helper-process.ts` | 26,638 | 27,571 | 0 | privacy: no hard-coded user paths; the runtime path is resolved from the installation directory |
@@ -110,6 +110,6 @@ The script compares **git blob SHA-1** values (`sha1("blob <size>\0" + content)`
 - **对比对象**：①npm 上发布的 `dsh-pet@0.3.0`（安装包形态，243 个文件）；②上游仓库 `v0.3.0` 标签的源码树（332 个文件）。
 - **结论（以发布包为准）**：243 个文件里 **232 个逐字节相同**、**11 个不同**、**0 个缺失**；我们另加 2 个引擎文件（`runtime/electron-helper/obs-ctl.js`、`stt-worker.mjs`）与不随上游发布的 `node_modules\`（348 个文件）。
 - **最有说服力的一条**：上游 50 个 TypeScript 源文件里 **48 个逐字节相同** —— 引擎源码就是 0.3.0 的，改动集中在下面两处以及打包后的运行端文件里。
-- **11 个不同的文件**：`runtime/electron-helper/sprite.js`（61,132→245,629，135 处补丁标记）、`main.js`（54,047→133,674，26 处）、`preload.js`（3,520→8,359，15 处）、`shared-core.js`（51,376→52,708，2 处）、`events.js`（17,500→18,069）、`lib/index.js`（82,799→113,465，16 处）、`package.json`（本仓库身份：名称/作者/链接/版本 1.1.1）、`runtime/electron-helper/package.json`（声明新增的两个文件）、`README.md`（顶部指向本仓库）、`src/host/helper-process.ts`（隐私：不再硬编码用户路径）、`src/host/storage-paths.test.ts`（测试用占位名）。
+- **11 个不同的文件**：`runtime/electron-helper/sprite.js`（61,132→245,629，135 处补丁标记）、`main.js`（54,047→133,674，26 处）、`preload.js`（3,520→8,359，15 处）、`shared-core.js`（51,376→52,708，2 处）、`events.js`（17,500→18,069）、`lib/index.js`（82,799→113,465，16 处）、`package.json`（本仓库身份：名称/作者/链接/版本 1.1.2）、`runtime/electron-helper/package.json`（声明新增的两个文件）、`README.md`（顶部指向本仓库）、`src/host/helper-process.ts`（隐私：不再硬编码用户路径）、`src/host/storage-paths.test.ts`（测试用占位名）。
 - **我们没有删掉上游任何文件**；上游 MIT 全文以 `assets\LICENSE.txt` 逐字节随包分发，署名两行原样保留（见 [NOTICE.md](../NOTICE.md)）。
 - **可复跑**：文末两条命令即可自行核对（基线 A 需要下载 62 MB 的 npm 包；基线 B 只需一次 API 请求，脚本比的是 git blob SHA-1，不下载文件内容）。

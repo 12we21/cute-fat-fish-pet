@@ -67,7 +67,7 @@
 
 ### 方式一：安装程序（推荐）
 
-下载 **`cute-fat-fish-pet-1.1.1-setup.exe`**（约 330 MB，NSIS 安装器）双击。
+下载 **`cute-fat-fish-pet-1.1.2-setup.exe`**（约 330 MB，NSIS 安装器）双击。
 
 > **永远指向最新版的链接**：每一版都会额外放一份去掉版本号、内容完全相同的副本，
 > 所以下面这条链接永远是最新安装包：
@@ -81,12 +81,12 @@
 
 ### 方式二：绿色 zip 包
 
-下载 **`cute-fat-fish-pet-1.1.1-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+下载 **`cute-fat-fish-pet-1.1.2-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
 
 > **1.1.1 把这条绿色包的路整条修好了。** 一定要**先解压**（右键 →「全部解压缩…」），再到解压出来的目录里双击
 > `安装.cmd`：它会先检查包是否完整，缺件时用中文说明（旧版是一闪而过、什么都不说）；
 > 装出来的名字是「可爱大肥鱼桌宠」、版本号是真的；`卸载.cmd` 也会真的把整个目录删干净，而不是留下 714 个文件。
-> 细节见 [1.1.1 发布说明](docs/release-notes-1.1.1.md) 与 [已确认缺陷](docs/known-issues.md)。
+> 细节见 [1.1.2 发布说明](docs/release-notes-1.1.2.md) 与 [已确认缺陷](docs/known-issues.md)。
 
 - 双击 `安装.cmd`：建快捷方式、写卸载登记（想让它像装过一样）；
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
@@ -95,10 +95,10 @@
 
 ### 每个包都带 `.sha256`
 
-`cute-fat-fish-pet-1.1.1-setup.exe.sha256`、`cute-fat-fish-pet-1.1.1-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
+`cute-fat-fish-pet-1.1.2-setup.exe.sha256`、`cute-fat-fish-pet-1.1.2-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.1.1-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.1.2-setup.exe -Algorithm SHA256
 ```
 
 > 发布用的文件名一律是 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
@@ -257,7 +257,7 @@ node build\build.mjs launcher assets   # 只铺这几块（块名：app launcher
 node build\build.mjs --list            # 只看会做什么，不动磁盘
 ```
 
-产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.1-setup.exe` 和 `cute-fat-fish-pet-1.1.1-win-x64.zip`。
+产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.2-setup.exe` 和 `cute-fat-fish-pet-1.1.2-win-x64.zip`。
 
 > 构建脚本口径以 `build\build.mjs` 头部注释和根 `package.json` 的 `scripts` 为准；`build\check-paths.mjs` 是构建期门禁，`--no-gate` 能跳过（不推荐）。
 
@@ -265,12 +265,12 @@ node build\build.mjs --list            # 只看会做什么，不动磁盘
 
 ## 核对下载
 
-1.1.1 的两个成品：
+1.1.2 的两个成品：
 
 | 文件 | 字节数 | SHA-256 |
 | --- | --- | --- |
-| `cute-fat-fish-pet-1.1.1-setup.exe` | 347882493 | `9A0DBB160E92C9192E1F7BB7D37D620B45F0F77DCE462A9ACC1AEB3908FC2022` |
-| `cute-fat-fish-pet-1.1.1-win-x64.zip` | 416992984 | `18A22ED88D221F71BA3872D3CA9A854B09BEF8C07B3EEBE6E71F8C0544C4C4DC` |
+| `cute-fat-fish-pet-1.1.2-setup.exe` | 347760952 | `A35571AF44F2ED27C6512528B4B4785DA67C663FDAE60001CCF7C87E795D160D` |
+| `cute-fat-fish-pet-1.1.2-win-x64.zip` | 416993754 | `F4F9B684C5BBA85A46471C19E4E0BB7EAB43EE9346472550EBAC2FEACD1A04E5` |
 
 每个成品旁边都有同名 `.sha256`，发布说明里也有一份。
 

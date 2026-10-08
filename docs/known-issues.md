@@ -1,7 +1,7 @@
 # Known issues
 
 English summary: defects that were confirmed in shipped builds, with the reproduction, the root cause
-and how they were fixed. Open items come first, then the ones fixed in 1.1.1 (kept for the record).
+and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 (kept for the record).
 This document is in Chinese.
 
 本文件记录**已经确认过**的缺陷：现象 → 怎么复现 → 根因 → 怎么修的 / 打算怎么修。
@@ -121,6 +121,28 @@ This document is in Chinese.
 - **验证**：在新 zip 上跑完整「解压 → 安装 → 卸载」：卸载日志出现新提示 + `卸载完成。` + `请按任意键继续. . .`，
   **窗口退出后第 2 秒整个安装目录消失**（助手进程生效），注册表登记项已清、用户数据保留。
 
+### KI-6（v1.1.2 修复）联网模型把「思考过程」整段当台词念出来
+
+- **影响版本**：v1.1.0 / v1.1.1（1.0.0 的包里没有 `standalone\online.json`，联网那条路实际用不起来），条件是控制台
+  「联网模型」里配了**思考型**端点 —— 默认填的就是 DeepSeek 的地址，所以照默认配好就会中。
+- **现象**：聊天时她的回答是一大段推理文字（「我们需要回答用户…」「用户要求只回两个字，所以…」），而不是一句话。
+- **根因**：`deepseek-flash` / `deepseek-v4-pro` 都是**思考型**模型：先输出一段独立的 `reasoning_content`，再写正文。
+  桌宠要的是 20~40 字的短句，预算给得小 —— 实测 **20 token 预算下正文 0 字、思考 556 字**（`finish_reason=length`），
+  正文直接是空的。而 `standalone\online.mjs` 遇到「正文为空」时会**退而把 `reasoning_content` 当回答**，思考就成了台词。
+- **证据**：同一句「只回两个字：在的」原样发 → `content=''`、有 `reasoning`、预算全烧完；
+  请求体加 `"thinking":{"type":"disabled"}` → `content='在的'`、**2 个 token**、无 `reasoning`（`deepseek-v4-pro` 同样）。
+  真实短句场景：原样（预算 400）→ 正文空、思考 556 字；关思考 → 「辛苦啦，快靠过来，我给你充充电～」11 个 token。
+- **修法（1.1.2，`standalone\online.mjs` 三处）**：
+  1. 新增 `thinkingOff(baseUrl, model)`：目标是 `api.deepseek.com` 时给请求体加 `"thinking":{"type":"disabled"}`
+     （`reasoner` 类不加；别的 OpenAI 兼容端点不发这个字段，避免未知字段被服务端拒绝）。
+  2. 「只有思考、没有正文」改成**如实报错**（`reason: "thinking-only"`，提示「联网模型只想了、没写正文：把预算调大，
+     或在控制台换一个不思考的模型」），**绝不把 `reasoning_content` 当台词** —— 与本地那条路保持一致
+     （`app/lib/index.js:431`、helper 的 `pet:local-quip` 只回错误码）。
+  3. `toOpenAIMessages` 也接受**纯字符串** `content`（以前只认数组形状，传字符串会被静默变成空 prompt，模型于是答非所问）。
+- **验证**：`node --check` 通过；用改后的代码真调（临时把用户的 `online.json` 放进仓库 `standalone\`，测完即删）：
+  `onlinePing` → 「在的」；带人设 `system` + 数组形状 → 「主人早安呀～今天也要元气满满哦！✨」；纯字符串形状 → 「你真是独一无二的闪光存在！」。
+- **顺带记录（不是本版引入）**：那个 DeepSeek 端点偶发返回与提问无关的内容（测试期间撞到两次，与密钥/请求无关）。
+
 ### 修复验证
 
 - `安装.cmd` / `卸载.cmd`：本机冒烟（缺文件路径）实测退出码 1、中文说明逐字正确、`pause` 生效。
@@ -134,3 +156,26 @@ This document is in Chinese.
 - **卸载侧真机**：跑安装目录里的 `卸载.cmd` → 安装目录被完整清掉（见 KI-5），快捷方式与登记项清掉，`%APPDATA%\BlueHairMaid` 用户数据保留。
 - **发布门禁**：`node build\check-release.mjs`、`python build\nsi-syntax-check.py`、`python build\mkzip.py`、`python build\mkexe.py` 全部通过；
   包内自带的 `verify.mjs` 在发布树里自校验通过。
+
+### 1.1.2 的验收（2026-10-09）
+
+- **发布门禁**：`node build\build.mjs app launcher standalone`（隐私门禁 `check-paths.mjs` 扫 181 个文件干净）→
+  `node build\check-release.mjs --emit --write` → `node build\build.mjs verify` → `node build\check-release.mjs`（全部通过：
+  app 593 / launcher 9 / standalone 14 / defaults 4 / assets 7 全对齐，运行期残留 0）→ `python build\nsi-syntax-check.py`（通过）。
+- **绿色 zip 真机**：用发布的那份 zip 解压（714 个文件 / 797,860,676 B）→ 双击 `安装.cmd` 真装一次（4.2 秒，日志以
+  `[ok] Setup finished.` + `请按任意键继续. . .` 结束）→ `python build\verify-install.py stage <安装目录>`：
+  **包内该装的 710 个文件逐字节一致（797,836,161 B）**；注册表 `DisplayName=可爱大肥鱼桌宠`、`DisplayVersion=1.1.2`、
+  `UninstallString` 指向该目录的 `卸载.cmd`。
+  （这条路线 `verify-install.py` 会报 `exit=1`：它把 zip 里那 4 个便携脚本 `安装.cmd` / `卸载.cmd` / `install.ps1` /
+  `uninstall.ps1` 当成「多出来的文件」—— 而这 4 个本来就该留在安装目录里，属于工具口径问题，不是安装缺陷；
+  安装器那条路不含这 4 个，`exit=0`。）
+- **卸载侧真机**：跑安装目录里的 `卸载.cmd`（4.5 秒）→ 提示「安装目录里只剩这个窗口自己在用的几个 .cmd，已安排：窗口一关就自动清掉。」
+  → **安装目录整个消失**、登记项清掉、桌面与开始菜单里指向测试目录的快捷方式清掉、`%APPDATA%\BlueHairMaid` 用户数据保留。
+- **安装器真机**：新 exe 静默装进空目录（54 秒，711 个文件 / 798,092,111 B = 该装的 710 个 + 安装时生成的 `Uninstall.exe`）→
+  **710 个文件逐字节一致（797,836,161 B）**、`DisplayVersion=1.1.2`；装出来的 `verify.mjs` 在安装树里自校验 `exit 0`；
+  跑 `<安装目录>\Uninstall.exe /S`（6 秒）→ 安装目录与登记项都清掉，用户数据保留。
+- **联网模型真调**：见 KI-6 的「验证」——改后的代码真调三次（`onlinePing` / 带人设数组形状 / 纯字符串）都对。
+- **主人的机器已还原**：测试前把要动的部分整份快照（`_accept\user-state-112\`：两个 `HKCU` 键 + 桌面与开始菜单的快捷方式），
+  跑完按快照还原并删掉测试留下的重复 `.lnk.bak` —— 桌面与开始菜单的 `可爱大肥鱼桌宠.lnk` 仍指向
+  `D:\测试\BlueHairMaid\electron\electron.exe`（参数 `"D:\测试\BlueHairMaid\launcher"`）、`HKCU` 的 11 个值原样
+  （`InstallDir` = 安装目录、`DisplayVersion` 记的仍是现役那份的 **1.1.0**）、测试目录已删除、D 盘 42.9 GB 空闲。

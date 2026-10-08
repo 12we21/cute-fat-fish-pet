@@ -7,7 +7,7 @@
 # 怎么把这个仓库发到 GitHub（给自己看的步骤）
 
 > **这份文档里不写任何本机路径**：凡是 `<...>` 的地方按自己的情况替换，`release\`、`stage\` 都是仓库内的相对路径。
-> 目标仓库名：`cute-fat-fish-pet`；本版 tag：`v1.1.1`。
+> 目标仓库名：`cute-fat-fish-pet`；本版 tag：`v1.1.2`。
 
 ## 0. 一次性准备
 
@@ -33,7 +33,7 @@
 ```powershell
 git init -b main
 git add -A
-git commit -m "1.1.1: 绿色包安装/卸载加固"
+git commit -m "1.1.2: 联网模型不再把思考过程当台词"
 ```
 
 提交前先 `git status` 看一眼：**应该看不到** `stage\`、`release\`、`*.log`、`*.bak-*`、`userdata\`、`runtime.json`、
@@ -67,25 +67,25 @@ git push -u origin main
 网页方式：
 
 1. 仓库页右侧 **Releases** → **Draft a new release**
-2. Choose a tag：填 `v1.1.1` → Create new tag
-3. Release title：`可爱大肥鱼桌宠 1.1.1`
-4. 说明：把 `docs\release-notes-1.1.1.md` 的内容整段粘进去（**记得先把指纹表里的「打包后填写」换成真值**）
+2. Choose a tag：填 `v1.1.2` → Create new tag
+3. Release title：`可爱大肥鱼桌宠 1.1.2`
+4. 说明：把 `docs\release-notes-1.1.2.md` 的内容整段粘进去（**记得先把指纹表里的「打包后填写」换成真值**）
 5. 附件（Attach binaries）：拖进 `release\` 里这四个文件
-   - `cute-fat-fish-pet-1.1.1-setup.exe`（**主推**，双击就能装；GitHub 附件单文件上限 2 GB，够）
-   - `cute-fat-fish-pet-1.1.1-setup.exe.sha256`
-   - `cute-fat-fish-pet-1.1.1-win-x64.zip`（绿色包）
-   - `cute-fat-fish-pet-1.1.1-win-x64.zip.sha256`
+   - `cute-fat-fish-pet-1.1.2-setup.exe`（**主推**，双击就能装；GitHub 附件单文件上限 2 GB，够）
+   - `cute-fat-fish-pet-1.1.2-setup.exe.sha256`
+   - `cute-fat-fish-pet-1.1.2-win-x64.zip`（绿色包）
+   - `cute-fat-fish-pet-1.1.2-win-x64.zip.sha256`
 6. **Publish release**
 
 用 `gh` 一条命令也行：
 
 ```powershell
-gh release create v1.1.1 `
-  "release\cute-fat-fish-pet-1.1.1-setup.exe" `
-  "release\cute-fat-fish-pet-1.1.1-setup.exe.sha256" `
-  "release\cute-fat-fish-pet-1.1.1-win-x64.zip" `
-  "release\cute-fat-fish-pet-1.1.1-win-x64.zip.sha256" `
-  --title "可爱大肥鱼桌宠 1.1.1" --notes-file "docs\release-notes-1.1.1.md"
+gh release create v1.1.2 `
+  "release\cute-fat-fish-pet-1.1.2-setup.exe" `
+  "release\cute-fat-fish-pet-1.1.2-setup.exe.sha256" `
+  "release\cute-fat-fish-pet-1.1.2-win-x64.zip" `
+  "release\cute-fat-fish-pet-1.1.2-win-x64.zip.sha256" `
+  --title "可爱大肥鱼桌宠 1.1.2" --notes-file "docs\release-notes-1.1.2.md"
 ```
 
 > **另外每次都要传一个不带版本号的别名资产**，README / 发布说明里那条「永远指向最新版」的链接才一直有效：
@@ -101,14 +101,14 @@ gh release create v1.1.1 `
 > 给的是 `RA_…` 形式的 node id，拿去 PATCH 会 404）。
 >
 > ```powershell
-> Copy-Item "release\cute-fat-fish-pet-1.1.1-setup.exe" "release\cute-fat-fish-pet-setup.exe"
-> $h = ((Get-Content "release\cute-fat-fish-pet-1.1.1-setup.exe.sha256" -Raw).Trim() -split '\s+')[0]
+> Copy-Item "release\cute-fat-fish-pet-1.1.2-setup.exe" "release\cute-fat-fish-pet-setup.exe"
+> $h = ((Get-Content "release\cute-fat-fish-pet-1.1.2-setup.exe.sha256" -Raw).Trim() -split '\s+')[0]
 > Set-Content "release\cute-fat-fish-pet-setup.exe.sha256" "$h  cute-fat-fish-pet-setup.exe" -Encoding ASCII
-> gh release upload v1.1.1 "release\cute-fat-fish-pet-setup.exe" "release\cute-fat-fish-pet-setup.exe.sha256"
+> gh release upload v1.1.2 "release\cute-fat-fish-pet-setup.exe" "release\cute-fat-fish-pet-setup.exe.sha256"
 > Remove-Item "release\cute-fat-fish-pet-setup.exe"   # 传完就删，别白占 348 MB
 > ```
 >
-> 传完自己验一下永久链接（要 200，且 `Content-Length` 等于 exe 大小，v1.1.1 是 347882493）：
+> 传完自己验一下永久链接（要 200，且 `Content-Length` 等于 exe 大小，v1.1.2 是 347760952）：
 >
 > ```powershell
 > Invoke-WebRequest -Method Head "https://github.com/12we21/cute-fat-fish-pet/releases/latest/download/cute-fat-fish-pet-setup.exe"
@@ -160,7 +160,7 @@ npm run check          # build\check-release.mjs 与源码对账
 npm run zip            # 打 zip 到 release\
 npm run exe            # 打安装程序 exe 到 release\（需要本机装了 NSIS 3）
 git add -A; git commit -m "1.1.1: ..."; git push
-# 再把 release\ 里新的 exe + zip + 两个 .sha256 传到 GitHub Releases（tag v1.1.1）
+# 再把 release\ 里新的 exe + zip + 两个 .sha256 传到 GitHub Releases（tag v1.1.2）
 ```
 
 指纹（大小 / sha256）出现在两处：`README.md` 的下载表、`docs\发布说明-<版本>.md` 的下载表 ——

@@ -107,7 +107,8 @@ function toOpenAIMessages(options) {
 	if (system) out.push({ role: "system", content: system });
 	for (const message of messages) {
 		const role = message?.role === "assistant" ? "assistant" : message?.role === "system" ? "system" : "user";
-		const parts = Array.isArray(message?.content) ? message.content : [];
+		/* content 允许是纯字符串（有的调用方就这么传）—— 直接当一段文本，别静默变成空 prompt */
+		const parts = Array.isArray(message?.content) ? message.content : typeof message?.content === "string" ? [{ type: "text", text: message.content }] : [];
 		const chunks = [];
 		for (const part of parts) {
 			if (!part || typeof part !== "object") continue;
@@ -125,6 +126,17 @@ function toOpenAIMessages(options) {
 
 function stripThink(text) {
 	return String(text ?? "").replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, "").replace(/<think\b[\s\S]*$/i, "").trim();
+}
+
+/** 「思考型模型」在短预算下会把额度全烧在推理上：正文空、思考一大段。
+ *  桌宠本来就是短句场景，最糟的结果是它把**思考过程**当台词说出来（实测
+ *  deepseek-flash / deepseek-v4-pro 在 20 token 预算下正文为空、全是思考）。
+ *  DeepSeek 系支持显式关掉：{"thinking":{"type":"disabled"}}（关掉后同一句话
+ *  只花 2 token）。只对确认支持这个参数的端点发 —— 别的 OpenAI 兼容服务可能不认未知字段。 */
+function thinkingOff(baseUrl, model) {
+	if (!/deepseek\.com/i.test(String(baseUrl || ""))) return null;
+	if (/reasoner/i.test(String(model || ""))) return null; // 纯推理模型没有「关」这一说
+	return { thinking: { type: "disabled" } };
 }
 
 const CN_ERROR = {
@@ -160,6 +172,9 @@ export async function onlineChat(options = {}) {
 		temperature: Number.isFinite(options.temperature) ? options.temperature : 1,
 		max_tokens: Math.max(16, Number(options.numPredict) || 512),
 	};
+	/* 思考型端点（DeepSeek 系）显式关掉思考：短句场景下它只会烧预算、并把思考吐出来 */
+	const noThink = thinkingOff(url, model);
+	if (noThink) Object.assign(body, noThink);
 
 	const signals = [];
 	if (options.signal) signals.push(options.signal);
@@ -193,8 +208,14 @@ export async function onlineChat(options = {}) {
 	const text = stripThink(message.content ?? "");
 	if (text) return { ok: true, text, model, provider: ONLINE_PROVIDER };
 	if (message.reasoning_content) {
-		const only = stripThink(message.reasoning_content);
-		if (only) return { ok: true, text: only, model, provider: ONLINE_PROVIDER };
+		// 只有思考、没有正文：**绝不把思考过程当台词说出来** —— 短预算的思考型模型很常见，
+		// 说出去就是一大段自言自语（本地那条路也是同样处理：app/lib/index.js:431
+		// 「本地模型只想了、没写正文」，electron-helper 的 pet:local-quip 只回错误码）。
+		return {
+			ok: false,
+			reason: "thinking-only",
+			message: "联网模型只想了、没写正文：把预算调大，或在控制台换一个不思考的模型",
+		};
 	}
 	return { ok: false, reason: "generate-error", message: "联网模型没返回文本" + (json?.error?.message ? "：" + String(json.error.message).slice(0, 200) : "") };
 }
