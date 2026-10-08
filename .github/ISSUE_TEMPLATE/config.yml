@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security report (private)
+    url: https://github.com/12we21/cute-fat-fish-pet/security/advisories/new
+    about: Please report vulnerabilities privately instead of in a public issue.
+  - name: How to build, test and send a change
+    url: https://github.com/12we21/cute-fat-fish-pet/blob/main/CONTRIBUTING.md
+    about: Build commands, the gates to run before a pull request, and the ground rules.
+  - name: Download the latest release
+    url: https://github.com/12we21/cute-fat-fish-pet/releases/latest
+    about: Installer and portable zip, with SHA-256 checksums.

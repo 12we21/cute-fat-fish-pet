@@ -1,3 +1,9 @@
+# Code signing — the Windows "unknown publisher" prompt
+
+**English summary.** The binaries in this repository are **not** code-signed, so the first run shows Windows SmartScreen's blue "Windows protected your PC" box — click *More info → Run anyway*. This document explains what signing would actually require (an OV or EV certificate; since June 2023 the private key must live on a hardware token or a cloud HSM; alternatives are Azure Trusted Signing and the free SignPath Foundation programme for open source), how to sign the NSIS installer and `Uninstall.exe` (`signtool sign /fd SHA256 /tr <timestamp-url> /td SHA256`), and why a `.zip` cannot be signed at all. **This document is in Chinese.**
+
+---
+
 # 关于代码签名（Windows 的「未知发布者」怎么办）
 
 先说结论：**不签也能发布**，只是别人第一次双击会看到一个蓝色的「Windows 已保护你的电脑」框，点「更多信息 → 仍要运行」就能装。这个仓库现在就是这种情况。

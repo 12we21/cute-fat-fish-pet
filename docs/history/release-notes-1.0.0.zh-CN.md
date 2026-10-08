@@ -1,3 +1,5 @@
+> **Internal milestone — this version was never published publicly.** 1.0.0 was built and installed locally only; the first public release is [1.1.0](../release-notes-1.1.0.md). It is kept here for the record, so that the release history is complete. *This document is in Chinese.*
+
 # 可爱大肥鱼桌宠 1.0.0（Windows x64）
 
 一只住在桌面上的蓝发小女仆。这一版是**普通 Windows 用户拿到就能装**的整合包：
@@ -76,7 +78,7 @@
 
 ## 已知限制
 
-- 没有开机自启和自动更新；安装程序没有代码签名证书（Windows 可能弹「未知发布者」蓝框，点「仍要运行」就行；想自己签一份看 `docs\关于代码签名.md`）。
+- 没有开机自启和自动更新；安装程序没有代码签名证书（Windows 可能弹「未知发布者」蓝框，点「仍要运行」就行；想自己签一份看 `docs\code-signing.zh-CN.md`）。
 - 她那句话是微软 Edge 在线合成，**断网时不会说话**（听你说话不受影响，模型也可以本机跑）。
 - 打包里不含 Ollama，也不含任何模型权重。
 

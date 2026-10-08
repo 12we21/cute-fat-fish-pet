@@ -1,3 +1,9 @@
+# How to publish a release (maintainer checklist)
+
+**English summary.** Step-by-step release checklist: one-time setup, build, run the gates (`build.mjs`, `check-release.mjs`, `check-paths.mjs`, `stage\verify.mjs`), tag, `gh release create`, upload the four assets, then verify the page. **The important rule is at the end: GitHub silently deletes non-ASCII characters from asset names, so every published file name must be ASCII** (`cute-fat-fish-pet-<version>-setup.exe`, `…-win-x64.zip`). No local paths are written in this document; `<...>` means "substitute your own". **This document is in Chinese.**
+
+---
+
 # 怎么把这个仓库发到 GitHub（给自己看的步骤）
 
 > **这份文档里不写任何本机路径**：凡是 `<...>` 的地方按自己的情况替换，`release\`、`stage\` 都是仓库内的相对路径。
@@ -63,7 +69,7 @@ git push -u origin main
 1. 仓库页右侧 **Releases** → **Draft a new release**
 2. Choose a tag：填 `v1.1.0` → Create new tag
 3. Release title：`可爱大肥鱼桌宠 1.1.0`
-4. 说明：把 `docs\发布说明-1.1.0.md` 的内容整段粘进去（**记得先把指纹表里的「打包后填写」换成真值**）
+4. 说明：把 `docs\release-notes-1.1.0.md` 的内容整段粘进去（**记得先把指纹表里的「打包后填写」换成真值**）
 5. 附件（Attach binaries）：拖进 `release\` 里这四个文件
    - `cute-fat-fish-pet-1.1.0-setup.exe`（**主推**，双击就能装；GitHub 附件单文件上限 2 GB，够）
    - `cute-fat-fish-pet-1.1.0-setup.exe.sha256`
@@ -79,7 +85,7 @@ gh release create v1.1.0 `
   "release\cute-fat-fish-pet-1.1.0-setup.exe.sha256" `
   "release\cute-fat-fish-pet-1.1.0-win-x64.zip" `
   "release\cute-fat-fish-pet-1.1.0-win-x64.zip.sha256" `
-  --title "可爱大肥鱼桌宠 1.1.0" --notes-file "docs\发布说明-1.1.0.md"
+  --title "可爱大肥鱼桌宠 1.1.0" --notes-file "docs\release-notes-1.1.0.md"
 ```
 
 > **附件名必须全是 ASCII。** GitHub 会把资产名里的非 ASCII 字符直接删掉：上传

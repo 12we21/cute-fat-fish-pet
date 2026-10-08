@@ -1,3 +1,9 @@
+# Architecture roadmap — removing host coupling
+
+**English summary.** A *plan* (no code changes in this document): replace the plugin-style lookups in `src\lib\index.js` (resolving `resolveActivePetId` on demand, pulling services off `ctx`, hiding state in assembly closures) with direct internal calls, so the pet engine is a plain module inside its own process instead of a plugin hosted by something else. Sections 6.1–6.8 add per-topic plans with real `file:line` anchors (scheduler, proposal/governance, character, long-term memory, idle CPU, control-bridge security, mapping table, and why a big refactor is not in this version). §6.6 (control-bridge hardening) is **done in 1.1.0**. **This document is in Chinese.**
+
+---
+
 # 架构演进：去宿主化
 
 > 这份文件是**计划**，不含任何代码改动。目标：把 `src\lib\index.js` 里那种「插件式」写法

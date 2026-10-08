@@ -1,58 +1,69 @@
-# NOTICE — 版权、署名与第三方组件
+# NOTICE — copyright, attribution and third-party components
 
-可爱大肥鱼桌宠（她叫「蓝毛小女仆」）
-本版由 **Mikolu** 独立开发与维护，发布于 1.1.0。
+Cute Fat Fish Pet (the character is called 蓝毛小女仆, "Blue-Haired Little Maid").
+Developed and maintained by **Mikolu**; version 1.1.0.
 
-这份文件回答三件事：**这东西是谁的、用了谁的代码、包里随附了哪些法律文本**。
-面向最终用户的通俗版本在 [`assets/使用说明.txt`](assets/使用说明.txt)（第七、八节），
-逐组件清单在 [`assets/第三方声明.txt`](assets/第三方声明.txt)。
+This file answers three questions: **whose work is this, whose code does it use, and which legal texts ship inside the package.** The plain-language version for users is in [`assets/使用说明.txt`](assets/使用说明.txt) (sections 7 and 8); the per-component list is [`assets/第三方声明.txt`](assets/第三方声明.txt).
+
+[中文版见下方](#中文版)
 
 ---
 
-## 1. 本项目
+## 1. This project
 
-- 以 **MIT** 协议发布，完整条款见 [`LICENSE`](LICENSE)。
-- `LICENSE` 里保留**两段版权声明**：
-  - `Copyright (c) 2026 PC2005-cloud` —— 上游桌宠 dsh-pet（<https://github.com/PC2005-cloud/dsh-pet>）原作者；
-  - `Copyright (c) 2026 Mikolu` —— 本整合发布版。
-- 这是一个由 Mikolu 独立开发和维护的桌面宠物项目。特别感谢原作者 PC2005-cloud 在 0.3.0 版本提供的早期基础架构与灵感。
+- Released under the **MIT** license; full text in [`LICENSE`](LICENSE).
+- `LICENSE` keeps **two copyright lines**:
+  - `Copyright (c) 2026 PC2005-cloud` — the upstream desktop pet `dsh-pet` (<https://github.com/PC2005-cloud/dsh-pet>);
+  - `Copyright (c) 2026 Mikolu` — this integrated release.
+- This is an independent desktop-pet project, developed and maintained by Mikolu. Special thanks to the original author **PC2005-cloud**, whose **dsh-pet 0.3.0** provided the early foundation and the inspiration.
 
-## 2. 上游署名：一个字都没删
+## 2. Upstream attribution: nothing was removed
 
-上游 dsh-pet 的 MIT 许可全文以 **`assets/LICENSE.txt`** 原样随包分发，未做任何删改；
-`assets/第三方声明.txt` 第 1 段保留了上游项目的名称、作者与许可证指向；
-`LICENSE` 里同时保留两段版权。
+The upstream MIT text ships **byte-identical** as [`assets/LICENSE.txt`](assets/LICENSE.txt), unmodified. Section 1 of [`assets/第三方声明.txt`](assets/第三方声明.txt) keeps the upstream project's name, author and license reference, and `LICENSE` keeps both copyright lines.
 
-> 打包、铺 `stage\`、出安装程序 / zip 时，`assets/LICENSE.txt` 与 `assets/第三方声明.txt`
-> 都必须继续进包。它们是署名义务的载体，不是可选文档。
+The exact, per-file difference between the upstream 0.3.0 tree and this repository is published in [docs/differences-from-upstream.md](docs/differences-from-upstream.md), including sizes and SHA-256 hashes.
 
-## 3. 随包分发的第三方组件
+> When laying out `stage\` or building the installer / zip, `assets/LICENSE.txt` and `assets/第三方声明.txt` **must keep shipping**. They carry the attribution obligation; they are not optional documentation.
 
-| 组件 | 用途 | 许可证 / 说明 |
+## 3. Third-party components distributed with the package
+
+| Component | Used for | License / notes |
 | --- | --- | --- |
-| **Electron 43 + Chromium** | 桌面渲染端、控制台外壳 | MIT（Chromium 部分为 BSD 类许可，详见 Electron 发行包内 `LICENSES.chromium.html`） |
-| **Node.js v24**（`node\bin\node.exe`） | 语音识别：SenseVoice 原生插件在 Electron 里加载不了（`External buffers are not allowed`），必须用真 node 跑 | MIT |
-| **sherpa-onnx** | 离线语音识别引擎（原生 `.node`/`.dll`） | Apache-2.0 |
-| **SenseVoice int8 模型** | 离线语音识别模型 | Apache-2.0 |
-| **silero VAD** | 语音活动检测（判断「有没有人在说话」） | MIT |
-| **上首软糖体**（`src\assets\fonts\`） | 气泡与聊天窗字体 | 随包分发的字体文件，仅用于本应用界面 |
-| **npm 依赖** | 桌宠本体的运行期依赖（随 `src\node_modules\` 分发） | 各自许可证见对应包内 `LICENSE` |
-| **表情包 / 动画素材** | `src\assets\memes\`（27 张）、`src\assets\webm\`（106 个） | 本项目素材 |
+| **Electron 43 + Chromium** | desktop renderer, console shell | MIT (Chromium parts are BSD-style; see `LICENSES.chromium.html` inside the Electron distribution) |
+| **Node.js v24** (`node\bin\node.exe`) | speech recognition: the SenseVoice native addon cannot be loaded inside Electron (`External buffers are not allowed`), so a real node is required | MIT |
+| **sherpa-onnx** | offline speech recognition engine (native `.node` / `.dll`) | Apache-2.0 |
+| **SenseVoice int8 model** | offline speech recognition model | Apache-2.0 |
+| **silero VAD** | voice activity detection ("is anyone speaking") | MIT |
+| **上首软糖体** (`src\assets\fonts\`) | font used by the bubbles and the chat window | Font file distributed with the package, used only for this application's UI |
+| **npm dependencies** | runtime dependencies of the pet engine (shipped inside `src\node_modules\`) | See each package's own `LICENSE` |
+| **Memes and animations** | `src\assets\memes\` (27 images), `src\assets\webm\` (106 animations) | This project's own assets |
 
-## 4. 明确**不**随包分发的东西
+## 4. Deliberately **not** distributed
 
-- **Ollama**：需要你自己安装，并自行拉取模型。
-- **联网大模型服务**：任何 OpenAI 兼容接口都是你填地址 + Key 之后由你自己调用。
-- **Edge TTS**：用的是微软的在线语音合成服务，走网络，不随包。
-- **浏览器 / 录屏软件（OBS 等）**：录屏由你指定的本机软件完成，本应用只负责起停与传路径。
+- **Ollama** — install it yourself and pull your own models.
+- **Online model services** — any OpenAI-compatible endpoint is called by you, with your own key.
+- **Edge TTS** — Microsoft's online speech synthesis; used over the network, not shipped.
+- **Browsers / screen-recording software (OBS, …)** — recording is performed by software you choose; this application only starts and stops it and passes paths.
 
-## 5. 内部标识保留声明
+## 5. Internal identifiers are kept (on purpose)
 
-对外产品名是「可爱大肥鱼桌宠」，但包名 `dsh-pet`、桌面渲染端包名 `dsh-pet-electron-helper`、
-应用目录 / APP_ID `BlueHairMaid`、浏览器存储键 `dsh-pet-*`、本机路由前缀 `/dsh-pet-7340`
-以及默认数据目录 `%APPDATA%\BlueHairMaid` **均保持与 1.0.0 一致**。
-这不是漏改，而是为了**兼容老用户已有的配置与数据**——改掉任何一项都会让她的配置「搬家」或直接失效。
+The product is called "Cute Fat Fish Pet", but the package name `dsh-pet`, the desktop renderer package `dsh-pet-electron-helper`, the app folder / APP_ID `BlueHairMaid`, the browser storage keys `dsh-pet-*`, the local route prefix `/dsh-pet-7340` and the default data directory `%APPDATA%\BlueHairMaid` **all stay exactly as they were**.
 
-## 6. 联系方式
+This is not an oversight: renaming any of them would make existing installations lose their configuration and data (or break outright). See the table in [README.md](README.md#internal-identifiers-are-kept-on-purpose-dsh-pet--bluehairmaid).
 
-有问题、建议或想要的功能，提到本仓库的 Issues 就行。
+## 6. Contact
+
+Questions, ideas or feature requests: open an issue in this repository. Security reports: see [SECURITY.md](SECURITY.md).
+
+---
+
+## 中文版
+
+**可爱大肥鱼桌宠**（她叫「蓝毛小女仆」），由 **Mikolu** 独立开发与维护，当前版本 1.1.0。
+
+1. **本项目**：MIT，见 [`LICENSE`](LICENSE)；`LICENSE` 里保留两段版权 —— 上游桌宠 dsh-pet（<https://github.com/PC2005-cloud/dsh-pet>）原作者 `PC2005-cloud`，以及本整合发布版 `Mikolu`。特别感谢原作者在 0.3.0 版本提供的早期基础架构与灵感。
+2. **上游署名一个字都没删**：上游 MIT 全文以 [`assets/LICENSE.txt`](assets/LICENSE.txt) **逐字节原样**随包分发；[`assets/第三方声明.txt`](assets/第三方声明.txt) 第 1 段保留上游名称、作者与许可证指向。逐文件差异（含大小与 SHA-256）公开在 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)。
+3. **随包分发的第三方组件**：Electron 43 + Chromium（MIT / Chromium 部分 BSD）、Node.js v24（MIT，用于语音识别）、sherpa-onnx（Apache-2.0）、SenseVoice int8 模型（Apache-2.0）、silero VAD（MIT）、上首软糖体（`src\assets\fonts\`）、npm 依赖（随 `src\node_modules\`）、表情包与动画素材（本项目自有）。
+4. **明确不随包**：Ollama、联网大模型服务、Edge TTS（微软在线语音合成）、浏览器 / 录屏软件（OBS 等）。
+5. **内部标识故意保留**：包名 `dsh-pet`、渲染端包名 `dsh-pet-electron-helper`、应用目录 / APP_ID `BlueHairMaid`、浏览器存储键 `dsh-pet-*`、本机路由前缀 `/dsh-pet-7340`、默认数据目录 `%APPDATA%\BlueHairMaid` 全部保持不变——改了会让老用户的配置与数据「搬家」或直接失效。
+6. **联系方式**：问题、建议、想要的功能提到本仓库 Issues；安全问题见 [SECURITY.md](SECURITY.md)。
