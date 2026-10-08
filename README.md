@@ -94,7 +94,7 @@ Download **`cute-fat-fish-pet-1.1.3-win-x64.zip`** (about 400 MB, ~760 MB unpack
 > `安装.cmd` inside the extracted folder. It checks that the package is complete and explains the problem in Chinese if it
 > is not (the old one just flashed and closed), installs under the name 「可爱大肥鱼桌宠」 with the real version number, and
 > `卸载.cmd` now really removes the directory instead of leaving all 714 files behind.
-> Details: [release notes 1.1.2](docs/release-notes-1.1.2.md) · [confirmed defects](docs/known-issues.md).
+> Details: [release notes 1.1.3](docs/release-notes-1.1.3.md) · [confirmed defects](docs/known-issues.md).
 
 - double-click `安装.cmd` — creates the shortcuts and the uninstall entry (as if it had been installed), or
 - double-click `standalone\start-pet.vbs` to start her and `standalone\stop-pet.vbs` to stop her (fully portable, writes no registry keys).
