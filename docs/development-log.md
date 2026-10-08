@@ -119,7 +119,7 @@ That import is the baseline for everything else. **232 of the 243 files in the p
   3. `toOpenAIMessages` now accepts a plain-string `content`; before, an array-only reader turned a string into an **empty prompt** and the model answered something unrelated.
   - Version 1.1.2 in the four `package.json` files and the `!define APP_VER` default of `build/installer.nsi`; `docs/release-notes-1.1.2.md` added, [known-issues.md](known-issues.md) gained KI-6.
 - **Verification**: `node --check`; real calls through the patched module — `onlinePing` → 「在的」; a persona with array-shaped content → 「主人早安呀～今天也要元气满满哦！✨」; a plain-string message → 「你真是独一无二的闪光存在！」. The same one-liner went from 400 tokens burned on thinking to **2 tokens**. Separately confirmed that `deepseek-flash` really reads images (a synthetic card came back as `FISH 42`), so the console's hint that it is a vision model is accurate.
-- **Commit**: `_（提交后填哈希）_` — 1.1.2：联网模型不再把思考当台词
+- **Commit**: ``dba4e2d`` — 1.1.2：联网模型不再把思考当台词
 
 ---
 
@@ -165,5 +165,5 @@ Then reproduce the acceptance run: install the setup silently into a scratch dir
 
 装好之后的验收数字：静默安装 **711 个文件**，其中 **710 个与 `stage/` 逐字节一致**（`build\verify-install.py`），数据根未被改动，卸载干净。
 1.1.1 的绿色包另外真跑了一遍「解压 → `安装.cmd` → 卸载」：装出来 **710/710 逐字节一致**、登记项版本 **1.1.1**、卸载后 **安装目录在窗口关闭后 2 秒内被完整清掉**。
-- **2026-10-09（`_（提交后填哈希）_`）**：1.1.2 —— 联网模型不再把「思考过程」整段当台词念出来（KI-6）：DeepSeek 现在的模型都是思考型，桌宠的短预算下正文为空、思考一大段（实测 20 token → 正文 0 字 / 思考 556 字），而 `online.mjs` 退而把 reasoning 当回答；改为对 DeepSeek 端点直接发 `thinking:{"type":"disabled"}`（同一句话 400 token → **2 token**），并把「只想了、没写正文」改成如实报错，**绝不念思考**；顺带修掉「保存的模型名大小写写错导致 HTTP 400」与「字符串形状的消息被静默变成空 prompt」。
+- **2026-10-09（``dba4e2d``）**：1.1.2 —— 联网模型不再把「思考过程」整段当台词念出来（KI-6）：DeepSeek 现在的模型都是思考型，桌宠的短预算下正文为空、思考一大段（实测 20 token → 正文 0 字 / 思考 556 字），而 `online.mjs` 退而把 reasoning 当回答；改为对 DeepSeek 端点直接发 `thinking:{"type":"disabled"}`（同一句话 400 token → **2 token**），并把「只想了、没写正文」改成如实报错，**绝不念思考**；顺带修掉「保存的模型名大小写写错导致 HTTP 400」与「字符串形状的消息被静默变成空 prompt」。
 1.1.2 的验收：绿色包「解压 → `安装.cmd` → 卸载」与安装器静默安装各自逐字节一致，数字见 [known-issues.md](known-issues.md) 的「修复验证」。
