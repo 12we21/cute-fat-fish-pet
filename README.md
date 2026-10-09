@@ -6,7 +6,7 @@
 
 She idles, wanders around and does little animations on her own. She can chat with you, take a look at your screen and say something about it — and when you ask her to, she can open an app, a file, a folder or a web page for you, or start a screen recording.
 
-![How she looks](docs/images/hero.png)
+![She has 106 hand-drawn animations](docs/images/demo.gif)
 
 [Install](#install) · [First run](#what-she-does-on-first-run) · [Data & privacy](#data--privacy) · [Build from source](#build-from-source) · [Verify your download](#verify-your-download) · [License](#license--third-party)
 
@@ -104,6 +104,18 @@ Download **`cute-fat-fish-pet-1.2.1-win-x64.zip`** (about 397.7 MB, ~760 MB unpa
 Use the second one on a USB stick. If you want her data to travel with the program directory, drop an empty `portable.txt` next to the executable (see [Data & privacy](#data--privacy)).
 
 > Note: the files that ship **inside** the package keep their Chinese names and Chinese text for now (`安装.cmd`, `卸载.cmd`, `assets\使用说明.txt`, …). Renaming them would change the package that is already published, so it is queued for the next release instead.
+
+### Option 3 — as a DeepSeek Harness plugin (nothing to download)
+
+The pet engine in [`src/`](src) is also a **DeepSeek Harness** plugin, so she can live inside the DSH Web UI instead of on your wallpaper:
+
+```bash
+dsh plugin --profile web add github:12we21/cute-fat-fish-pet#path:/src
+```
+
+`src/lib/` is committed pre-built, so there is no build step. The repository carries the `dsh-plugin` topic and has been submitted to the [Awesome DSH Plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) directory under *Just for Fun* — that directory is what `dshmarket` and `awesome-dsh-plugin.com` read, while [dshfind](https://dshfind.com) mirrors every repository carrying the topic.
+
+This half of the project is a **subset** of the standalone build: all 106 animations, wandering, click reactions, chat through local **Ollama** or the DSH online models, and optional screen watching are in it. The offline speech recognition, the Edge TTS voice and the console window are **not** — those come with the installer and the zip above.
 
 ### Every download comes with a `.sha256`
 
