@@ -105,12 +105,19 @@ Use the second one on a USB stick. If you want her data to travel with the progr
 
 > Note: the files that ship **inside** the package keep their Chinese names and Chinese text for now (`安装.cmd`, `卸载.cmd`, `assets\使用说明.txt`, …). Renaming them would change the package that is already published, so it is queued for the next release instead.
 
-### Option 3 — as a DeepSeek Harness plugin (nothing to download)
+### Option 3 — as a DeepSeek Harness plugin (no installer)
 
 The pet engine in [`src/`](src) is also a **DeepSeek Harness** plugin, so she can live inside the DSH Web UI instead of on your wallpaper:
 
 ```bash
 dsh plugin --profile web add github:12we21/cute-fat-fish-pet#path:/src
+```
+
+> **What that downloads.** The manifest lives in the `src/` subpackage, so this fetches the **whole repository tarball (about 68 MB)** — the 106 animations are most of it. On a slow or throttled connection that fetch can time out. If it does, install from a local clone instead:
+
+```bash
+git clone --depth 1 https://github.com/12we21/cute-fat-fish-pet
+dsh plugin --profile web add ./cute-fat-fish-pet/src
 ```
 
 `src/lib/` is committed pre-built, so there is no build step. The repository carries the `dsh-plugin` topic and has been submitted to the [Awesome DSH Plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) directory under *Just for Fun* — that directory is what `dshmarket` and `awesome-dsh-plugin.com` read, while [dshfind](https://dshfind.com) mirrors every repository carrying the topic.
