@@ -4,7 +4,7 @@ Thanks for wanting to help. This is a hobby project maintained by one person, so
 
 ## Ground rules
 
-1. **Do not rename internal identifiers.** `BlueHairMaid`, `dsh-pet`, `dsh-pet-electron-helper`, the `dsh-pet-*` storage keys, the `/dsh-pet-7340` route prefix and the `%APPDATA%\BlueHairMaid` data root are deliberately kept. Renaming any of them silently breaks existing installations ([NOTICE.md](NOTICE.md), section 5).
+1. **Do not rename internal identifiers.** `BlueHairMaid`, `dsh-pet-electron-helper`, the `dsh-pet-*` storage keys, the `/dsh-pet-7340` route prefix and the `%APPDATA%\BlueHairMaid` data root are deliberately kept. Renaming any of them silently breaks existing installations ([NOTICE.md](NOTICE.md), section 5). The one exception so far is the **DSH plugin package name**, changed once on 2026-10-10 from `dsh-pet` to `cute-fat-fish-pet`; section 5 explains why that one was safe.
 2. **Keep the upstream attribution intact.** `assets/LICENSE.txt` is the upstream MIT text and ships byte-identical; the upstream copyright line in `LICENSE` stays.
 3. **No local paths, no secrets, ever.** `node build\check-paths.mjs` is a build gate that scans for absolute paths and private directories, and the build refuses to run when it fails. Bug reports and PRs must not contain API keys, tokens, or absolute paths from your machine.
 4. **Package-visible files need a rebuild.** `src/`, `launcher/`, `standalone/`, `defaults/`, `assets/`, and `verify.mjs` **are** the shipped package: changing any of them changes the released artifacts, so a change there must be followed by a rebuild and a re-verification (below).
