@@ -1390,7 +1390,7 @@ const zh = {
 	uninstallStep1: "1. 先退出 DSH（桌面宠物随之退出）；不要在桌宠运行时删除上面的文件。",
 	uninstallStep2: "2. 卸载插件本体（终端执行，会同时从 profile 的 bundle 层移除）：",
 	uninstallStep3: "3. 按需删除上面的位置：缓存类删了无影响；「插件用户数据」删了会丢配置与对话记忆（想保留就先备份其中的 main-config.json）。",
-	uninstallCmd: "dsh plugin --profile {profile} remove dsh-pet"
+	uninstallCmd: "dsh plugin --profile {profile} remove cute-fat-fish-pet"
 };
 const en = {
 	nav: "Pet Config",
@@ -1465,7 +1465,7 @@ const en = {
 	uninstallStep1: "1. Quit DSH first (the desktop pet exits with it); do not delete these files while the pet is running.",
 	uninstallStep2: "2. Remove the plugin itself (run in a terminal; this also drops it from the profile bundle layer):",
 	uninstallStep3: "3. Delete the locations above as needed: cache folders are harmless; deleting \"plugin user data\" loses your config and chat memory (back up main-config.json first if you want to keep it).",
-	uninstallCmd: "dsh plugin --profile {profile} remove dsh-pet"
+	uninstallCmd: "dsh plugin --profile {profile} remove cute-fat-fish-pet"
 };
 function makePetConfigSection(rt) {
 	const { h, useState, useEffect, t } = rt;
