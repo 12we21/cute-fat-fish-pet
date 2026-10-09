@@ -6,7 +6,7 @@
 
 会自己待机、走动、做小动作；能陪你聊天、看一眼你的屏幕说两句；你让她动手，她还能打开软件 / 文件 / 文件夹 / 网页，或者替你起一段录屏。
 
-![她的样子](docs/images/hero.png)
+![她有 106 个手绘动画](docs/images/demo.gif)
 
 [安装](#安装) · [第一次运行](#第一次运行她自己会做这些事) · [数据与隐私](#数据与隐私) · [从源码构建](#从源码构建) · [核对下载](#核对下载) · [许可与第三方](#许可与第三方)
 
@@ -94,6 +94,18 @@
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
 
 移动硬盘 / U 盘上跑就选后者；想让数据跟着程序走，在程序目录里放一个空的 `portable.txt`（见 [数据与隐私](#数据与隐私)）。
+
+### 方式三：作为 DeepSeek Harness 插件（不用下载）
+
+[`src/`](src) 里的桌宠本体同时也是一个 **DeepSeek Harness** 插件，所以她可以住在 DSH 的 Web 界面里，而不是（或同时）住在你的壁纸上：
+
+```bash
+dsh plugin --profile web add github:12we21/cute-fat-fish-pet#path:/src
+```
+
+`src/lib/` 是预构建入库的，这一步不需要编译。仓库已带 `dsh-plugin` topic，并已提交到 [Awesome DSH Plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 目录的 *Just for Fun* 分类——`dshmarket` 与 `awesome-dsh-plugin.com` 读的是这个目录，而 [dshfind](https://dshfind.com) 则直接镜像所有带该 topic 的仓库。
+
+这一半是独立版的**子集**：106 个动画、桌面漫步、点击反应、经本机 **Ollama** 或 DSH 在线模型陪聊、可选看屏幕都在。**不包含**离线语音识别、Edge TTS 语音和控制台窗口——那些在安装器和 zip 里。
 
 ### 每个包都带 `.sha256`
 
