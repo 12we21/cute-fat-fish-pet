@@ -502,3 +502,34 @@ This document is in Chinese.
   `electron.exe` → 覆盖这一个文件 → 用 WMI 起回 `electron.exe "…\launcher"`（4 个进程都在）。
   **注意**：她那边的与线上 1.2.0 成品现在差 `launcher\index.html` 一个文件（累计两个修复都在 `main` 上），
   `verify-install.py` 会对她那份报 1 处不一致（预期如此，等下次发版自然对齐）。
+
+### 问她「在线还是离线」她答「离线模式」（2026-10-09，修在 main，版本号仍叫 1.2.0）
+
+- **现象**：主人用语音问「你现在是在线模型还是离线模型？」，她答「主人又问一遍啦，我现在是离线模式哦～」，
+  可控制台状态显示「在线」——看起来像模型没切换成功。
+- **查了什么**：① 她那份 `standalone\online.json` 是 `enabled:true / baseUrl https://api.deepseek.com /
+  model deepseek-flash`（`GET /models` 证实这个名字有效）；② `screen-watch\state.json` 里 `brain:"dsh"`
+  （真的在在线档）；③ 决定性实验：轮询她那只桌宠（pid 16300）的 443 连接，同时 POST 它自己的
+  `/dsh-pet-7340/quip` —— 944ms 出话，并且抓到 `Established 182.140.248.155:443`（`api.deepseek.com` 的地址）
+  连续 6 次采样。⇒ **联网模型确实在被调用，切换是成功的**。
+- **根因**：没有任何机制把「我当前是哪一档、用的哪个模型」告诉模型。人设 prompt 里只有「温柔乖巧、叫主人」，
+  于是它照人设**猜**了一个「离线」。同一句话实测：联网 `deepseek-flash` 答「我目前是在线模式」，
+  本机 `qwen2.5vl:3b` 答「离线模式」——**模型换了，答案跟着变，说明这是模型的自由发挥，不是产品在报状态**。
+- **修法**（只动 `src\lib\index.js`，标 `[互动@2]`）：① `swModeText()` —— 按 `state.json` 的 brain
+  （本地 / 自动择优 / 在线）**由代码如实回答**，并把真实模型名与域名说出来（在线档还会说「联网没配全时会回落到本机」）；
+  ② `swControl()` 头部先认「问句 + 档位词」（`还是|吗|什么|…` × `在线|离线|联网|本机|模型…`，且不以
+  `换|用|切|改…` 开头），放在长度闸门和切换口令之前 —— 以前「你现在是本地模型吗」会被 `has(["本地模型"])`
+  当成切换命令，**直接把档位改掉**；③ 对话的 system 末尾补一句 `petBrainFactLine()`（「你处于在线模式…，
+  主人问到时照这句实话实说，别猜、别说自己离线」），兜住代码没匹配到的问法；④ `swStatusText()` 由「在线」
+  改成「在线（deepseek-flash）」，状态里也带上模型名。
+- **自检**：新写 `_accept\_probe\probe-mode-answer.mjs` —— 不起 Electron、不发网络：把 `stage\app\lib\index.js`
+  的 `apply()` 挂到独立模式的假 ctx 上，喂 `/chat` 请求看回复。**9/9 通过 / exit 0**：在线档如实答 +
+  报出 `deepseek-flash`、问句不再改档（brain 仍 `dsh`）、「换本地模型」照旧切档、本地档答「本地模式 + 不联网」、
+  「换在线」切回来、别的问法也走代码、没配联网模型时如实说「还没配全」、口令问答不写 `memory.json`。
+  门禁 `check-paths`（186 个文件干净）与 `check-release`（四棵树逐字节一致、0 个运行期残留）全过。
+- **两个测试坑**（下次别踩）：① 插件静态 import 的 `@deepseek-ai/*` 在 `stage\app` 里没有 node_modules，
+  必须照 `stage\standalone\main.mjs:81-90` 用 `registerHooks` 把三个包名 alias 到 `standalone\shims\*.mjs`；
+  ② `createStandaloneContext()` 返回的是**包装对象** `{ ctx, routes, failures, effectCount, dispose }`，
+  `apply()` 要喂 `.ctx`；③ 切换口令是 `void swSave(...)`（**异步写盘、不等回复**），验证时要轮询等 `state.json` 落盘。
+- **发版决定**：沿用 1.2.0（主人只让修），提交 `465112d`「控制台/语音：问她「在线还是离线」由代码如实回答，
+  问句不再被当成切换命令」；她那份 `app\lib\index.js` 就地覆盖后即生效。
