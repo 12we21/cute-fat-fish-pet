@@ -50,9 +50,9 @@ The exact, per-file difference between the upstream 0.3.0 tree and this reposito
 
 ## 5. Internal identifiers are kept (on purpose)
 
-The product is called "Cute Fat Fish Pet", but the package name `dsh-pet`, the desktop renderer package `dsh-pet-electron-helper`, the app folder / APP_ID `BlueHairMaid`, the browser storage keys `dsh-pet-*`, the local route prefix `/dsh-pet-7340` and the default data directory `%APPDATA%\BlueHairMaid` **all stay exactly as they were**.
+The product is called 蓝毛小女仆 / Blue-Haired Little Maid. The **DSH plugin package name was changed once, on 2026-10-10** — `dsh-pet` → `cute-fat-fish-pet` — because `dsh-pet` is the upstream npm package and the row id of another plugin's bundle patch. Everything else is deliberately unchanged: the desktop renderer package `dsh-pet-electron-helper`, the app folder / APP_ID `BlueHairMaid`, the browser storage keys `dsh-pet-*`, the local route prefix `/dsh-pet-7340` and the default data directory `%APPDATA%\BlueHairMaid`.
 
-This is not an oversight: renaming any of them would make existing installations lose their configuration and data (or break outright). See the table in [README.md](README.md#internal-identifiers-are-kept-on-purpose-dsh-pet--bluehairmaid).
+This is not an oversight. The plugin package name could be changed safely because the data root (`$DSH_HOME/dsh-pet/`), the route prefix and the browser storage keys are **hard-coded strings in `src/lib/`, not derived from the package name** — an installed copy only has to be re-added once. Renaming any of the other identifiers would make existing installations lose their configuration and data (or break outright). See the table in [README.md](README.md#internal-identifiers-are-kept-on-purpose-bluehairmaid).
 
 ## 6. Contact
 
@@ -68,5 +68,5 @@ Questions, ideas or feature requests: open an issue in this repository. Security
 2. **上游署名一个字都没删**：上游 MIT 全文以 [`assets/LICENSE.txt`](assets/LICENSE.txt) **逐字节原样**随包分发；[`assets/第三方声明.txt`](assets/第三方声明.txt) 第 1 段保留上游名称、作者与许可证指向。逐文件差异（含大小与 SHA-256）公开在 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)。
 3. **随包分发的第三方组件**：Electron 43 + Chromium（MIT / Chromium 部分 BSD）、Node.js v24（MIT，用于语音识别）、sherpa-onnx（Apache-2.0）、SenseVoice int8 模型（Apache-2.0）、silero VAD（MIT）、上首软糖体（`src\assets\fonts\`）、npm 依赖（随 `src\node_modules\`）、表情包与动画素材（本项目自有）。
 4. **明确不随包**：Ollama、联网大模型服务、Edge TTS（微软在线语音合成）、浏览器 / 录屏软件（OBS 等）。
-5. **内部标识故意保留**：包名 `dsh-pet`、渲染端包名 `dsh-pet-electron-helper`、应用目录 / APP_ID `BlueHairMaid`、浏览器存储键 `dsh-pet-*`、本机路由前缀 `/dsh-pet-7340`、默认数据目录 `%APPDATA%\BlueHairMaid` 全部保持不变——改了会让老用户的配置与数据「搬家」或直接失效。
+5. **内部标识故意保留**：**唯一的例外是 DSH 插件包名** —— 2026-10-10 由 `dsh-pet` 改成 `cute-fat-fish-pet`（`dsh-pet` 既是上游 npm 包名，也是另一个插件补丁行的 id）。之所以这次改名安全：数据根 `$DSH_HOME/dsh-pet/`、路由前缀 `/dsh-pet-7340`、浏览器存储键 `dsh-pet-*` 都是 `src/lib/` 里的**硬编码字符串**，不是从包名推导的，所以用户数据不搬家，已安装的只需重新 add 一次。其余：渲染端包名 `dsh-pet-electron-helper`、应用目录 / APP_ID `BlueHairMaid`、默认数据目录 `%APPDATA%\BlueHairMaid` 全部保持不变——改了会让老用户的配置与数据「搬家」或直接失效。
 6. **联系方式**：问题、建议、想要的功能提到本仓库 Issues；安全问题见 [SECURITY.md](SECURITY.md)。
