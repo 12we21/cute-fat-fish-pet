@@ -442,3 +442,27 @@ This document is in Chinese.
   `DisplayVersion=1.2.0`、`InstallLocation` 与 `InstallDir` 仍指 `D:\...\BlueHairMaid`；升完用 WMI 起
   `electron.exe "…\launcher"`，她的 4 个 `electron.exe` 全回来了（主窗口标题「蓝毛小女仆」），控制台里「检查更新 / 下载并更新」
   两个按钮都在。
+
+### 「测一下通不通」点完没反馈（2026-10-09，修在 main，版本号仍叫 1.2.0）
+
+- **现象（主人报的）**：联网模型那一栏点「测试一下通不通」没有任何反馈，看不出到底连上没有。
+- **根因两条**：① 探测结果只 `log("系统", …)` 写进页面最下面的终端（`#term`），用户停在顶部点完看不到任何变化；
+  ② `$("testOnline").onclick` 探测读的是**已保存**的 `standalone\online.json`，而 `saveOnlineFields()` 此前只在
+  「保存」和视觉那条里调过，所以「填了新 Key 直接点测」测的还是上一次保存的旧配置。
+- **改法（只动 `launcher\index.html`）**：联网那行按钮下面各加一行 `.testmsg` 状态（`testOnlineMsg` / `testVisionMsg`），
+  点下去立刻变琥珀色「正在问……（最多 20 秒）」并把按钮置灰，测完当场变绿 `…：通了（<n> ms），它回「…」`
+  或变红 `…：没通 —— <原因>`，按钮恢复；探测前先 `await saveOnlineFields(false)` 把框里刚敲的值存下去；
+  「测『看屏幕』」没填视觉模型时改成中性说明（这条现在走本机 Ollama，没联网），不再像报错。文案一律过
+  `maskSecrets()`，Key 不会漏在界面上。
+- **验收**：`_accept\test-online-feedback.cjs`（假 OpenAI 端点 `127.0.0.1:9356` 一律回「在的」+ 没人监听的 `19998` 造失败 +
+  `DSH_PET_DATA_DIR` 隔离控制台 + CDP 点真按钮）**32 项全过 / exit 0**：初始两行说明 → 点击瞬间忙碌态（按钮灰、
+  那行变色）→ `联网模型：通了（15 ms），它回「在的」` + `ok` → 假端点确实收到 `Bearer console-test-key-…` 与 `test-model`
+  → 终端同样留一行 → 死端口时红字 `联网模型：没通 —— 联网模型没连上（http://127.0.0.1:19998/chat/completions）：fetch failed`
+  且不泄露 Key → 视觉三种态（没配→说明、点击→忙碌、成功→`ok`）。测试临时换掉的 `stage\standalone\online.json` 跑完已还原。
+- **发版决定**：主人明确说「只是修复，不用发 1.2.1，沿用 1.2.0」⇒ 版本号一处没动、没有重打 zip/exe、没有新 release；
+  仓库提交 `1054b79`「修复：联网模型「测一下通不通」点完没有任何反馈」并已 push。**因此线上 1.2.0 的成品里仍是旧行为**，
+  等下次发版才会带上这个修复。
+- **主人那份**：她的 `launcher\index.html` 已换成修好的版本（sha256 `93418C2D…4E309`，105,880 B；线上 1.2.0 那份是
+  `FDAD652B…470B`）—— 停掉她那 4 个 `electron.exe` → 覆盖这一个文件 → 用 WMI 起回 `electron.exe "…\launcher"`
+  （4 个进程都在，主窗口标题「蓝毛小女仆」）。**注意**：这让她的安装目录与线上 1.2.0 成品差这一个文件，
+  `verify-install.py` 会对它报 1 处不一致（预期如此，不是坏了）。
