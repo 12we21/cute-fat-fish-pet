@@ -95,12 +95,19 @@
 
 移动硬盘 / U 盘上跑就选后者；想让数据跟着程序走，在程序目录里放一个空的 `portable.txt`（见 [数据与隐私](#数据与隐私)）。
 
-### 方式三：作为 DeepSeek Harness 插件（不用下载）
+### 方式三：作为 DeepSeek Harness 插件（不用安装包）
 
 [`src/`](src) 里的桌宠本体同时也是一个 **DeepSeek Harness** 插件，所以她可以住在 DSH 的 Web 界面里，而不是（或同时）住在你的壁纸上：
 
 ```bash
 dsh plugin --profile web add github:12we21/cute-fat-fish-pet#path:/src
+```
+
+> **这一步会下载多少。** 插件清单在 `src/` 子包里，所以它拉的是**整个仓库的 tarball（约 68 MB）**——106 个动画占了大头。网络慢或被限速时这一步会超时；真超了就改用本地克隆：
+
+```bash
+git clone --depth 1 https://github.com/12we21/cute-fat-fish-pet
+dsh plugin --profile web add ./cute-fat-fish-pet/src
 ```
 
 `src/lib/` 是预构建入库的，这一步不需要编译。仓库已带 `dsh-plugin` topic，并已提交到 [Awesome DSH Plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 目录的 *Just for Fun* 分类——`dshmarket` 与 `awesome-dsh-plugin.com` 读的是这个目录，而 [dshfind](https://dshfind.com) 则直接镜像所有带该 topic 的仓库。
