@@ -29,7 +29,7 @@
 
 > **关于名字**：蓝毛小女仆 是产品名。仓库名、npm 包名和已经发出去的安装器仍沿用旧名 **`cute-fat-fish-pet` / 「可爱大肥鱼桌宠」** —— 改这些会让已装的用户、桌面快捷方式和下载链接全部断掉，所以保持原样。在下一次重新打包之前，Windows 的桌面快捷方式和「设置 → 应用」里显示的仍是「可爱大肥鱼桌宠」。
 
-上游发布的 `dsh-pet@0.3.0` 安装包里共有 243 个文件，其中 **232 个与本仓库逐字节相同，11 个是刻意改过的**（每个都带大小与原因，见 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)），**没有删掉上游任何文件**；另外有 2 个引擎文件是本项目自己加的（`runtime/electron-helper/obs-ctl.js`、`stt-worker.mjs`）。其余部分（控制台、独立运行器、构建链、安装器、文档）都是本项目自己的东西。
+上游发布的 `dsh-pet@0.3.0` 安装包里共有 243 个文件，其中 **232 个与本仓库逐字节相同，11 个是刻意改过的**（每个都带大小与原因，见 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)），**没有删掉上游任何文件**；另外有 3 个引擎文件是本项目自己加的（`runtime/electron-helper/obs-ctl.js`、`stt-worker.mjs`、`targets.js`）。其余部分（控制台、独立运行器、构建链、安装器、文档）都是本项目自己的东西。
 
 ### 关于内部标识：故意保留 `dsh-pet` / `BlueHairMaid`
 

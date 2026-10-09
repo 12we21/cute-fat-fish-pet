@@ -22,7 +22,7 @@ She idles, wanders around and does little animations on her own. She can chat wi
 
 Special thanks to **PC2005-cloud**, whose **dsh-pet 0.3.0** provided the early foundation and the inspiration for this project.
 
-The pet engine in [`src/`](src) is that codebase, carried forward and maintained in-tree: of the 243 files in the published upstream `dsh-pet@0.3.0` package, **232 are byte-identical here and 11 were changed on purpose** (each one listed with sizes and reasons in [docs/differences-from-upstream.md](docs/differences-from-upstream.md)), **no upstream file was dropped**, and two engine files (`runtime/electron-helper/obs-ctl.js`, `stt-worker.mjs`) are ours. Everything else in this repository — the console, the standalone runner, the build chain, the installer, the docs — is this project's own work.
+The pet engine in [`src/`](src) is that codebase, carried forward and maintained in-tree: of the 243 files in the published upstream `dsh-pet@0.3.0` package, **232 are byte-identical here and 11 were changed on purpose** (each one listed with sizes and reasons in [docs/differences-from-upstream.md](docs/differences-from-upstream.md)), **no upstream file was dropped**, and three engine files (`runtime/electron-helper/obs-ctl.js`, `stt-worker.mjs`, `targets.js`) are ours. Everything else in this repository — the console, the standalone runner, the build chain, the installer, the docs — is this project's own work.
 
 There is no patching step any more: `src/` **is** the shipped source. Building is just laying the source tree out in release shape and adding the runtimes that are not kept in git.
 

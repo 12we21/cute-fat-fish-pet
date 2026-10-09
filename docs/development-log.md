@@ -224,7 +224,7 @@ Then reproduce the acceptance run: install the setup silently into a scratch dir
 
 - No commit history from before 2026-10-08 exists: the project only got its own repository that day. Work done earlier is documented by the file-level evidence described in step 2, not by commits.
 - The upstream project is **not** claimed as this project's work: it is MIT-licensed code by PC2005-cloud, kept in-tree with attribution intact, and the exact per-file differences are published.
-- No claim is made that the 12 modified files are all "improvements" — the list, with sizes and hashes, is published so anyone can review them.
+- No claim is made that the 11 modified files are all "improvements" — the list, with sizes and hashes, is published so anyone can review them.
 
 ---
 
