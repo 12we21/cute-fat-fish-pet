@@ -47,7 +47,7 @@ CA/Browser Forum 从 2023-06-01 起要求：**所有代码签名证书的私钥�
 ```powershell
 signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 `
   /f "证书.pfx" /p "密码" `
-  "release\cute-fat-fish-pet-1.1.3-setup.exe"
+  "release\cute-fat-fish-pet-1.1.4-setup.exe"
 ```
 
 - `/fd SHA256`：文件摘要算法；`/td SHA256` + `/tr`：时间戳（**一定要打时间戳**，否则证书过期后旧版本签名一起失效）。
@@ -63,7 +63,7 @@ signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 `
 **签完必须验证：**
 
 ```powershell
-signtool verify /pa /v "release\cute-fat-fish-pet-1.1.3-setup.exe"
+signtool verify /pa /v "release\cute-fat-fish-pet-1.1.4-setup.exe"
 ```
 
 （`/pa` = 用默认验证策略，别漏，否则有漏洞的旧策略也会「通过」。）
@@ -77,12 +77,12 @@ signtool verify /pa /v "release\cute-fat-fish-pet-1.1.3-setup.exe"
 1. 每个 Release 都附上 `.exe.sha256` / `.zip.sha256`，README 里写明大小与哈希，用户可以用
 
    ```powershell
-   Get-FileHash .\cute-fat-fish-pet-1.1.3-setup.exe -Algorithm SHA256
+   Get-FileHash .\cute-fat-fish-pet-1.1.4-setup.exe -Algorithm SHA256
    ```
 
    对一下是不是一样。
 2. 安装包里的东西全部可查：`第三方声明.txt` 列了每个组件的来源与许可证，`LICENSE.txt` 是 MIT 全文。
-3. 想更进一步，可以用 GPG 签 git tag（`git tag -s v1.1.3`）——这证明「这个 tag 是你打的」，但**不影响 SmartScreen**，两者是两回事。
+3. 想更进一步，可以用 GPG 签 git tag（`git tag -s v1.1.4`）——这证明「这个 tag 是你打的」，但**不影响 SmartScreen**，两者是两回事。
 
 ## 5. 签名的钱花在哪最值
 

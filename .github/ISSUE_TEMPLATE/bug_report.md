@@ -11,7 +11,7 @@ Logs live in %APPDATA%\BlueHairMaid\logs\ (runner.log, runner.err.log, pet-contr
 -->
 
 **Version**
-<!-- e.g. 1.1.3 (installer or portable zip?) — the console window title shows it -->
+<!-- e.g. 1.1.4 (installer or portable zip?) — the console window title shows it -->
 
 **Windows version**
 <!-- e.g. Windows 11 23H2, or run `winver` -->

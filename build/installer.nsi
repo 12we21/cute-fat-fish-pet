@@ -7,7 +7,7 @@
 ;  人设/记忆/聊天记录在 %APPDATA%\BlueHairMaid，卸载时会问要不要一起删。
 ;
 ;  构建：python build\mkexe.py            ← 推荐（版本号取自 src\package.json）
-;        makensis /INPUTCHARSET UTF8 /DAPP_VER=1.1.3 build\installer.nsi
+;        makensis /INPUTCHARSET UTF8 /DAPP_VER=1.1.4 build\installer.nsi
 ;  （脚本必须以 UTF-8 带 BOM 保存，否则中文会乱码）
 ;  这里的路径全部相对 .nsi 自己的位置推导，仓库搬到哪台电脑都能编。
 ; ============================================================================
@@ -20,7 +20,7 @@ Unicode true
 !define APP_ID     "BlueHairMaid"
 !define APP_NAME   "可爱大肥鱼桌宠"
 !ifndef APP_VER
-  !define APP_VER  "1.1.3"
+  !define APP_VER  "1.1.4"
 !endif
 !define APP_PUB    "Mikolu · MIT 开源（早期架构来自 PC2005-cloud 的 dsh-pet 0.3.0）"
 !define ROOT       "${__FILEDIR__}\.."

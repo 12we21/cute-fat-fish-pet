@@ -1,7 +1,7 @@
 # Known issues
 
 English summary: defects that were confirmed in shipped builds, with the reproduction, the root cause
-and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 (kept for the record).
+and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 / 1.1.4 (kept for the record).
 This document is in Chinese.
 
 本文件记录**已经确认过**的缺陷：现象 → 怎么复现 → 根因 → 怎么修的 / 打算怎么修。
@@ -175,6 +175,28 @@ This document is in Chinese.
   真渲染端 CDP 断言 `_accept\test-voice-live.cjs` **21 项全过**（含真主进程落地 `openLocalTarget` 开窗）；
   包内自检（拖拽、穿透、菜单、动画、webm、errors）全过；数字见下面「1.1.3 的验收」。
 
+### KI-8（v1.1.4 修复）控制台把 API Key 明文摆在屏幕上（录视频会拍到）
+
+- **影响版本**：v1.0.0 ~ v1.1.3（控制台从 1.0.0 起就是纯文本输入框 + 原样回显日志）。
+- **现象**：「联网模型」里的两个 Key 输入框是 `type="text"`，一打开就是明文；任何把 Key 打出来的日志行也是明文；
+  页脚的数据路径与「本机适配」日志里还带着 `C:\Users\<用户名>\…`。录宣传视频时会一起被拍进去。
+- **根因**：控制台 `launcher\index.html` 既没有隐藏态（两个框都是 `type="text"`），也没有输出脱敏层 ——
+  `log()` / `setupLine()` 直接 `textContent = 原文`，`#permLog`、`#footRoot` / `#footData` 同理。
+- **修法（1.1.4，只动 `launcher\index.html` 一个文件）**：
+  1. 两个 Key 框改成 `type="password"`（带 `autocomplete="off" spellcheck="false"`），各配一个「显示 / 隐藏」按钮；
+     新增 `.eye` 样式，并把基础输入框选择器扩成 `select, input[type=text], input[type=number], input[type=password]`
+     （否则 password 框没样式、没 `flex:1`）；「输入过就算 dirty」的选择器也补上 `input[type=password]`。
+  2. 新增 `secretValues()`（读出两个框里 ≥6 字符的密钥）与 `maskSecrets(text)`：把**保存的真密钥整串**换成 `••••••`、
+     `sk-[A-Za-z0-9_\-]{4,}` → `sk-••••••`、`(Bearer\s+)[A-Za-z0-9._\-]{6,}` → `$1••••••`（幂等）。除这三种密钥形状
+     以外一律不动 —— 路径、用户名、普通文字原样输出。
+  3. `log()`、`setupLine()`、`#permLog`、`#footRoot` / `#footData` 一律 `textContent = maskSecrets(原文)`，**没有开关**：
+     控制台从写出去那一步起就不再打印它知道的密钥（输入框当前是显示还是隐藏都一样）。
+  4. `applySecretVisibility()` + 两个 `.eye` 按钮：平时是 `type="password"`，点「显示」才变 `text`，两个框互不影响。
+     第一版曾顺手加了「录制模式」总开关 + `● 录制中` 角标 + `localStorage`，主人当天明确「只需要能主动隐藏
+     API Key 的功能，不要加录制什么的」⇒ **已整条删掉**（页面上既没有 `#privacyMode` / `#privacyBadge`，也不写 `localStorage`）。
+- **验证**：真渲染端 CDP `_accept\test-console-privacy.cjs` **26 项断言全过**（默认就是圆点、Key 真从 `online.json` 填进来、
+  显示/隐藏互不影响、页面上没有录制模式残留、终端/适配日志/权限日志脱敏、普通文字原样）；数字见下面「1.1.4 的验收」。
+
 ### 修复验证
 
 - `安装.cmd` / `卸载.cmd`：本机冒烟（缺文件路径）实测退出码 1、中文说明逐字正确、`pause` 生效。
@@ -225,7 +247,7 @@ This document is in Chinese.
   `spriteCount:1`、拖拽/穿透/动画 webm 与 1.1.2 基线逐项一致）。唯一差异是 `menuSmoke.menuMounted` 两份都是 `false` ——
   查下去不是回归，而是自检自己太急（右键菜单要先 `await fetchWatchState()`（≤2.5 s）再 `await textModelMenuInfo()`（≤1.2 s）
   才挂上）。改成轮询等待后 `menuMounted:true waitedMs:200 panelCount:35 lvl2AfterHoverRoot:2 errsNew:0`。
-- **发布门禁**：`node build\build.mjs --toolchain 'D:\测试\BlueHairMaid'`（隐私门禁 `check-paths.mjs` 扫 182 个文件干净）→
+- **发布门禁**：`node build\build.mjs --toolchain 'D:\...\BlueHairMaid'`（隐私门禁 `check-paths.mjs` 扫 182 个文件干净）→
   暂存树 app 594 / launcher 9 / standalone 14 / defaults 4 / assets 7 / electron 75 / node 3 / speech 8（+ `verify.mjs`
   共 **715 个文件**）→ `node build\check-release.mjs --emit --write`（重写 `verify.mjs` 的 3.3 KB 生成段；**新增
   `app/runtime/electron-helper/targets.js` 进关键文件表**）→ `node stage\verify.mjs`（**4 棵树的整树指纹 + 26 个关键文件
@@ -241,16 +263,63 @@ This document is in Chinese.
   静默装进空目录（80 秒，712 个文件 / 798,111,645 B = 该装的 711 个 + 安装时生成的 `Uninstall.exe`）→
   **711 个文件逐字节一致**、`verify-install.py exit=0`、`DisplayVersion=1.1.3`；`Uninstall.exe /S`（2 秒）→
   安装目录与登记项都清掉、桌面快捷方式数回落到装前的 3 个、`%APPDATA%\BlueHairMaid` **69 个文件 / 4,935,784 B 一字未动**。
-- **主人那份真升级**（1.1.2 → 1.1.3，就是上面那个 exe）：先停掉在跑的桌宠与控制台 → `setup.exe /S /D=D:\测试\BlueHairMaid`
+- **主人那份真升级**（1.1.2 → 1.1.3，就是上面那个 exe）：先停掉在跑的桌宠与控制台 → `setup.exe /S /D=D:\...\BlueHairMaid`
   （76 秒）→ **713 个文件 / 798,111,880 B**，`verify-install.py`：**711 个文件逐字节一致（797,855,695 B）**，
   唯一「多出来」的是她自己的 `standalone\online.json`（联网模型配置，属于要保留的用户数据）→
-  登记项 `DisplayVersion` 由 1.1.2 变成 **1.1.3**、`InstallLocation` 与 `InstallDir` 仍指向 `D:\测试\BlueHairMaid` →
+  登记项 `DisplayVersion` 由 1.1.2 变成 **1.1.3**、`InstallLocation` 与 `InstallDir` 仍指向 `D:\...\BlueHairMaid` →
   按控制台自己的方式把桌宠重新拉起来：运行器 `standalone\main.mjs` + 桌面 helper `app\runtime\electron-helper\main.js`
   都起来了，运行日志里 `control bridge: http://127.0.0.1:3099`、`displays: 2560x1440 … petScale=1.5`、无报错，
   控制台窗口也在。
 - **测试前快照 / 跑完还原**：`_accept\user-state-113\`（两个 `HKCU` 键 + 桌面与开始菜单快捷方式），两次真机安装跑完
-  按快照还原：主人的登记项（`DisplayVersion=1.1.2`、`InstallLocation=D:\测试\BlueHairMaid`）与桌面 4 个 `.lnk` 原样，
+  按快照还原：主人的登记项（`DisplayVersion=1.1.2`、`InstallLocation=D:\...\BlueHairMaid`）与桌面 4 个 `.lnk` 原样，
   测试目录 `D:\_test113-install` / `D:\_test113-zip` 与 `_accept\Programs\BlueHairMaid113` 都还在仓库外、不随版本发布。
 - **一个只有本会话才会遇到的小坑**（写下来免得下次又踩）：本会话的环境里带着 `ELECTRON_RUN_AS_NODE=1`，
   直接 `Start-Process` 拉控制台会静默退出（Electron 被当成纯 node 跑，`launcher` 当脚本路径报错）；
   清掉这个变量再拉就正常。主人自己双击快捷方式不受影响。
+
+### 1.1.4 的验收（2026-10-09）
+
+- **功能验证（真渲染端 CDP）**：`_accept\test-console-privacy.cjs` **26 项断言全过** —— 默认就是圆点（证明
+  `standalone\online.json` → `doOptions` → `syncForm` → 输入框整条路都通）、点「显示」变明文且输入框里的值不变、
+  两个框互不影响、页面上没有 `#privacyMode` / `#privacyBadge` 也没有 `localStorage` 开关残留、终端 / 适配日志 /
+  权限日志里的真密钥与 `sk-…` / `Bearer …` 令牌都打点（明文正开着的时候也一样）、而路径与普通文字一个字都没改。
+  隔离实例跑（临时 `DSH_PET_DATA_DIR`），跑完把测试用的 `standalone\online.json` 删干净（原本不存在）。
+- **发布门禁**：`node build\build.mjs --toolchain D:\...\BlueHairMaid`（隐私门禁 `check-paths.mjs` 扫 **184 个文件干净**）→
+  `node build\check-release.mjs --emit --write` → `node stage\verify.mjs`（**4 棵树的整树指纹 + 26 个关键文件全部一致**）→
+  `node build\check-release.mjs` → `python build\nsi-syntax-check.py` → `mkzip` → `mkexe`，全部通过。
+  暂存树 app 594 / launcher 9 / standalone 14 / defaults 4 / assets 7 / electron 75 / node 3 / speech 8（+ `verify.mjs`，
+  共 **715 个文件**）。
+- **门禁自己抓到的一次**（记下来，别再犯）：第一遍全量构建时门禁命中 2 处 —— 全在**刚写好的发布说明自己身上**
+  （`docs\release-notes-1.1.4.md` 里引用了本机专属盘符目录当反面教材）。结论「2 处命中……先修掉再打包」，`exit 1`、
+  暂存树没被动过。改成 `D:\...\BlueHairMaid` 这种既有的省略写法后干净。**任何文档里都不要出现那个字面量路径，哪怕是在讲它不能出现。**
+- **绿色 zip 真机**：`cute-fat-fish-pet-1.1.4-win-x64.zip` = **417,002,153 B**（`54F6832C…CC9542FC`，715 个文件）；
+  解压（13 秒）→ 715 个文件 / 797,882,748 B → 解压树里 `node verify.mjs` **exit 0**（整树指纹一致）→ `安装.cmd` 真装一次
+  （2.9 秒，日志以 `[ok] Setup finished.` + `请按任意键继续. . .` 结束）→ `python build\verify-install.py stage <目录>`：
+  **包内该装的 711 个文件逐字节一致（797,858,233 B）**，`exit=1` 只因 zip 里那 4 个便携脚本本来就该留在安装目录里
+  （工具口径问题，不是安装缺陷）；登记项 `DisplayName=可爱大肥鱼桌宠`、`DisplayVersion=1.1.4`、`UninstallString` 指向该目录的
+  `卸载.cmd`；`卸载.cmd`（4.3 秒）后安装目录消失、登记项清掉、指向测试目录的快捷方式清掉、`%APPDATA%\BlueHairMaid` 用户数据保留。
+- **安装器真机**：`cute-fat-fish-pet-1.1.4-setup.exe` = **347,880,285 B**（`495F5D35…8553C5D0`，NSIS 3 LZMA，打包 563 秒）；
+  静默装进空目录（52 秒，712 个文件 / 798,114,183 B = 该装的 711 个 + 安装时生成的 `Uninstall.exe`）→
+  **711 个文件逐字节一致**、`verify-install.py exit=0`、`DisplayVersion=1.1.4`；`Uninstall.exe /S`（2 秒）→
+  安装目录与登记项都清掉、桌面快捷方式数回落到装前的 3 个、`%APPDATA%\BlueHairMaid` **71 个文件 / 4,983,571 B 一字未动**。
+- **主人那份真升级**（1.1.3 → 1.1.4，就是上面那个 exe）：先把她正在跑的桌宠停掉（4 个 `electron.exe`，`taskkill /PID <主进程> /T /F`）
+  → `setup.exe /S /D=D:\...\BlueHairMaid`（55 秒；**静默模式不读注册表**，`.onInit` 第一行就是 `IfSilent oninit_done`，
+  所以静默升级必须显式给 `/D=`）→ 安装目录 718 个文件 / 798,337,917 B，`verify-install.py`：**711 个文件逐字节一致
+  （797,858,233 B）**，多出来的 6 个是她自己或录制期留下的（`standalone\online.json`、
+  `app\runtime\electron-helper\main-config.json`、`app\runtime\electron-helper\main.js.prepromo.bak`、
+  `promo-err.log` / `promo-out.log` / `promo-renderer.log`；安装时生成的 `Uninstall.exe` 由工具白名单认掉）→
+  登记项 `DisplayVersion` 由 1.1.3 变成 **1.1.4**、`InstallLocation` 与 `InstallDir` 仍指向 `D:\...\BlueHairMaid` →
+  按她原来的方式把桌宠重新拉起来（WMI 起 `electron\electron.exe "…\launcher"`，4 个 `electron.exe` 进程都在），
+  `launcher\index.html` **95,329 B**，sha256 与 `stage\` 完全一致
+  （`97A2C7F4A2D117F5CD73B9096AFFA4D71AB7369ECF37E7CD5C6EA3BFF6AB590B`）。
+- **测试前快照 / 跑完还原**：`_accept\user-state-114b\`（两个 `HKCU` 键 + 桌面 4 个 `.lnk` + 开始菜单），
+  两条真机路线跑完按快照还原桌面与开始菜单（主人的 4 个 `.lnk` 原样）；两个测试路线各自卸载时会把
+  `HKCU\…\Uninstall\BlueHairMaid` 与 `HKCU\Software\BlueHairMaid` 删掉，所以**她那份的登记项是升级时由安装器重新写的**，
+  特意**没有**再拿快照里那份 `DisplayVersion=1.1.3` 盖回去 —— 那样会把 1.1.4 的文件登记成 1.1.3；
+  测试目录 `D:\_test114-install` / `D:\_test114-zip` 与 `_accept\Programs\BlueHairMaid114` 都在仓库外，不随版本发布。
+- **版本号**：`_accept\bump-114.cjs` 显式 (from, to) 对、每对必须恰好命中 1 次，**14 个文件 60 处**（4 个 `package.json`、
+  `build\installer.nsi`、`NOTICE.md`、两个 README、`docs\README.md`、`bug_report.md`、`differences-from-upstream.md`、
+  `known-issues.md`、`code-signing.zh-CN.md`、`how-to-publish.zh-CN.md`）；成品真值由 `_accept\fill-114.py` 从
+  `release\*.sha256` 读出来填进发布说明与两个 README（可重复跑），不手抄。主人当天否掉「录制模式」之后重打了一遍成品，
+  数字用 `_accept\refill-114.py`（把上一轮的旧 bytes/sha 显式列成表逐个替换，残留就 `exit 1`）再刷一次，
+  无版本号的别名 `release\cute-fat-fish-pet-setup.exe` 同步成新 exe 的副本 + 对应 `.sha256`。

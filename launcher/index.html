@@ -37,6 +37,8 @@
   #start { background: var(--accent); border-color: transparent; }
   #stop { background: #3a2b33; border-color: #4a3540; color: #f2b8b8; }
   .ghost { background: transparent; font-weight: 500; font-size: 12.5px; padding: 8px 10px; }
+  /* [privacy@1] 敏感字段那个「显示 / 隐藏」小按钮：别跟着撑满一行 */
+  .eye { flex: 0 0 auto; padding: 5px 9px; font-size: 11.5px; font-weight: 500; border-radius: 7px; }
 
   .sec { margin: 10px 18px 0; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px 12px; }
   .sec > h2, summary.sh { font-size: 12.5px; margin: 0 0 10px; color: #b9c2d6; font-weight: 600; letter-spacing: .6px; display: flex; align-items: center; gap: 7px; }
@@ -56,7 +58,7 @@
   .seg label:has(input:checked) { background: #34507f; border-color: #4a6fae; }
   .field { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 12.5px; color: #c3cadb; }
   .field > .lbl { flex: 0 0 96px; color: var(--dim); font-size: 11.5px; }
-  select, input[type=text], input[type=number] {
+  select, input[type=text], input[type=number], input[type=password] {
     flex: 1; min-width: 0; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line);
     background: #1b1f2b; color: var(--fg); font-family: inherit; font-size: 12.5px; outline: none;
   }
@@ -159,12 +161,13 @@
     <div class="hint" id="brainHint">本地模型来自本机 Ollama。</div>
 
     <div class="sub2">联网模型（OpenAI 兼容 · 选了「在线」或「自动择优」时用）</div>
+    <!-- [privacy@1] 不想被拍到 API Key：两个 Key 框默认就打点，点「显示」才看得到 -->
     <div class="field"><span class="lbl">接口地址</span><input type="text" id="onlineBase" placeholder="https://api.deepseek.com" /></div>
-    <div class="field"><span class="lbl">API Key</span><input type="text" id="onlineKey" placeholder="sk-…（只存在你自己电脑上）" /></div>
+    <div class="field"><span class="lbl">API Key</span><input type="password" id="onlineKey" autocomplete="off" spellcheck="false" placeholder="sk-…（只存在你自己电脑上）" /><button type="button" class="ghost eye" id="eye-onlineKey">显示</button></div>
     <div class="field"><span class="lbl">聊天模型</span><input type="text" id="onlineModel" placeholder="deepseek-chat" /></div>
     <div class="field"><span class="lbl">视觉模型</span><input type="text" id="onlineVision" placeholder="留空 = 看屏幕仍用本机模型" /></div>
     <div class="field"><span class="lbl">视觉接口地址</span><input type="text" id="onlineVisionBase" placeholder="留空 = 跟上面聊天用同一个" /></div>
-    <div class="field"><span class="lbl">视觉 API Key</span><input type="text" id="onlineVisionKey" placeholder="留空 = 跟上面聊天用同一个 Key" /></div>
+    <div class="field"><span class="lbl">视觉 API Key</span><input type="password" id="onlineVisionKey" autocomplete="off" spellcheck="false" placeholder="留空 = 跟上面聊天用同一个 Key" /><button type="button" class="ghost eye" id="eye-onlineVisionKey">显示</button></div>
     <div class="row" style="margin:10px 0 0">
       <button id="saveOnline">保存联网设置</button>
       <button id="testOnline" class="ghost">测一下通不通</button>
@@ -661,9 +664,10 @@ function syncForm(o) {
     $("ttsAutotalk").checked = tts.autotalk === true;
     $("ttsSing").checked = tts.sing !== false;
     const logs = (c.perm && c.perm.log) || [];
-    $("permLog").textContent = logs.length
+    const permText = logs.length
       ? "她最近做了什么：" + logs.slice(-6).reverse().map((x) => x.text || "").filter(Boolean).join(" ／ ")
       : "她还没动过你的电脑。";
+    $("permLog").textContent = maskSecrets(permText);
   }
   $("moodHint").textContent = "这几个值住在桌宠自己的窗口里，改完它会重载一下（一秒内）。" + cHint;
   $("voiceHint").textContent = "只在本机转写，不上传、不联网。麦克风设备还是要去右键菜单里挑。" + cHint;
@@ -689,6 +693,45 @@ function flash(id, text, isErr) {
   setTimeout(() => { el.className = "saved"; }, 2600);
 }
 
+// ---------------------------------------------------------------- 敏感信息
+// [privacy@1] 不想被拍到的 API Key：两个 Key 框默认就是圆点，点「显示」才看得到；
+//   终端 / 日志 / 页脚里印出来的 Key 和 sk- / Bearer 令牌也一律先抹成圆点，没有额外开关。
+const SECRET_FIELDS = ["onlineKey", "onlineVisionKey"];
+
+/** 界面上现在真有的那几个密钥（要把它们从文本里抠掉，所以得逐个知道）。 */
+function secretValues() {
+  const out = [];
+  for (const id of SECRET_FIELDS) {
+    const el = $(id);
+    const v = el && typeof el.value === "string" ? el.value.trim() : "";
+    if (v.length >= 6) out.push(v);
+  }
+  return out;
+}
+
+/** 把密钥、sk- / Bearer 令牌换成圆点。反复调用也安全。 */
+function maskSecrets(text) {
+  let s = text == null ? "" : String(text);
+  for (const k of secretValues()) s = s.split(k).join("••••••");
+  s = s.replace(/\bsk-[A-Za-z0-9_\-]{4,}/g, "sk-••••••");
+  s = s.replace(/(Bearer\s+)[A-Za-z0-9._\-]{6,}/gi, "$1••••••");
+  return s;
+}
+
+/** 两个 Key 框：平时是圆点（password），点过「显示」才是明文。 */
+function applySecretVisibility() {
+  for (const id of SECRET_FIELDS) {
+    const el = $(id), btn = $("eye-" + id);
+    if (!el) continue;
+    const shown = el.dataset.shown === "1";
+    el.type = shown ? "text" : "password";
+    if (btn) {
+      btn.textContent = shown ? "隐藏" : "显示";
+      btn.title = "点一下显示 / 隐藏";
+    }
+  }
+}
+
 // ---------------------------------------------------------------- 日志
 function log(who, text) {
   const t = $("term");
@@ -697,7 +740,7 @@ function log(who, text) {
   d.className = "l " + cls;
   d.innerHTML = `<span class="who">${who}：</span>`;
   const span = document.createElement("span");
-  span.textContent = text;
+  span.textContent = maskSecrets(text);
   d.appendChild(span);
   t.appendChild(d);
   while (t.childElementCount > 120) t.removeChild(t.firstChild);
@@ -713,7 +756,7 @@ function setupLine(text, cls) {
   const box = $("setupLog");
   const d = document.createElement("div");
   d.className = "l" + (cls ? " " + cls : "");
-  d.textContent = text;
+  d.textContent = maskSecrets(text);
   box.appendChild(d);
   while (box.childElementCount > 200) box.removeChild(box.firstChild);
   box.scrollTop = box.scrollHeight;
@@ -725,8 +768,8 @@ async function refreshAppInfo(force) {
   if (appMeta && !force) return appMeta;
   try { appMeta = await window.pet.appInfo(); } catch { appMeta = null; }
   if (!appMeta) return null;
-  $("footRoot").textContent = appMeta.root || "—";
-  $("footData").textContent = appMeta.dataRoot || "—";
+  $("footRoot").textContent = maskSecrets(appMeta.root || "—");
+  $("footData").textContent = maskSecrets(appMeta.dataRoot || "—");
   const dataNote =
     appMeta.dataRootSource === "portable"
       ? " · 便携模式（数据就在程序目录里）"
@@ -1690,6 +1733,17 @@ $("pullBtn").onclick = () => { doPull(); };
 $("openData").onclick = async () => { const r = await window.pet.openAppPath("data"); if (r && r.ok) log("系统", "打开数据目录：" + r.path); };
 $("openLogs").onclick = async () => { const r = await window.pet.openAppPath("logs"); if (r && r.ok) log("系统", "打开日志目录：" + r.path); };
 
+// [privacy@1] 两个 Key 框各带一个「显示 / 隐藏」小按钮
+for (const id of SECRET_FIELDS) {
+  const btn = $("eye-" + id);
+  if (!btn) continue;
+  btn.onclick = () => {
+    const el = $(id);
+    el.dataset.shown = el.dataset.shown === "1" ? "0" : "1";
+    applySecretVisibility();
+  };
+}
+
 // [主人第 2 条] 有些口令只是给主人看的短标签，真正发出去的是完整写法。
 //   「打开B站」老版本会落到 agent → 宿主 /quip，被当成聊天问题回答（点上去没反应）。
 const CHIP_SEND = { "打开B站": "打开 网页 https://www.bilibili.com" };
@@ -1701,8 +1755,8 @@ for (const p of PHRASES) {
   $("chips").appendChild(c);
 }
 
-// 输入框里改过就先不覆盖用户的输入（数字 / 文本 / 人设框都算）
-document.querySelectorAll("input[type=number], input[type=text], textarea").forEach((el) => {
+// 输入框里改过就先不覆盖用户的输入（数字 / 文本 / 密码 / 人设框都算）
+document.querySelectorAll("input[type=number], input[type=text], input[type=password], textarea").forEach((el) => {
   const own = el.oninput;
   el.addEventListener("input", () => { dirty = true; if (typeof own === "function") own.call(el); });
 });

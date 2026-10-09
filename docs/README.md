@@ -4,6 +4,7 @@ English-first where it matters (the front page and the security/contribution doc
 
 | Document | Language | What is in it |
 | --- | --- | --- |
+| [release-notes-1.1.4.md](release-notes-1.1.4.md) | EN + 中文 | 1.1.4 release notes — the console keeps the API key masked while you record: what changed, download hashes, known limitations |
 | [release-notes-1.1.3.md](release-notes-1.1.3.md) | EN + 中文 | 1.1.3 release notes — 「打开 X」 opens a website, a folder or a file, by voice as well as typed: what changed, download hashes, known limitations |
 | [release-notes-1.1.2.md](release-notes-1.1.2.md) | EN + 中文 | 1.1.2 release notes — the online model no longer says its thinking out loud: what changed, download hashes, known limitations |
 | [release-notes-1.1.1.md](release-notes-1.1.1.md) | EN + 中文 | 1.1.1 release notes — the portable zip installs and uninstalls on a double-click: what changed, download hashes, known limitations |
@@ -23,5 +24,5 @@ Related files outside this directory: [../README.md](../README.md) (English fron
 
 1. [differences-from-upstream.md](differences-from-upstream.md) — what came from where.
 2. [development-log.md](development-log.md) — what was changed, when and how it was verified.
-3. [release-notes-1.1.3.md](release-notes-1.1.3.md) — what the current release contains ([1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
+3. [release-notes-1.1.4.md](release-notes-1.1.4.md) — what the current release contains ([1.1.3](release-notes-1.1.3.md) for 「打开 X」, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
 4. [SECURITY.md](../SECURITY.md) — the local-port hardening and what the app can do on your machine.

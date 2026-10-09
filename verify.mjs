@@ -18,8 +18,8 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // >>>GENERATED 由 build\check-release.mjs --emit --write 生成，别手改这一段
 const EXPECT = {
-  app: { files: 594, bytes: 74562356, treeSha256: "b7bb8e0c4721f9d9eb391fb8e06ef66e2cdbc9d9166dad593e79450ead001317" },
-  launcher: { files: 9, bytes: 343643, treeSha256: "4da1a3d078d0cc572b0b0ab19dbac24386772e8b20beca98b93260bc969d503a" },
+  app: { files: 594, bytes: 74562356, treeSha256: "33e5b3d54dac56633f94f74861cb23d83d4116226a1850974c2bbc285a0e4aca" },
+  launcher: { files: 9, bytes: 346181, treeSha256: "d8ef2f98dc011983618029df7a5577dce045ccf31c27274edb765fd4db75c32c" },
   standalone: { files: 14, bytes: 106518, treeSha256: "704e11f2d4ea11dd5988947ccef86f21a935e2f1b8d7ac12d14801d132451b70" },
   defaults: { files: 4, bytes: 13967, treeSha256: "4f95360682c89202b714cbc8fca606fa6a29667c34397be08c5f081118d5229b" },
 };
@@ -33,14 +33,14 @@ const OURS = {
   'app/runtime/electron-helper/shared-core.js': [52708, '2f77b7a2de89bfe1fcdf8906b53babfb1e250fc87cc812727eb0843adc037e5d'],
   'app/runtime/electron-helper/events.js': [18069, 'b7a008788f51c6b68a9e5e1f25f8dcdfd9e6ed173394c409c44e30644ee0c96a'],
   'launcher/main.js': [38097, '4e0e3cfbb4b9c1af723df8f8c625d653763eea84c47da062580ed6a01835772a'],
-  'launcher/index.html': [92791, 'f5107a331ca2bd3d155c6c3b36d22668dbfe3613ff4ae564a662a6ae271e9336'],
+  'launcher/index.html': [95329, '97a2c7f4a2d117f5cd73b9096affa4d71ab7369ecf37e7cd5c6ea3bff6ab590b'],
   'launcher/preload.js': [3651, '901a9f2cae2be7dbf1813fa4c11740468f7ec8b507a4cc12f7e8b6df9b799316'],
   'launcher/paths.js': [4103, '8c9d31cbef9bc151681faf49b67709e80d62a663779eb24b6cad0ac1ca9e1749'],
   'launcher/pet-api.js': [16659, '79584b3c285cb5883668c4a4ba534a82262451f1373e6de05986f2116c55ce7e'],
   'launcher/rec.js': [22702, 'b63c254334e3672218920ebba75b49e604602e3fd4fcd5130837ac0ff101bcd2'],
   'launcher/agent.js': [22851, '9a67364fb317724397bfa605c20692a7c9734e04d8b56562e02b828342d19651'],
   'launcher/pet.ico': [142521, 'b727ea4dcec32409cb6bc4709489276b5daaf90fe180184298e598b35bcfc6c0'],
-  'launcher/package.json': [268, '984150718b280a8b962d839e4a5eabc08a7024d67a52b6eb237d34087ebcf17d'],
+  'launcher/package.json': [268, 'a81ac0465422fcfd14dab81e66dc689bc5c603e2b32e79b74b4e1f028f11f3ee'],
   'standalone/main.mjs': [27034, '0ef47d97ea7bfa857c8e9e3d9d67e59a7a3f792a5c16e8518b2cdd28669f4dee'],
   'standalone/server.mjs': [8681, '07a7ca5c1e18fbb46693869603d1593b05b492f573184ac6473ab2497c85404d'],
   'standalone/context.mjs': [12059, 'ae85889600d9402743ef60bb781b7f17fcdd58f768ba42c639a1d119eaa823f8'],
