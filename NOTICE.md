@@ -13,9 +13,12 @@ This file answers three questions: **whose work is this, whose code does it use,
 
 - Released under the **MIT** license; full text in [`LICENSE`](LICENSE).
 - `LICENSE` keeps **two copyright lines**:
-  - `Copyright (c) 2026 PC2005-cloud` — the upstream desktop pet `dsh-pet` (<https://github.com/PC2005-cloud/dsh-pet>);
+  - `Copyright (c) 2026 PC2005-cloud` — the upstream desktop pet `dsh-pet` (<https://github.com/PC2005-cloud/dsh-pet>), original author;
   - `Copyright (c) 2026 Mikolu` — this integrated release.
-- This is an independent desktop-pet project, developed and maintained by Mikolu. Special thanks to the original author **PC2005-cloud**, whose **dsh-pet 0.3.0** provided the early foundation and the inspiration.
+- Both lines carry **no appended prose**. GitHub reports a repository as **Other / NOASSERTION** — no MIT badge, and no match in `license:mit` search — when extra text is mixed into the copyright lines, so the description that used to sit there lives in this file instead. What each holder covers:
+  - **PC2005-cloud** — the upstream desktop pet `dsh-pet`, whose 0.3.0 release is the early foundation of the pet engine.
+  - **Mikolu** — the independent development and maintenance of this integrated release: pet-engine integration, installer / uninstaller, first-run auto-detection, the console, the screen-recording and browser tools, and the packaging and release scripts.
+- This is an independent desktop-pet project. Special thanks to the original author **PC2005-cloud** for the foundation and the inspiration.
 
 ## 2. Upstream attribution: nothing was removed
 
@@ -61,7 +64,7 @@ Questions, ideas or feature requests: open an issue in this repository. Security
 
 **可爱大肥鱼桌宠**（她叫「蓝毛小女仆」），由 **Mikolu** 独立开发与维护，当前版本 1.2.1。
 
-1. **本项目**：MIT，见 [`LICENSE`](LICENSE)；`LICENSE` 里保留两段版权 —— 上游桌宠 dsh-pet（<https://github.com/PC2005-cloud/dsh-pet>）原作者 `PC2005-cloud`，以及本整合发布版 `Mikolu`。特别感谢原作者在 0.3.0 版本提供的早期基础架构与灵感。
+1. **本项目**：MIT，见 [`LICENSE`](LICENSE)；`LICENSE` 里保留两段版权 —— 上游桌宠 dsh-pet（<https://github.com/PC2005-cloud/dsh-pet>）原作者 `PC2005-cloud`，以及本整合发布版 `Mikolu`。这两行**不带任何附加说明文字**：版权行里混入其它文本会让 GitHub 把仓库判成 **Other / NOASSERTION**（页面没有 MIT 徽章、也搜不到 `license:mit`），所以原先写在那里的说明搬到了本节 —— `PC2005-cloud` 对应上游 dsh-pet（0.3.0 是桌宠本体的早期基础架构与灵感来源）；`Mikolu` 对应本整合发布版的独立开发与维护：桌宠本体整合、安装器 / 卸载器、首次运行自动适配、控制台、录屏与浏览器工具、打包与发布脚本。特别感谢原作者在 0.3.0 版本提供的早期基础架构与灵感。
 2. **上游署名一个字都没删**：上游 MIT 全文以 [`assets/LICENSE.txt`](assets/LICENSE.txt) **逐字节原样**随包分发；[`assets/第三方声明.txt`](assets/第三方声明.txt) 第 1 段保留上游名称、作者与许可证指向。逐文件差异（含大小与 SHA-256）公开在 [docs/differences-from-upstream.md](docs/differences-from-upstream.md)。
 3. **随包分发的第三方组件**：Electron 43 + Chromium（MIT / Chromium 部分 BSD）、Node.js v24（MIT，用于语音识别）、sherpa-onnx（Apache-2.0）、SenseVoice int8 模型（Apache-2.0）、silero VAD（MIT）、上首软糖体（`src\assets\fonts\`）、npm 依赖（随 `src\node_modules\`）、表情包与动画素材（本项目自有）。
 4. **明确不随包**：Ollama、联网大模型服务、Edge TTS（微软在线语音合成）、浏览器 / 录屏软件（OBS 等）。
