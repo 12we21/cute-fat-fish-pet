@@ -427,3 +427,18 @@ This document is in Chinese.
 - **版本号**：四个 `package.json`、`build\installer.nsi` 的 `!define APP_VER` 默认值、`NOTICE.md`、两个 README、
   `docs\README.md`、`bug_report.md`、`differences-from-upstream.md`、`code-signing.zh-CN.md`、`how-to-publish.zh-CN.md`
   一起改到 1.2.0；`verify.mjs` 的关键文件表新增 `launcher\update.js`（26 → **27** 个）。
+- **正式发布与主人那份**：`gh release create v1.2.0`（4 个成品 + 标题「可爱大肥鱼桌宠 1.2.0」+ `--notes-file docs\release-notes-1.2.0.md`）→
+  <https://github.com/12we21/cute-fat-fish-pet/releases/tag/v1.2.0>；随后 `gh release upload v1.2.0 … -R 12we21/cute-fat-fish-pet --clobber`
+  补传无版本号别名（`gh` 的 remote 主机判定抽风时，加显式 `-R` 就好），共 **6 个资产**：
+  `cute-fat-fish-pet-1.2.0-setup.exe` 347,802,318 / `.sha256` 105 B / `cute-fat-fish-pet-1.2.0-win-x64.zip` 417,016,073 / `.sha256` 107 B /
+  别名 `cute-fat-fish-pet-setup.exe` 347,802,318 / 别名 `.sha256` 93 B。`api.github.com/repos/12we21/cute-fat-fish-pet/releases/latest`
+  返回 `tag_name=v1.2.0`，exe 的 `digest` = `sha256:22db908b…43cafb4`、zip = `sha256:75ea491e…aa44502`、别名与 exe 相同；
+  永久链接 `curl.exe -sIL …/releases/latest/download/cute-fat-fish-pet-setup.exe` → 302 → 302 → **200 / Content-Length 347,802,318**。
+- **主人那份原地升级**：`_accept\upgrade-her-120.ps1`（纯 ASCII；用 WMI 起 `setup.exe /S /D=<她的目录>`）—— **52 秒**，718 → **719 个文件**，
+  其中 712 个与 `stage\` 逐字节一致（797,896,795 B）、`verify-install.py` 报的多出 6 个全是她自己的东西
+  （`app\runtime\electron-helper\main-config.json`、`main.js.prepromo.bak`、`promo-err.log`、`promo-out.log`、
+  `promo-renderer.log`、`standalone\online.json`）+ 安装时生成的 `Uninstall.exe`；**没有任何文件被删**，尺寸变化的只有
+  `launcher\index.html`、`launcher\main.js`、`launcher\preload.js`、`verify.mjs`，新增 `launcher\update.js`；注册表
+  `DisplayVersion=1.2.0`、`InstallLocation` 与 `InstallDir` 仍指 `D:\...\BlueHairMaid`；升完用 WMI 起
+  `electron.exe "…\launcher"`，她的 4 个 `electron.exe` 全回来了（主窗口标题「蓝毛小女仆」），控制台里「检查更新 / 下载并更新」
+  两个按钮都在。
