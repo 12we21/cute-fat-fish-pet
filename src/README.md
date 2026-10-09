@@ -56,9 +56,13 @@ your machine unless you point the chat at an online model.
 
 ## About the name
 
-The repository, the package and the internal identifiers are still `cute-fat-fish-pet`,
-`dsh-pet` and `BlueHairMaid`. **Only the display name changed.** Renaming the internal
-identifiers would move every existing user's persona, memory and settings, so they stay — see
+The display name is 蓝毛小女仆 / Blue-Haired Little Maid and the repository keeps the bare
+identifier `cute-fat-fish-pet`. The **DSH plugin package was renamed once, on 2026-10-10, from
+`dsh-pet` to `cute-fat-fish-pet`** — `dsh-pet` is the upstream npm package and the row id of
+another plugin's bundle patch. That rename does not move any user data: the data root
+(`$DSH_HOME/dsh-pet/`), the route prefix (`/dsh-pet-7340`) and the browser storage keys are
+hard-coded strings in `lib/`, not derived from the package name. The remaining internal
+identifiers (`dsh-pet-electron-helper`, `BlueHairMaid`) stay — see
 [../NOTICE.md](../NOTICE.md) §5. For the full option reference in the original wording, see
 [UPSTREAM-README.md](UPSTREAM-README.md).
 
