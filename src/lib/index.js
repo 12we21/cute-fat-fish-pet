@@ -1748,7 +1748,7 @@ function apply(ctx) {
 		const cfg = readAllConfig(configPaths);
 		const rounds = memoryRounds(petId, cfg);
 		const conf = (findPetInstance(cfg, petId) ?? { conf: cfg.main ?? {} }).conf;
-		const system = petSystemPrompt(petId, cfg);
+		const system = petSystemPrompt(petId, cfg) + "\n" + petBrainFactLine();
 		const pool = conf.chatImageEnabled === true ? readMemePool(conf.memes, PACKAGE_ROOT_ASSETS) : [];
 		const mem = await readMemory();
 		const bucketKey = findPetInstance(cfg, petId)?.entry ?? petId;
@@ -2252,13 +2252,56 @@ function apply(ctx) {
 			SW_RT.busy = false;
 		}
 	};
+	/* [互动@2] 联网模型的实际配置（独立模式下是 <app>/../standalone/online.json）。
+	 *  只用来**如实报名字**，读不到就当没配。 */
+	const petOnlineInfo = () => {
+		let o = null;
+		try {
+			o = JSON.parse(readFileSync(join(PACKAGE_ROOT, "..", "standalone", "online.json"), "utf8"));
+		} catch {
+			o = null;
+		}
+		const model = String(o && o.model || "").trim();
+		const base = String(o && o.baseUrl || "").trim().replace(/^https?:\/\//, "").replace(/[/]+$/, "");
+		return {
+			ready: !!(o && o.enabled === true && model && base && String(o && o.apiKey || "").trim()),
+			model,
+			base
+		};
+	};
+	/* [互动@2] 主人问「你是在线还是离线」时的**代码回答**：档位就是 screen-watch/state.json
+	 *  的 brain（本地 / 自动择优 / 在线）。以前这种问题会被丢给模型，它只会照人设瞎猜
+	 *  —— 实测答成了「我现在是离线模式」，主人就以为模型没切换成功。 */
+	const swModeText = () => {
+		const c = swCfg();
+		const local = String(c.quipModel || c.localModel || "").trim();
+		const localBit = local ? "本机的 " + local : "本机模型";
+		const on = petOnlineInfo();
+		if (c.brain === "local") return "我现在是本地模式哦——只用" + localBit + "，不联网。";
+		if (c.brain === "auto") return on.ready ? "我现在是自动择优哦——先用" + localBit + "，它不行才走联网的 " + on.model + "。" : "我现在是自动择优，不过联网模型还没配好，实际只用" + localBit + "。";
+		if (!on.ready) return "我现在是在线模式（联网模型），不过联网模型还没配全，真说话时会回落到" + localBit + "。";
+		return "我现在是在线模式哦——说话走联网的 " + on.model + (on.base ? "（" + on.base + "）" : "") + "；" + localBit + " 只在联网连不上时兜底。";
+	};
+	/* [互动@2] 对话 system 末尾补一句运行状态：兜住「代码没匹配到」的问法，
+	 *  让模型手里有个事实，不至于照人设猜自己离线。只在被问到时才提。 */
+	const petBrainFactLine = () => {
+		const c = swCfg();
+		const where = c.brain === "local" ? "本地模式（只用本机模型，绝不联网）" : c.brain === "auto" ? "自动择优（本机模型优先，本机不行才联网）" : "在线模式（走联网模型说话）";
+		return "【仅在被问到时才说，平时不要主动提】你现在处于" + where + "，就运行在主人这台电脑上。主人问你在不在线、是联网还是本机、用什么模型时，照这句实话实说，别猜、别说自己离线。";
+	};
 	const swStatusText = () => {
 		const c = swCfg();
-		return "监测" + (c.running ? "开着" : "关着") + "｜大脑：" + (c.brain === "local" ? "本地" : c.brain === "auto" ? "自动择优" : "在线") + "｜表达：" + (c.verbosity === "chatty" ? "碎碎念" : c.verbosity === "manual" ? "只听你的" : "只说高光") + "。（跟我说：看着点 / 停下 / 点评一下 / 换本地模型 / 自动择优 / 碎碎念模式 / 监测状态）";
+		const on = petOnlineInfo();
+		const brainBit = c.brain === "local" ? "本地" : c.brain === "auto" ? "自动择优" : "在线" + (on.model ? "（" + on.model + "）" : "");
+		return "监测" + (c.running ? "开着" : "关着") + "｜大脑：" + brainBit + "｜表达：" + (c.verbosity === "chatty" ? "碎碎念" : c.verbosity === "manual" ? "只听你的" : "只说高光") + "。（跟我说：看着点 / 停下 / 点评一下 / 换本地模型 / 自动择优 / 碎碎念模式 / 监测状态）";
 	};
 	const swControl = (raw) => {
 		const t = String(raw || "").trim();
-		if (!t || t.length > 24) return null;
+		if (!t) return null;
+		/* [互动@2] 先认「问句 + 档位词」，由代码如实回答（放在长度闸门和「换本地 / 换在线」
+		 *  之前：以前「你现在是本地模型吗」会被当成切换命令，直接把人家的档位改掉）。 */
+		if (t.length <= 60 && /还是|吗|呢|是不是|什么|哪个|哪一|？|\?/.test(t) && /在线|离线|联网|本机|本地|自动择优|模型|大脑|上网|网上/.test(t) && !/^(换|用|切|改|开始|停止|别|帮|给|把|让)/.test(t)) return swModeText();
+		if (t.length > 24) return null;
 		const has = (list) => list.some((k) => t.indexOf(k) >= 0);
 		if (has(["监测状态", "什么模式", "当前模式", "监测模式"])) return swStatusText();
 		if (has(["别看了", "停下", "关闭监测", "停止监测", "别盯着"])) {
