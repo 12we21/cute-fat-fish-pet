@@ -15,6 +15,7 @@
     margin: 0; background: var(--bg); color: var(--fg);
     font: 13px/1.5 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     user-select: none; overflow-x: hidden;
+    padding-bottom: 64px; /* [互动@1] 给底部那条常驻状态留位置，别压住页脚 */
   }
   .top { display: flex; align-items: center; gap: 12px; padding: 14px 18px 10px; }
   .avatar { width: 48px; height: 48px; }
@@ -34,42 +35,63 @@
   }
   button:hover:not(:disabled) { filter: brightness(1.18); }
   button:disabled { opacity: .38; cursor: default; }
+  /* [互动@1] 键盘走到哪儿要看得见：以前整个控制台只有输入框有 :focus 样式，
+     按钮 / 摘要 / chip / 段选按 Tab 过去完全看不出焦点在哪（模拟真人审计发现）。 */
+  button:focus-visible, summary:focus-visible, .chip:focus-visible,
+  .seg label:focus-visible, .list .it:focus-visible, .go:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  /* [互动@1] 按下去要有反应：以前只有悬停变亮，点下去毫无手感 */
+  button:active:not(:disabled) { transform: translateY(1px); filter: brightness(.92); }
+  .chip:active, .list .it:active, .seg label:active { filter: brightness(.92); }
   #start { background: var(--accent); border-color: transparent; }
   #stop { background: #3a2b33; border-color: #4a3540; color: #f2b8b8; }
-  .ghost { background: transparent; font-weight: 500; font-size: 12.5px; padding: 8px 10px; }
+  .ghost { background: transparent; font-weight: 500; font-size: 12.5px; padding: 9px 10px; min-height: 32px; }
   /* [privacy@1] 敏感字段那个「显示 / 隐藏」小按钮：别跟着撑满一行 */
-  .eye { flex: 0 0 auto; padding: 5px 9px; font-size: 11.5px; font-weight: 500; border-radius: 7px; }
+  .eye { flex: 0 0 auto; min-height: 30px; padding: 6px 10px; font-size: 11.5px; font-weight: 500; border-radius: 7px; }
 
   .sec { margin: 10px 18px 0; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px 12px; }
   .sec > h2, summary.sh { font-size: 12.5px; margin: 0 0 10px; color: #b9c2d6; font-weight: 600; letter-spacing: .6px; display: flex; align-items: center; gap: 7px; }
   summary.sh { cursor: pointer; list-style: none; }
+  summary.sh:hover { color: #dfe6f5; }
+  summary.sh:hover::before { color: var(--accent); }
   summary.sh::-webkit-details-marker { display: none; }
   summary.sh::before { content: "▸"; color: #6f7891; font-size: 11px; }
   details[open] > summary.sh::before { content: "▾"; }
   summary.sh .tag, .sec > h2 .tag { font-size: 10.5px; color: #6f7891; font-weight: 400; letter-spacing: 0; }
+  /* [互动@1] 折叠栏：整条头都是点击区。原来 summary 本身只有 19px 高，
+     外面那圈 padding（上面 10px、下面 10px+12px）看着像按钮、点了却没反应。 */
+  details.sec > summary.sh { margin: -10px -14px 10px; padding: 13px 14px; min-height: 44px; border-radius: 9px 9px 0 0; }
+  details.sec:not([open]) > summary.sh { margin-bottom: -12px; border-radius: 9px; }
+  summary.sh:hover { background: rgba(255, 255, 255, .035); }
   .seg { display: flex; gap: 6px; flex-wrap: wrap; }
   .seg label {
     flex: 1; min-width: 104px; text-align: center; padding: 8px 6px; border: 1px solid var(--line);
     border-radius: 8px; background: #262b3a; cursor: pointer; font-size: 12.5px; transition: .12s;
   }
   .seg label:hover { filter: brightness(1.15); }
-  .seg input { display: none; }
+  /* [互动@1] 以前是 display:none，等于这三选一 / 性格二选一用键盘根本进不去。
+     改成「看不见但在」，Tab 能进去、方向键能换，焦点圈画在整块 label 上。 */
+  .seg input { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; pointer-events: none; }
+  .seg label { position: relative; }
+  .seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
   .seg input:checked + span { color: #fff; }
   .seg label:has(input:checked) { background: #34507f; border-color: #4a6fae; }
   .field { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 12.5px; color: #c3cadb; }
   .field > .lbl { flex: 0 0 96px; color: var(--dim); font-size: 11.5px; }
   select, input[type=text], input[type=number], input[type=password] {
-    flex: 1; min-width: 0; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line);
+    flex: 1; min-width: 0; padding: 7px 8px; border-radius: 7px; border: 1px solid var(--line);
     background: #1b1f2b; color: var(--fg); font-family: inherit; font-size: 12.5px; outline: none;
   }
   input[type=number] { flex: 0 0 74px; text-align: center; }
   select:focus, input:focus { border-color: #4a6fae; }
-  input[type=range] { flex: 1; accent-color: var(--accent); }
-  .chk { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; }
-  .chk input { accent-color: var(--accent); }
+  input[type=range] { flex: 1; accent-color: var(--accent); height: 26px; }
+  /* [互动@1] 勾选行以前只有 13px 的复选框本体，整行可点是有的，但再垫高一点更好点 */
+  .chk { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; padding: 3px 0; min-height: 26px; }
+  .chk input { accent-color: var(--accent); width: 15px; height: 15px; }
   .hint { color: #6f7891; font-size: 11px; margin-top: 9px; line-height: 1.6; }
   .chip {
-    display: inline-block; padding: 4px 9px; margin: 4px 5px 0 0; border: 1px solid var(--line);
+    display: inline-block; padding: 6px 11px; margin: 4px 5px 0 0; border: 1px solid var(--line);
     border-radius: 20px; background: #262b3a; font-size: 11.5px; cursor: pointer; color: #c3cadb;
   }
   .chip:hover { filter: brightness(1.2); }
@@ -94,6 +116,47 @@
   .testmsg.ok { color: var(--ok); }
   .testmsg.bad { color: var(--danger); }
   .testmsg.wait { color: var(--busy); }
+  /* [互动@1] 「改了东西还没保存」：那一栏标题旁边挂一颗琥珀点，保存按钮也描一圈，
+     别让主人改完忘了点保存、下次打开发现白改了。 */
+  .sec.unsaved > h2::after, .sec.unsaved > summary.sh::after {
+    content: "● 有改动没保存"; margin-left: auto; color: var(--busy);
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0;
+  }
+  .sec.unsaved button[id^="save"], .sec.unsaved button#personaApply {
+    border-color: var(--busy); box-shadow: inset 0 0 0 1px rgba(251, 191, 36, .35);
+  }
+  /* [互动@1] 终端：往上翻看历史的时候来了新消息，右下角挂一个「有新消息」，
+     点一下回到最新（以前新消息会被直接顶出去，等于漏看）。 */
+  .termwrap { position: relative; }
+  .newpip {
+    position: absolute; right: 10px; bottom: 9px; z-index: 2; cursor: pointer;
+    background: var(--accent); color: #fff; font-size: 11px; font-weight: 600;
+    padding: 5px 11px; border-radius: 20px; box-shadow: 0 3px 10px rgba(0, 0, 0, .4);
+  }
+  .newpip:hover { filter: brightness(1.12); }
+  /* [互动@1] 常驻状态条：控制台上下两千多像素，很多动作的结果只写进最下面的终端，
+     停在上面点按钮就像什么都没发生（主人反馈过）。这条永远显示「最近一条消息」。 */
+  .statusbar {
+    position: fixed; left: 18px; right: 18px; bottom: 12px; z-index: 9;
+    display: flex; align-items: center; gap: 10px;
+    background: #1c2130; border: 1px solid var(--line); border-left: 3px solid #3c4459;
+    border-radius: 10px; padding: 8px 12px; font-size: 12px; color: #c8d1e4;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+  }
+  .statusbar .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .statusbar .link {
+    flex: 0 0 auto; min-height: 28px; padding: 5px 8px; background: none; border: 0;
+    color: var(--accent); font-size: 11.5px; font-weight: 500; cursor: pointer;
+  }
+  .statusbar .link:hover:not(:disabled) { text-decoration: underline; filter: none; }
+  .statusbar .link:active:not(:disabled) { transform: none; filter: none; }
+  .statusbar.ok { border-left-color: var(--ok); }
+  .statusbar.err { border-left-color: var(--danger); color: #f3cccc; }
+  .statusbar.wait { border-left-color: var(--busy); }
+  .statusbar.pulse { animation: statusPulse .45s ease-out; }
+  @keyframes statusPulse { from { transform: translateY(7px); opacity: .3; } to { transform: none; opacity: 1; } }
+  /* [互动@1] 「删掉这一套性格」的第二步：按钮变琥珀色等着你再点一下 */
+  button.arm { border-color: var(--busy); box-shadow: inset 0 0 0 1px rgba(251, 191, 36, .35); color: #fcd9a4; }
   .sub2 { margin: 14px 0 0; padding-top: 11px; border-top: 1px dashed var(--line); font-size: 11.5px; color: #9fb0cf; font-weight: 600; letter-spacing: .5px; }
   textarea {
     width: 100%; margin-top: 9px; min-height: 96px; resize: vertical; padding: 8px 10px;
@@ -453,9 +516,13 @@
     <div class="field">
       <input type="text" id="cmdInput" placeholder="比如：换本地 / 碎碎念模式 / 点评一下 / 监测状态" />
       <button id="sendCmd" style="flex:0 0 62px">发送</button>
+      <button id="clearTerm" class="ghost" style="flex:0 0 auto" title="清掉上面的记录（只是看不见了，不影响桌宠）">清屏</button>
     </div>
     <div id="chips"></div>
-    <div class="term" id="term"></div>
+    <div class="termwrap">
+      <div class="term" id="term"></div>
+      <div class="newpip" id="termNew" hidden title="回到最新一条">↓ 有新消息</div>
+    </div>
   </div>
 
   <!-- [update@1] 一键更新（1.2.0）：问 GitHub 有没有新版，有就下下来、关掉窗口静默装回去 -->
@@ -472,8 +539,8 @@
     </div>
   </div>
 
-  <details class="sec" style="padding:12px 14px">
-    <summary style="cursor:pointer;color:#b9c2d6;font-size:12.5px;font-weight:600;letter-spacing:.6px">还剩这些只能在右键菜单里点</summary>
+  <details class="sec">
+    <summary class="sh">还剩这些只能在右键菜单里点</summary>
     <div class="hint" style="margin-top:10px">
       唱歌 · 走到哪边（14 个方位，也可以直接对她说「到左边去」）· 麦克风设备 · 清理缓存 · 动作菜单（待机 / 转向 / 拖拽 / 点击回应 / 移动）。<br />
       录屏、打开网站、说话的声音（音色 / 语速 / 音高 / 音量 / 什么时候出声）都已经搬进来了 —— 分别在「录屏 · 浏览器」和「她的声音」那两栏，或者直接在终端里说。原来菜单里那些一行行的注释说明，现在都搬到这个控制台里了 —— 所以右键菜单已经清爽了。
@@ -493,6 +560,13 @@
     程序在 <code id="footRoot">…</code><br />
     人设与记忆在 <code id="footData">…</code><br />
     不依赖 DSH，也不受插件更新影响 · 关掉这个窗口，桌宠照样在跑
+  </div>
+
+  <!-- [互动@1] 常驻状态条：永远显示「最近一条消息」，点一下跳到终端 -->
+  <div class="statusbar" id="statusbar" role="status" aria-live="polite">
+    <span class="txt" id="statusbarText">就绪。</span>
+    <button class="link" id="statusGoTerm" title="跳到终端看完整记录">去终端 ↓</button>
+    <button class="link" id="statusTop" title="回到页面最上面">↑ 顶部</button>
   </div>
 
 <script>
@@ -537,6 +611,10 @@ function renderStatus(s) {
     startBtn.disabled = true;
     stopBtn.disabled = busy;
     healthBtn.disabled = false;
+    // [互动@1] 禁用/可用都写清楚为什么，别让主人对着灰按钮猜
+    startBtn.title = "已经在跑了";
+    stopBtn.title = busy ? "正在处理上一个动作，等一下下" : "把桌宠停下来（这个控制台不受影响）";
+    healthBtn.title = "在浏览器里打开她的状态页";
     sub.textContent = `运行中 · 端口 ${s.port}`;
   } else {
     dot.className = "dot";
@@ -547,6 +625,9 @@ function renderStatus(s) {
     startBtn.disabled = busy;
     stopBtn.disabled = true;
     healthBtn.disabled = true;
+    startBtn.title = busy ? "正在处理上一个动作，等一下下" : "把桌宠叫起来";
+    stopBtn.title = "没在跑，不用停";
+    healthBtn.title = "桌宠没在跑，状态页现在打不开";
     sub.textContent = "没在跑";
   }
 }
@@ -713,6 +794,8 @@ function flash(id, text, isErr) {
   el.textContent = text;
   el.className = "saved show" + (isErr ? " err" : "");
   setTimeout(() => { el.className = "saved"; }, 2600);
+  // [互动@1] 这句结果同样送到常驻状态上：保存按钮在页面上半截时，光靠按钮旁边那行看不到
+  statusSay((isErr ? "✗ " : "✓ ") + text, isErr ? "err" : "ok", termVisible());
 }
 
 /** 按钮下面那行即时结果：点一下当场看到「正在测… → 通了 / 没通」。
@@ -774,9 +857,15 @@ function log(who, text) {
   const span = document.createElement("span");
   span.textContent = maskSecrets(text);
   d.appendChild(span);
+  // [互动@1] 主人往上翻看历史的时候别硬把她拽回底部；有漏看就挂个「有新消息」
+  const stick = t.dataset.stick !== "0";
   t.appendChild(d);
   while (t.childElementCount > 120) t.removeChild(t.firstChild);
-  t.scrollTop = t.scrollHeight;
+  if (stick) t.scrollTop = t.scrollHeight;
+  const pip = $("termNew");
+  if (pip) pip.hidden = stick;
+  // [互动@1] 同一句话也送到最下面那条常驻状态上（终端翻不到的时候这是唯一看得见的地方）
+  if (who !== "我") statusSay(`${who}：${text}`, "", termVisible());
 }
 
 // ---------------------------------------------------------------- 本机适配
@@ -1475,6 +1564,7 @@ function stepLine(st) {
 async function sendCmd(text) {
   const s = String(text || "").trim();
   if (!s) return;
+  pushHistory(s); // [互动@1] 记下来，↑ 能翻回去
   log("我", s);
   try {
     if (await runLocal(s)) { await reload(true).catch(() => {}); return; }
@@ -1538,6 +1628,7 @@ $("personaLoad").onclick = async () => {
   $("personaText").value = x.text;
   $("personaName").value = n;
   $("personaText").dataset.touched = "1";
+  markUnsaved($("personaText")); // [互动@1] 载入也是「改了还没生效」
   flash("savedPersona", "已载入，点「就用这段性格」生效");
 };
 
@@ -1708,9 +1799,12 @@ $("appList").onclick = async () => {
   log("系统", "正在列开始菜单里的软件……");
   const r = await window.pet.listApps();
   const apps = (r && r.apps) || [];
-  box.innerHTML = apps.map((a) => `<div class="it"><span>${esc(a.name)}</span><span class="p">${esc(a.path)}</span></div>`).join("");
+  box.innerHTML = apps.map((a) => `<div class="it" tabindex="0" role="button"><span>${esc(a.name)}</span><span class="p">${esc(a.path)}</span></div>`).join("");
   Array.from(box.children).forEach((el, i) => {
-    el.onclick = () => { $("appPath").value = apps[i].path; box.style.display = "none"; log("系统", "填好了：" + apps[i].name + "，点「打开」就开。"); };
+    const pick = () => { $("appPath").value = apps[i].path; box.style.display = "none"; log("系统", "填好了：" + apps[i].name + "，点「打开」就开。"); };
+    el.onclick = pick;
+    // [互动@1] 键盘也能选：Tab 到这一行按回车 / 空格
+    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
   });
   box.style.display = apps.length ? "block" : "none";
   log("系统", apps.length ? `找到 ${apps.length} 个（在开始菜单里的），点一个就填进上面的框。` : "开始菜单里没找到可执行的东西。");
@@ -1976,7 +2070,12 @@ for (const p of PHRASES) {
   const c = document.createElement("span");
   c.className = "chip";
   c.textContent = p;
-  c.onclick = () => sendCmd(CHIP_SEND[p] || p);
+  const fire = () => sendCmd(CHIP_SEND[p] || p);
+  c.onclick = fire;
+  // [互动@1] chip 以前只能用鼠标点：加上键盘可达
+  c.tabIndex = 0;
+  c.setAttribute("role", "button");
+  c.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fire(); } };
   $("chips").appendChild(c);
 }
 
@@ -1996,6 +2095,136 @@ setInterval(() => {
 // 打开就停在最上面：Chromium 偶尔会"恢复"到之前滚动过的位置，得手动压回去
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
+
+// ================================================================ [互动@1]
+// 模拟真人用了一遍这个控制台之后补的几处：
+//   1) 键盘走到哪儿看得见（焦点圈）、按下去有手感；
+//   2) 页面两千多像素，动作结果常常只写进最下面的终端 —— 底部加一条常驻状态；
+//   3) 折叠 / 展开记在 localStorage 里，下次打开还是你上次那样；
+//   4) 改了没保存的那一栏会亮琥珀色提醒；
+//   5) 终端往上翻历史时新消息不再被顶掉、↑↓ 能翻敲过的口令、能清屏；
+//   6) 删性格要点两下（原来一点就没）。
+function termVisible() {
+  const t = $("term");
+  if (!t) return false;
+  const r = t.getBoundingClientRect();
+  return r.bottom > 0 && r.top < innerHeight - 8;
+}
+
+/** 底部那条常驻状态：quiet = 终端本来就看得见，只更新文字、不弹跳打断。 */
+function statusSay(text, cls, quiet) {
+  const bar = $("statusbar"), tx = $("statusbarText");
+  if (!bar || !tx) return;
+  tx.textContent = maskSecrets(String(text == null ? "" : text));
+  bar.className = "statusbar" + (cls ? " " + cls : "") + (quiet ? "" : " pulse");
+}
+
+$("statusGoTerm").onclick = () => { $("term").scrollIntoView({ block: "center", behavior: "smooth" }); };
+$("statusTop").onclick = () => { scrollTo({ top: 0, behavior: "smooth" }); };
+
+// 终端：往上翻看历史时别被新消息顶走
+$("term").addEventListener("scroll", () => {
+  const t = $("term");
+  const atBottom = t.scrollTop + t.clientHeight >= t.scrollHeight - 24;
+  t.dataset.stick = atBottom ? "1" : "0";
+  if (atBottom) $("termNew").hidden = true;
+});
+$("termNew").onclick = () => {
+  const t = $("term");
+  t.dataset.stick = "1";
+  t.scrollTop = t.scrollHeight;
+  $("termNew").hidden = true;
+};
+$("termNew").tabIndex = 0;
+$("termNew").setAttribute("role", "button");
+$("termNew").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("termNew").onclick(); } };
+$("clearTerm").onclick = () => {
+  $("term").innerHTML = "";
+  $("termNew").hidden = true;
+  log("系统", "记录清掉了（桌宠那边什么都没动）。");
+};
+
+// 终端输入框：↑ / ↓ 翻以前敲过的口令（真人都会先试这个）
+const cmdHistory = [];
+let cmdHistAt = -1;
+function pushHistory(s) {
+  const v = String(s || "").trim();
+  if (!v || cmdHistory[cmdHistory.length - 1] === v) return;
+  cmdHistory.push(v);
+  if (cmdHistory.length > 50) cmdHistory.shift();
+  cmdHistAt = -1;
+}
+$("cmdInput").addEventListener("keydown", (e) => {
+  if (!cmdHistory.length) return;
+  if (e.key === "ArrowUp") {
+    if (cmdHistAt < 0) cmdHistAt = cmdHistory.length;
+    cmdHistAt = Math.max(0, cmdHistAt - 1);
+    $("cmdInput").value = cmdHistory[cmdHistAt] || "";
+    e.preventDefault();
+  } else if (e.key === "ArrowDown" && cmdHistAt >= 0) {
+    cmdHistAt = Math.min(cmdHistory.length, cmdHistAt + 1);
+    $("cmdInput").value = cmdHistAt >= cmdHistory.length ? "" : cmdHistory[cmdHistAt];
+    e.preventDefault();
+  }
+});
+
+// 折叠状态记在 localStorage 里（键用摘要文字，改文案也不至于全丢）
+(function rememberSections() {
+  const KEY = "pet.console.sections.v1";
+  let mem = {};
+  try { mem = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch { mem = {}; }
+  document.querySelectorAll("details.sec").forEach((d) => {
+    const sm = d.querySelector("summary");
+    const key = (sm ? sm.textContent : "sec").replace(/[\s·]+/g, "").slice(0, 12);
+    d.dataset.seckey = key;
+    if (typeof mem[key] === "boolean") d.open = mem[key];
+    d.addEventListener("toggle", () => {
+      const all = {};
+      document.querySelectorAll("details.sec").forEach((x) => { all[x.dataset.seckey] = x.open; });
+      try { localStorage.setItem(KEY, JSON.stringify(all)); } catch { /* 存不了就算了 */ }
+    });
+  });
+})();
+
+// 改了没保存：那一栏标题亮琥珀点，保存按钮描一圈，点了保存就清掉
+function markUnsaved(el) {
+  const sec = el && el.closest ? el.closest(".sec") : null;
+  if (sec && sec.querySelector(".saved")) sec.classList.add("unsaved");
+}
+document.addEventListener("input", (e) => markUnsaved(e.target), true);
+document.addEventListener("change", (e) => markUnsaved(e.target), true);
+document.addEventListener("click", (e) => {
+  const b = e.target && e.target.closest ? e.target.closest("button") : null;
+  if (!b) return;
+  const sec = b.closest(".sec");
+  if (!sec) return;
+  if (/^(save|apply)|^persona(Save|Apply)$/.test(b.id || "")) sec.classList.remove("unsaved");
+}, true);
+
+// 删掉一套性格：原来一点就没，误点就找不回来了 —— 改成点两下
+(function twoStepDelete() {
+  const b = $("personaDel");
+  const orig = b.onclick;
+  if (typeof orig !== "function") return;
+  let armed = 0;
+  let timer = 0;
+  b.onclick = async (e) => {
+    if (!armed) {
+      if (!$("personaSaved").value) return orig.call(b, e); // 没选就让原来的逻辑去提示
+      armed = 1;
+      b.textContent = "再点一次删掉";
+      b.classList.add("arm");
+      statusSay("再点一次才会真的删掉这一套性格。", "wait", false);
+      timer = setTimeout(() => { armed = 0; b.textContent = "删除"; b.classList.remove("arm"); }, 3200);
+      return;
+    }
+    clearTimeout(timer);
+    armed = 0;
+    b.textContent = "删除";
+    b.classList.remove("arm");
+    return orig.call(b, e);
+  };
+})();
 
 (async () => {
   // 主进程第一次运行会自动检测，结果从这里推回来
