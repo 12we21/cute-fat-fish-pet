@@ -1,8 +1,8 @@
 <div align="center">
 
-# Cute Fat Fish Pet
+# 蓝毛小女仆 · Blue-Haired Little Maid
 
-**A transparent little maid who lives on your Windows desktop. Her name is "Blue-Haired Little Maid" (蓝毛小女仆).**
+**A free, open-source desktop pet for Windows: a transparent little maid who lives on your desktop.**
 
 She idles, wanders around and does little animations on her own. She can chat with you, take a look at your screen and say something about it — and when you ask her to, she can open an app, a file, a folder or a web page for you, or start a screen recording.
 
@@ -18,7 +18,7 @@ She idles, wanders around and does little animations on her own. She can chat wi
 
 ## About this project
 
-Cute Fat Fish Pet is an independent desktop-pet project, developed and maintained by **Mikolu**.
+**蓝毛小女仆 (Blue-Haired Little Maid)** is an independent desktop-pet project, developed and maintained by **Mikolu**.
 
 Special thanks to **PC2005-cloud**, whose **dsh-pet 0.3.0** provided the early foundation and the inspiration for this project.
 
@@ -28,11 +28,13 @@ There is no patching step any more: `src/` **is** the shipped source. Building i
 
 | | |
 | --- | --- |
-| Product name | Cute Fat Fish Pet (可爱大肥鱼桌宠) |
-| The character | Blue-Haired Little Maid (蓝毛小女仆) |
+| Product name | **蓝毛小女仆** (Blue-Haired Little Maid) |
+| Repository / package / installer name | `cute-fat-fish-pet` — legacy display name "Cute Fat Fish Pet" / 「可爱大肥鱼桌宠」 |
 | Author / maintainer | Mikolu |
 | Version | 1.2.1 |
 | License | MIT — see [LICENSE](LICENSE) |
+
+> **On the name.** 蓝毛小女仆 is the product's name. The repository, the npm package and the installers shipped so far still carry the older name **Cute Fat Fish Pet** / 「可爱大肥鱼桌宠」 — renaming those would break existing installs, shortcuts and download links, so they stay as they are. Until the next repack, Windows still shows 「可爱大肥鱼桌宠」 on the desktop shortcut and in *Settings → Apps*.
 
 ### Internal identifiers are kept on purpose (`dsh-pet` / `BlueHairMaid`)
 
