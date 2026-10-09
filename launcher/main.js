@@ -43,6 +43,7 @@ const CONFIG_FILE = path.join(DATA_ROOT, "main-config.json");
 const petApi = require("./pet-api");
 const rec = require("./rec");
 const agent = require("./agent");
+const update = require("./update");
 
 // 音高（发布版补丁 T2）：桌宠助手每次合成都重读这个文件的第一行，所以改完立刻生效、不用重载她的窗口。
 // 格式 +0Hz（默认）/ +30Hz / -15Hz，认不出来或超出 ±80 就当 +0Hz —— 跟 app 里 ttsPitchFromConfig() 同一套规则。
@@ -555,6 +556,62 @@ function appInfo() {
 	};
 }
 
+// ---------------------------------------------------------------------------
+// 一键更新（1.2.0）：问 GitHub → 下安装包 → 关掉自己交给独立脚本静默装
+//   为什么不让控制台自己装：它自己就是 <root>\electron\electron.exe 起来的，
+//   文件正被自己锁着，只能退出后由外面的进程装。细节见 ./update.js 开头那段说明。
+// ---------------------------------------------------------------------------
+function currentVersion() {
+	return (readJson(path.join(REPO, "launcher", "package.json")) || {}).version || "";
+}
+
+async function updateCheck() {
+	return update.check({ current: currentVersion(), root: PATHS.root, userRoot: PATHS.userRoot });
+}
+
+async function updateDownload(event, req) {
+	return update.download({
+		exe: req && req.exe,
+		userRoot: PATHS.userRoot,
+		onProgress: (p) => {
+			try {
+				if (event && event.sender && !event.sender.isDestroyed()) event.sender.send("update-progress", p);
+			} catch {
+				/* 窗口关了就算了 */
+			}
+		},
+	});
+}
+
+/** 停桌宠 → 写脚本 → 退出；剩下的事脚本自己做，结果下次启动回读 */
+async function updateApply(req) {
+	const st = await doStatus().catch(() => ({ running: false }));
+	const relaunchPet = !!st.running;
+	if (relaunchPet) {
+		await doStop().catch(() => {});
+	}
+	const r = await update.apply({
+		root: PATHS.root,
+		userRoot: PATHS.userRoot,
+		installerPath: (req && req.path) || "",
+		from: currentVersion(),
+		to: (req && req.to) || "",
+		pid: process.pid,
+		relaunchPet,
+	});
+	if (r.ok) {
+		// 让界面把"马上关窗"那句话显示出来再退；脚本那边会等这个进程真的没了才动手
+		setTimeout(() => {
+			try {
+				app.quit();
+			} catch {
+				/* 已经在退了 */
+			}
+		}, 1500);
+	}
+	return Object.assign({}, r, { relaunchPet });
+}
+
 /** apply=true 时把结果落到 state.json（只补空项，force 才覆盖主人选过的） */
 async function runDetect({ apply = false, force = false } = {}) {
 	const mod = await loadDetect();
@@ -705,6 +762,10 @@ if (doIdx >= 0 && argv[doIdx + 1]) {
 			else if (req.op === "tts-pitch-set") out = writeTtsPitch(req.pitch);
 			else if (req.op === "perm") out = await rec.readPerm();
 			else if (req.op === "app-info") out = { ok: true, info: appInfo() };
+			else if (req.op === "update-check") out = await updateCheck();
+			else if (req.op === "update-download") out = await updateDownload(null, req);
+			else if (req.op === "update-apply") out = await updateApply(req);
+			else if (req.op === "update-result") out = update.readResult({ userRoot: PATHS.userRoot, current: currentVersion() });
 			else if (req.op === "detect") out = { ok: true, profile: await runDetect({ apply: false }) };
 			else if (req.op === "detect-apply") out = { ok: true, profile: await runDetect({ apply: true, force: !!req.force }) };
 			else if (req.op === "probe") out = await probeModels(req.models || []);
@@ -869,6 +930,16 @@ if (doIdx >= 0 && argv[doIdx + 1]) {
 		ipcMain.handle("tts-pitch-set", (_e, v) => writeTtsPitch(v));
 		// ---- 「装完自动适配」：检测本机模型 / 显存，挑模型，拉模型，启 Ollama ----
 		ipcMain.handle("app-info", () => appInfo());
+		// ---- 一键更新（检查 / 下载 / 静默安装 / 回读上次的结局）----
+		ipcMain.handle("update-check", () => updateCheck());
+		ipcMain.handle("update-download", (e, req) => updateDownload(e, req || {}));
+		ipcMain.handle("update-apply", (_e, req) => updateApply(req || {}));
+		ipcMain.handle("update-result", () => update.readResult({ userRoot: PATHS.userRoot, current: currentVersion() }));
+		ipcMain.handle("update-open-page", async (_e, url) => {
+			const target = /^https?:\/\//i.test(String(url || "")) ? String(url) : update.page;
+			await shell.openExternal(target);
+			return { ok: true, url: target };
+		});
 		ipcMain.handle("detect", async () => ({ ok: true, profile: await runDetect({ apply: false }) }));
 		ipcMain.handle("detect-apply", async (_e, req) => ({ ok: true, profile: await runDetect({ apply: true, force: !!(req && req.force) }) }));
 		ipcMain.handle("probe", (_e, req) => probeModels((req && req.models) || []));

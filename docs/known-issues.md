@@ -1,7 +1,7 @@
 # Known issues
 
 English summary: defects that were confirmed in shipped builds, with the reproduction, the root cause
-and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 / 1.1.4 (kept for the record).
+and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 / 1.1.4 / 1.2.0 (kept for the record).
 This document is in Chinese.
 
 本文件记录**已经确认过**的缺陷：现象 → 怎么复现 → 根因 → 怎么修的 / 打算怎么修。
@@ -21,8 +21,9 @@ This document is in Chinese.
 
 ## 已知但属于「设计如此」，不算缺陷
 
-- **没有开机自启、没有自动更新**：要自启就把桌面快捷方式拖进 `shell:startup`；升级方式见 README 的
-  「Updating to a newer version」（控制台里的一键更新排在 1.2.0）。
+- **没有开机自启**：要自启就把桌面快捷方式拖进 `shell:startup`。**也没有后台自动检查更新**（它不会自己偷偷联网），
+  但控制台里从 1.2.0 起有一个「检查更新 + 下载并更新」的按钮，点一下就能升级完；升级方式见 README 的
+  「Updating to a newer version」。
 - **GitHub 仓库页显示 `NOASSERTION`**：`LICENSE` 里有两段版权（上游 + 本项目），GitHub 认不出标准模板，
   不改 `LICENSE`。
 - **包内文件名与文案仍是中文**：改名要重打包，攒到下一个版本一起做。
@@ -197,6 +198,57 @@ This document is in Chinese.
 - **验证**：真渲染端 CDP `_accept\test-console-privacy.cjs` **26 项断言全过**（默认就是圆点、Key 真从 `online.json` 填进来、
   显示/隐藏互不影响、页面上没有录制模式残留、终端/适配日志/权限日志脱敏、普通文字原样）；数字见下面「1.1.4 的验收」。
 
+### KI-9（v1.2.0 修复）一键更新「下载成功」，可安装包是 0 字节
+
+- **影响版本**：只在 1.2.0 的开发期存在过（第一版 `launcher\update.js`）；**从未发布** —— 离线自检在打包之前就抓到了。
+- **现象**：`download()` 返回成功，进度条也走到 100%，算出来的 SHA-256 还跟发布里给的摘要**一致**，但磁盘上那个
+  `.part` 文件是 **0 字节**。真去装只会失败，而且"校验通过"这件事会让人以为文件是好的。
+- **根因**：流式下载那段只顾着把收到的数据喂给哈希器（`hash.update(chunk)`），**忘了写盘**（`ws.write(chunk)`
+  根本没写）。哈希算的是同一串内存数据，两边自洽，所以"下完了、校验过了"这条路一直是绿的。
+- **修法**：`ws.write(chunk)` 加上背压处理
+  （`if (!ws.write(chunk)) { res.pause(); ws.once("drain", () => res.resume()); }`）；顺手补了
+  `res.on("aborted")` 和 `res.on("close") { if (!res.complete) … }` —— 原来对方中途掐连接时 `download()` 会永远不返回。
+- **验证**：`_accept\test-update.cjs` 里那组 `download()` 断言现在真的从 127.0.0.1 上的假 GitHub 下 256 KB 下来，
+  比字节、比哈希、比"不留 `.part`"、比进度最后是 100% —— 现在 97 项断言全过（见下面「1.2.0 的验收」）。
+- **教训**：自检必须**去看磁盘上的结果**，不能只看函数返回值 —— 和 KI-1 / KI-5 那几条一个道理。
+
+### KI-10（v1.2.0 修复）点完「下载并更新」窗口关掉了，然后什么都没发生
+
+- **影响版本**：只在 1.2.0 的开发期存在过；**从未发布** —— 真机端到端在打包之前就抓到了。
+- **现象**：点「检查更新」有新版、点「下载并更新」进度走到 100%、窗口按约定自己关掉；然后就**没有然后了**：
+  版本还是旧的、`<数据根>\updates\update-1.2.0.log` 是 **0 字节（一行都没写）**、347 MB 的安装包也没被清掉。
+  但控制台写出来的 `apply-update.ps1`、安装包、下载好的 exe 都在，看起来一切"交班成功"。
+- **根因**：`apply()` 是用 `spawn(powershell.exe, …, { detached: true, stdio: "ignore", windowsHide: true })` 起那个脚本的。
+  `detached: true` 在 Windows 上就是 `DETACHED_PROCESS`（没有控制台），而 **`powershell.exe` / `cmd.exe` 这类控制台程序
+  在没有控制台时会立刻以退出码 0 结束、什么都不做** —— 本机实测：同一段探针脚本，同步跑能写出日志，
+  detached 跑时子进程立刻 `exit 0` 且日志为空；换成 detached 起 `node.exe` 却一切正常 ⇒ 不是"本环境一律杀 detached"，
+  是"控制台程序没控制台就退出"。所以不是权限、不是路径、不是执行策略的问题，脚本第一句都没轮到跑。
+- **修法**：多一层 `apply-update.vbs` 启动器（**纯 ASCII**，用 `WScript.ScriptFullName` 找到自己所在目录、再去跑同目录的
+  `apply-update.ps1`），改成 `spawn(wscript.exe, ["//nologo", vbs], { detached: true, … })`。`wscript.exe` 是 GUI 程序，
+  detached 起得来、也能活过控制台自己退出，`sh.Run …, 0, False` 让 PowerShell 隐藏着跑且不等它。
+  ps1 正文一个字没改，只是收工时会把这个启动器一起删掉。VBS 的路径**不写死**（中文用户名 / 带空格的目录都不用担心编码），
+  起不来时会在 `updates\` 里留一张 `apply-vbs-error.txt` 纸条。
+- **验证**：新写的 `_accept\_probe\vbs-handoff.cjs` 用**假安装目录 + 假安装程序**（一个 `exit /b 0` 的 .cmd）真跑整条交班链 ——
+  日志 8 行齐全（等控制台 PID 退出 → `/S /D=…` → 退出码 0 → 清理 → 写结果 → 把控制台开回来）、
+  `last-result.txt` 写出 `ok=1 / exit=0 / from=1.1.4 / to=1.2.0`、假安装包被删、`apply-update.ps1` 与 `.vbs` 自己删掉；
+  另外单独验过"启动器先退出、PowerShell 继续把 3 秒的活儿干完"（子进程活过父进程）。
+  随后真机端到端（真装 1.2.0）也走通，见下面「1.2.0 的验收」。
+- **教训**：**跨进程交接没法用"返回值成功"来证明** —— 必须让真正干活的子进程把日志写出来，再看那份日志。
+
+### KI-11（v1.2.0 修复）装完了清不掉那两个中文名的便携脚本
+
+- **影响版本**：只在 1.2.0 的开发期存在过；**从未发布**。
+- **现象**：更新装完，`install.ps1` / `uninstall.ps1` 被清掉了，可同一个安装目录里的 `安装.cmd` / `卸载.cmd` 还留着
+  （上面那条假交班链实测：日志只打了前两个「清掉旧脚本」，后两个一声不响）。
+- **根因**：脚本为了避开编码问题，用 `@([char]0x5B89 + [char]0x88C5 + '.cmd', [char]0x5378 + [char]0x8F7D + '.cmd')`
+  去拼这两个名字。PowerShell 里 **`@()` 中那个逗号比 `+` 结合得更紧**：先把 `'.cmd', [char]0x5378` 组成数组，
+  再被 `+` 当字符串拼（数组用空格 join）⇒ 实际拿到的是**一个**字符串 `"安装.cmd 卸载.cmd"`，`Test-Path` 永远 false。
+- **修法**：直接写字面量 `@('安装.cmd', '卸载.cmd')` —— ps1 是 UTF-8 带 BOM 写盘的，PS 5.1 认这些中文
+  （脚本里本来就到处是中文字面量，日志里中文一直是好的）。顺手在离线自检里加了一条"不许再出现 `[char]0x`"的断言。
+- **验证**：同一条假交班链重跑，日志出现 **4 行**「清掉旧脚本」（含两个中文名），安装目录里只剩 `electron\` / `launcher\`。
+- **教训**：**表达式被静默拼错，解析器是查不出来的** —— 那个 3874 字符的 ps1 `Parser::ParseFile` 报 0 个错误，
+  只有真跑一遍才会发现少删了两个文件；`@(a + b, c + d)` 这种地方宁可直接写字面量或加括号。
+
 ### 修复验证
 
 - `安装.cmd` / `卸载.cmd`：本机冒烟（缺文件路径）实测退出码 1、中文说明逐字正确、`pause` 生效。
@@ -323,3 +375,55 @@ This document is in Chinese.
   `release\*.sha256` 读出来填进发布说明与两个 README（可重复跑），不手抄。主人当天否掉「录制模式」之后重打了一遍成品，
   数字用 `_accept\refill-114.py`（把上一轮的旧 bytes/sha 显式列成表逐个替换，残留就 `exit 1`）再刷一次，
   无版本号的别名 `release\cute-fat-fish-pet-setup.exe` 同步成新 exe 的副本 + 对应 `.sha256`。
+
+### 1.2.0 的验收（2026-10-09）
+
+- **功能验证（假 GitHub + 真控制台，CDP 驱动）**：`_accept\run-update-live.ps1` 全程编排 —— 先拍主人 HKCU 与快捷方式的快照
+  （`_accept\state-112.ps1 -Mode snapshot -Out _accept\user-state-120b`），再静默把 1.2.0 装进 `D:\_e2e120\install` 当底座，
+  用 `_accept\e2e-tools.cjs doctor` 把 `launcher\package.json` 改成 1.1.4 假装「旧版在跑」，起 `_accept\feed-120.cjs`
+  这个假 GitHub（`/feed.json` 形状与 `releases/latest` 一致、只喂真安装包、`digest` 是真 sha256），最后用
+  `_accept\test-update-live.cjs` 通过 CDP 点真按钮：
+  - live 驱动 **21/21**：检查前角标「还没检查过」、按钮禁用 → 点「检查更新」→ `当前 1.1.4 → 新版 1.2.0`、
+    `有新版 1.2.0（约 331.7 MB）`、按钮解锁 → 下载进度样本 `正在下载 48.7 MB / 331.7 MB（15%） · 120.8 MB/s`
+    … `234.7 MB（71%） · 194.8 MB/s` → 交班文案「马上关掉窗口开始装 1.2.0」→ 更新日志
+    `[20:57:13] 开始更新：1.1.4 -> 1.2.0` / `安装目录：D:\_e2e120\install` / `[20:57:14] 控制台已退出` /
+    `开始静默安装：… /S /D=D:\_e2e120\install` / `[20:58:03] 安装程序退出码：0` / `控制台已重新打开` / `收工`；
+    `updates\last-result.txt` = `ok=1 / exit=0 / from=1.1.4 / to=1.2.0 / at=2026-10-09T20:58:03`；
+    `apply-update.ps1` 与 `apply-update.vbs` 都自删、347 MB 安装包删掉、安装目录里没留下便携脚本。
+  - 更新后的树与 `stage\` 逐字节核（`build\verify-install.py`）**exit 0**：**712 个文件逐字节一致
+    （797,896,795 B）**，实装 713 个（多出来的只有安装时生成的 `Uninstall.exe`）⇒ 一键更新装出来的树与发布树完全一样；
+    登记项 `DisplayVersion=1.2.0`、`InstallDir` 指向更新后的目录。
+  - 回读驱动 **4/4**：更新完第一次启动，角标 `当前 1.2.0 · 刚更新过`、终端
+    `上次更新成功：已经升到 1.2.0 了（1.1.4 → 1.2.0）。`、`last-result.txt` 读完即删。整套 `failures: 0`，
+    跑完卸载并按快照还原主人状态（`DisplayVersion=1.1.4`、`InstallLocation=D:\...\BlueHairMaid`、桌面 4 个 `.lnk`）。
+- **三个测试脚手架的坑**（都不是产品问题，写下来免得再犯）：① 把「`launcher\package.json` 变成 1.2.0」当作安装完成信号是错的
+  —— 安装器先铺小文件、最后才收尾，会读到半截树（`node\bin\node.exe` 0 字节、语音模型 sha 不符）并让测试在对方还在跑的
+  时候就卸载 / 还原，收工时它又把登记项写回测试目录；现在等更新日志里出现「收工」（ps1 的最后一行）。② 读
+  `last-result.txt` 要先去掉 UTF-8 BOM（PS 5.1 的 `-Encoding UTF8` 会写 BOM）；产品自己认 BOM，是断言写错了。
+  ③ 安装器渠道的安装目录里本来就没有那 4 个便携脚本（那是绿色包渠道才有的），所以「日志里清掉旧脚本」的条数不能硬编成 4。
+- **真机验收（安装器）**：`release\cute-fat-fish-pet-1.2.0-setup.exe` = **347,802,318 B**
+  （`22DB908B29AB28E6C811FC8019E624240BAEC676E9A6D046D330EA39643CAFB4`，NSIS 全 LZMA）；`_accept\accept-exe-120.ps1`
+  静默装进隔离目录 `_accept\Programs\BlueHairMaid120`（52 秒，**713 个文件 / 798,152,745 B** = 该装的 712 个 + 安装时生成的
+  `Uninstall.exe`）→ `verify-install.py exit=0`（712 个逐字节一致，797,896,795 B）→ 登记项 `DisplayName=可爱大肥鱼桌宠` /
+  `DisplayVersion=1.2.0` / `InstallLocation` 与 `InstallDir` 都指向该目录 → `Uninstall.exe /S`（2 秒）后安装目录消失、
+  登记项清掉、`%APPDATA%\BlueHairMaid` **71 个文件 / 4,991,712 B 一字未动**。
+- **真机验收（绿色包）**：`release\cute-fat-fish-pet-1.2.0-win-x64.zip` = **417,016,073 B**
+  （`75EA491EBF46B2A4ADBDA1EE6589AC8ACEE17F1E397E0A928EC8D2110AA44502`，716 个文件）；解压 21 秒 → 716 个文件 /
+  797,921,310 B → 树内 `node verify.mjs` **exit 0**（4 棵树的整树指纹 + **27 个关键文件**全对；`launcher` 从 9 个文件涨到
+  10 个，新增的就是 `launcher\update.js` 27,340 B，`launcher\index.html` 102,900 B）→ `安装.cmd` 真装一次（2.8 秒，
+  日志以 `[ok] Setup finished.` 结束）→ `verify-install.py`：712 个逐字节一致（797,896,795 B），`exit=1` 只因那 4 个便携
+  脚本本来就该留在便携安装目录里（工具口径，同 1.1.4）→ 登记项 `DisplayVersion=1.2.0`、`UninstallString` 指向该目录的
+  `卸载.cmd` → `卸载.cmd`（3.8 秒）后安装目录消失、登记项清掉、指向测试目录的桌面与开始菜单快捷方式清掉、
+  `%APPDATA%\BlueHairMaid` 用户数据保留。
+- **快照与还原**：`_accept\user-state-120b\`（两个 HKCU 键 + 桌面 4 个 `.lnk` + 开始菜单 + `registry.json`）。**注意**：测试
+  安装器会把桌面与开始菜单里那个「可爱大肥鱼桌宠」快捷方式改写成指向测试目录，所以**拍完快照后要确认它们仍指向
+  `D:\...\BlueHairMaid`** —— 本次就发现 `_accept\user-state-120\` 里的两份被上一轮测试污染了（指向已删掉的
+  `D:\_e2e120\install`），已用 1.1.4 时的快照 `_accept\user-state-114b\` 里的原件修回，桌面与开始菜单现均指向
+  `D:\...\BlueHairMaid`。测试目录 `D:\_test120-zip`、`D:\_test120-install`、`D:\_e2e120` 与
+  `_accept\Programs\BlueHairMaid120` 都在仓库外，跑完已删，不随版本发布。
+- **成品真值**：`_accept\fill-120.py`（幂等：台账 `_accept\fill-120-last.json` 存上一轮的 bytes/sha，重打后先把旧值逐个替换成
+  新值，再填 `{{…}}` 占位符，残留占位符就 `exit 1`）本次刷新 **16 处**；无版本号的别名
+  `release\cute-fat-fish-pet-setup.exe`（347,802,318 B / `22DB908B…`）与 `.sha256` 同步成同一份字节。
+- **版本号**：四个 `package.json`、`build\installer.nsi` 的 `!define APP_VER` 默认值、`NOTICE.md`、两个 README、
+  `docs\README.md`、`bug_report.md`、`differences-from-upstream.md`、`code-signing.zh-CN.md`、`how-to-publish.zh-CN.md`
+  一起改到 1.2.0；`verify.mjs` 的关键文件表新增 `launcher\update.js`（26 → **27** 个）。

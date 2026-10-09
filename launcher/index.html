@@ -450,6 +450,20 @@
     <div class="term" id="term"></div>
   </div>
 
+  <!-- [update@1] 一键更新（1.2.0）：问 GitHub 有没有新版，有就下下来、关掉窗口静默装回去 -->
+  <div class="sec">
+    <h2>更新 <span class="tag" id="updateTag">还没检查过</span></h2>
+    <div class="row" style="margin:10px 0 0">
+      <button id="checkUpdate" class="ghost">检查更新</button>
+      <button id="doUpdate" disabled>下载并更新</button>
+    </div>
+    <div class="hint" id="updateMsg">点「检查更新」问一下 GitHub 有没有新版本。</div>
+    <div class="hint" id="updateBar" hidden style="margin-top:6px;color:#8bd5a0"></div>
+    <div class="row" style="margin:10px 0 0">
+      <button id="updatePage" class="ghost" hidden>在浏览器里打开发布页</button>
+    </div>
+  </div>
+
   <details class="sec" style="padding:12px 14px">
     <summary style="cursor:pointer;color:#b9c2d6;font-size:12.5px;font-weight:600;letter-spacing:.6px">还剩这些只能在右键菜单里点</summary>
     <div class="hint" style="margin-top:10px">
@@ -1724,6 +1738,150 @@ $("ttsTry").onclick = async () => {
   } catch (e) { log("系统", "试听没成功：" + e.message); }
 };
 
+// ---------------------------------------------------------------- 一键更新
+// [update@1] 检查 → 下载（边下边校验）→ 关掉窗口交给独立脚本静默装回原目录 → 下次打开回读结果。
+//   这里只管把话说清楚、别让主人重复点；真正的安装是主进程写出来的 apply-update.ps1 干的。
+let updateInfo = null;   // 上次「检查更新」的结果
+let updateBusy = false;  // 正在检查 / 下载 / 交班
+
+function updateSay(text, cls) {
+  const el = $("updateMsg");
+  el.textContent = text == null ? "" : String(text);
+  el.style.color = cls === "err" ? "#f2b8b8" : cls === "ok" ? "#8bd5a0" : "";
+}
+
+function updateProgressText(p) {
+  if (!p) return "";
+  const size = p.totalMb ? `${p.mb} / ${p.totalMb}` : String(p.mb || "");
+  const pct = p.percent ? `（${p.percent}%）` : "";
+  const speed = p.speed ? ` · ${p.speed} MB/s` : "";
+  return `正在下载 ${size}${pct}${speed}`;
+}
+
+function updateUnlock() {
+  updateBusy = false;
+  $("checkUpdate").disabled = false;
+}
+
+function renderUpdate() {
+  const r = updateInfo;
+  const cur = (r && r.current) || (appMeta && appMeta.version) || "?";
+  const btn = $("doUpdate");
+  if (!r) {
+    $("updateTag").textContent = "还没检查过";
+    updateSay("点「检查更新」问一下 GitHub 有没有新版本。");
+    btn.disabled = true;
+    return;
+  }
+  if (!r.ok) {
+    $("updateTag").textContent = `当前 ${cur}`;
+    updateSay(r.message || "检查更新没成功。", "err");
+    btn.disabled = true;
+    $("updatePage").hidden = false;
+    return;
+  }
+  if (!r.hasUpdate) {
+    $("updateTag").textContent = `当前 ${cur} · 已是最新`;
+    updateSay(`已经是最新版啦（${cur}${r.publishedAt ? "，" + fmtTime(r.publishedAt) + " 发布" : ""}）。`);
+    btn.disabled = true;
+    return;
+  }
+  const mb = r.exe && r.exe.size ? `（约 ${(r.exe.size / 1024 / 1024).toFixed(1)} MB）` : "";
+  $("updateTag").textContent = `当前 ${cur} → 新版 ${r.latest}`;
+  if (!r.installed) {
+    updateSay(`有新版 ${r.latest}${mb}，但这份是源码运行、没有 electron\\electron.exe —— 更新请自己 git pull。`, "err");
+    btn.disabled = true;
+    $("updatePage").hidden = false;
+    return;
+  }
+  if (!r.exe || !r.exe.sha256) {
+    $("updateTag").textContent = `当前 ${cur} → 新版 ${r.latest}`;
+    updateSay(`有新版 ${r.latest}${mb}，但发布里没给安装包的 SHA-256，为安全起见不自动装 —— 去发布页手动下吧。`, "err");
+    btn.disabled = true;
+    $("updatePage").hidden = false;
+    return;
+  }
+  $("updatePage").hidden = true;
+  updateSay(`有新版 ${r.latest}${mb}。点「下载并更新」：下完这个窗口会自己关掉，装好再开回来（两三分钟，中途别关机）。`);
+  btn.disabled = false;
+}
+
+async function checkUpdate() {
+  if (updateBusy) return;
+  updateBusy = true;
+  $("checkUpdate").disabled = true;
+  $("doUpdate").disabled = true;
+  $("updateBar").hidden = true;
+  updateSay("正在问 GitHub……");
+  try {
+    updateInfo = await window.pet.updateCheck();
+  } catch (e) {
+    updateInfo = { ok: false, message: "检查更新出错：" + ((e && e.message) || e) };
+  }
+  updateUnlock();
+  renderUpdate();
+  if (updateInfo && updateInfo.ok && updateInfo.hasUpdate) log("系统", `检查更新：有新版 ${updateInfo.latest}（现在是 ${updateInfo.current || "?"}）`);
+}
+
+async function doUpdate() {
+  const r = updateInfo;
+  if (!r || !r.ok || !r.exe || r.hasUpdate === false) return;
+  if (updateBusy) return;
+  updateBusy = true;
+  $("checkUpdate").disabled = true;
+  $("doUpdate").disabled = true;
+  const bar = $("updateBar");
+  bar.hidden = false;
+  bar.textContent = "准备下载……";
+  log("系统", `开始更新：${r.current || "?"} → ${r.latest}（只从 GitHub 官方发布页下，下完会核对 SHA-256）`);
+  try {
+    const d = await window.pet.updateDownload({ exe: r.exe });
+    if (!d || !d.ok) {
+      bar.hidden = true;
+      updateSay((d && d.message) || "下载失败。", "err");
+      log("系统", "更新没成：" + ((d && d.message) || "下载失败"));
+      updateUnlock();
+      $("doUpdate").disabled = false;
+      return;
+    }
+    bar.textContent = d.cached
+      ? "之前已经下好过、哈希也对，直接用它。"
+      : `下好了（${(d.size / 1024 / 1024).toFixed(1)} MB，${d.elapsedSec} 秒，SHA-256 校验通过）。`;
+    log("系统", "安装包下好并校验通过，准备静默安装：" + r.latest);
+    const a = await window.pet.updateApply({ path: d.path, to: r.latest });
+    if (!a || !a.ok) {
+      updateSay((a && a.message) || "起不了安装脚本。", "err");
+      log("系统", "更新没成：" + ((a && a.message) || "起不了安装脚本"));
+      updateUnlock();
+      $("doUpdate").disabled = false;
+      return;
+    }
+    updateSay(`马上关掉窗口开始装 ${r.latest}…… 装好会自动开回来，稍等一下就好。`, "ok");
+    bar.textContent = "窗口马上自己关掉 —— 别以为它崩了，装完就回来。";
+  } catch (e) {
+    bar.hidden = true;
+    updateSay("更新出错：" + ((e && e.message) || e), "err");
+    updateUnlock();
+    $("doUpdate").disabled = false;
+  }
+}
+
+/** 上次更新装成了没有：不靠脚本自报，用「现在这个版本号 ≥ 要装的版本」判定 */
+async function showUpdateResult() {
+  let r = null;
+  try { r = await window.pet.updateResult(); } catch { return; }
+  if (!r) return;
+  if (r.landed) {
+    $("updateTag").textContent = `当前 ${r.current || "?"} · 刚更新过`;
+    updateSay(`上次更新成功：已经升到 ${r.current} 了（${r.from || "?"} → ${r.to}）。`, "ok");
+    log("系统", `上次更新成功：${r.from || "?"} → ${r.to}，现在跑的是 ${r.current}。`);
+  } else {
+    $("updateTag").textContent = `当前 ${r.current || "?"} · 上次更新没成`;
+    updateSay(`上次更新没成功（想装 ${r.to}，现在还是 ${r.current}）。可以再点一次「下载并更新」；日志：${r.log || "更新目录里"}`, "err");
+    log("系统", `上次更新没成功：想装 ${r.to}，现在还是 ${r.current}。日志在 ${r.log || "更新目录"}`);
+  }
+}
+
 // ---------------------------------------------------------------- 本机适配按钮
 $("detectBtn").onclick = () => { doDetect(false); };
 $("applyBtn").onclick = () => { doDetect(true); };
@@ -1742,6 +1900,17 @@ for (const id of SECRET_FIELDS) {
     el.dataset.shown = el.dataset.shown === "1" ? "0" : "1";
     applySecretVisibility();
   };
+}
+
+// [update@1] 一键更新：两个按钮 + 下载进度 + 上次结果
+$("checkUpdate").onclick = () => { checkUpdate(); };
+$("doUpdate").onclick = () => { doUpdate(); };
+$("updatePage").onclick = () => { window.pet.updateOpenPage(updateInfo && updateInfo.page); };
+if (window.pet.onUpdateProgress) {
+  window.pet.onUpdateProgress((p) => {
+    const t = updateProgressText(p);
+    if (t) { $("updateBar").hidden = false; $("updateBar").textContent = t; }
+  });
 }
 
 // [主人第 2 条] 有些口令只是给主人看的短标签，真正发出去的是完整写法。
@@ -1792,6 +1961,8 @@ window.scrollTo(0, 0);
     }
   } catch (e) { log("系统", "读不到程序目录信息：" + (e && e.message ? e.message : String(e))); }
   log("系统", "控制台就绪。上面所有开关都是直接改桌宠自己的配置，桌宠不用重启。");
+  // [update@1] 上次点过「下载并更新」的话，这里如实报一句装成了没有
+  try { await showUpdateResult(); } catch { /* 无所谓 */ }
 })();
 </script>
 </body>

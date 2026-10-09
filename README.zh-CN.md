@@ -67,7 +67,7 @@
 
 ### 方式一：安装程序（推荐）
 
-下载 **`cute-fat-fish-pet-1.1.4-setup.exe`**（约 330 MB，NSIS 安装器）双击。
+下载 **`cute-fat-fish-pet-1.2.0-setup.exe`**（约 330 MB，NSIS 安装器）双击。
 
 > **永远指向最新版的链接**：每一版都会额外放一份去掉版本号、内容完全相同的副本，
 > 所以下面这条链接永远是最新安装包：
@@ -81,12 +81,12 @@
 
 ### 方式二：绿色 zip 包
 
-下载 **`cute-fat-fish-pet-1.1.4-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+下载 **`cute-fat-fish-pet-1.2.0-win-x64.zip`**（约 400 MB，解压后约 760 MB），解压到任意目录，然后二选一：
 
 > **1.1.1 把这条绿色包的路整条修好了。** 一定要**先解压**（右键 →「全部解压缩…」），再到解压出来的目录里双击
 > `安装.cmd`：它会先检查包是否完整，缺件时用中文说明（旧版是一闪而过、什么都不说）；
 > 装出来的名字是「可爱大肥鱼桌宠」、版本号是真的；`卸载.cmd` 也会真的把整个目录删干净，而不是留下 714 个文件。
-> 细节见 [1.1.4 发布说明](docs/release-notes-1.1.4.md) 与 [已确认缺陷](docs/known-issues.md)。
+> 细节见 [1.2.0 发布说明](docs/release-notes-1.2.0.md) 与 [已确认缺陷](docs/known-issues.md)。
 
 - 双击 `安装.cmd`：建快捷方式、写卸载登记（想让它像装过一样）；
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
@@ -95,10 +95,10 @@
 
 ### 每个包都带 `.sha256`
 
-`cute-fat-fish-pet-1.1.4-setup.exe.sha256`、`cute-fat-fish-pet-1.1.4-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
+`cute-fat-fish-pet-1.2.0-setup.exe.sha256`、`cute-fat-fish-pet-1.2.0-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.1.4-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.2.0-setup.exe -Algorithm SHA256
 ```
 
 > 发布用的文件名一律是 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
@@ -109,13 +109,19 @@ Get-FileHash .\cute-fat-fish-pet-1.1.4-setup.exe -Algorithm SHA256
 - **开**：双击桌面「可爱大肥鱼桌宠」打开**控制台**，在控制台里点「启动桌宠」。
   注意：**控制台不会自动把她拉起来**——这是故意的，省得你只是想改个设置，她就先跳出来。
 - **关**：控制台里点停止，或双击 `standalone\stop-pet.vbs`。
-- **开机自启和自动更新目前没做**，需要的话自己把控制台快捷方式丢进「启动」文件夹。
+- **开机自启目前没做**，需要的话自己把控制台快捷方式丢进「启动」文件夹。**更新不用手动下了**：控制台里
+  「更新」→「检查更新」→「下载并更新」会自己下载、核对哈希、关掉自己装好再开回来（见 [怎么升级](#以后怎么升级)）。
 - **卸载**：控制面板 / 设置里的「可爱大肥鱼桌宠」，或安装目录里的 `卸载.cmd`。
   卸载**不会**删你的数据（人设、记忆、聊天记录都留着），想彻底清干净就自己删数据目录（见下一节）。
 
 ### 以后怎么升级
 
-目前**没有自动更新**——升级就是下新版安装包、覆盖安装一遍。只换程序文件，你的数据不动。
+**从 1.1.4 / 1.2.0 起，一键就行**：打开控制台 →「更新」→「检查更新」，看到新版再点「下载并更新」。
+它会自己把安装包下到数据目录的 `updates\`、一边下一边核对 SHA-256，然后**关掉自己**、静默装回同一个目录，
+最后把桌宠（本来在跑的话）和控制台自己开回来；装完顺手删掉那 347 MB 的安装包，结果下次启动会如实报给你。
+发布里没给哈希、或者哈希对不上，它宁可不装；从源码目录跑（git clone）也不会走这条路，自己 `git pull`。
+
+**手动（更早的版本，或者控制台连不上 GitHub 时）：**
 
 1. **先把她关掉**：托盘图标右键 → 退出，或双击 `standalone\stop-pet.vbs`。
    安装器故意不杀进程（免得误杀同一台电脑上**另外一只**桌宠），她还在跑的时候它会停下来，让你先关掉再继续。
@@ -123,11 +129,11 @@ Get-FileHash .\cute-fat-fish-pet-1.1.4-setup.exe -Algorithm SHA256
 3. **双击安装、一路「下一步」**：安装器会从 `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\BlueHairMaid` 读出上一版装在哪个目录，**装回同一个目录**，不会多出一份 761 MB 的副本；桌面与开始菜单快捷方式会重建。
 4. **从控制台重新启动她**。
 
-什么会留下：人设、记忆、聊天记录、设置与模型配置都在数据目录 `%APPDATA%\BlueHairMaid` 里，安装器一个字节都不碰。
+什么会留下：人设、记忆、聊天记录、设置与模型配置都在数据目录 `%APPDATA%\BlueHairMaid` 里，安装器（和上面那个一键更新）一个字节都不碰。
 
-绿色 zip 用户：把新 zip 解压覆盖旧目录即可；自己加的 `standalone\online.json`（联网模型设置）和 `portable.txt` 留着。
+绿色 zip 用户：一键更新同样能用，但那 4 个便携脚本（`安装.cmd`/`卸载.cmd`/`install.ps1`/`uninstall.ps1`）更新后会被删掉，卸载改由新登记的卸载项负责；也可以照旧把新 zip 解压覆盖旧目录，自己加的 `standalone\online.json`（联网模型设置）和 `portable.txt` 留着。
 
-> 脚本安装：`cute-fat-fish-pet-setup.exe /S /D=D:\要装的目录`。两点注意——静默模式**不会**自动认旧目录，`/D=` 得自己给；她还在跑的时候它同样不会替换文件。
+> 脚本安装：`cute-fat-fish-pet-setup.exe /S /D=D:\要装的目录`。两点注意——静默模式**不会**自动认旧目录，`/D=` 得自己给（控制台的一键更新会先写 `HKCU\Software\BlueHairMaid\InstallDir`，所以它认得）；她还在跑的时候它同样不会替换文件。
 
 ---
 
@@ -257,7 +263,7 @@ node build\build.mjs launcher assets   # 只铺这几块（块名：app launcher
 node build\build.mjs --list            # 只看会做什么，不动磁盘
 ```
 
-产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.1.4-setup.exe` 和 `cute-fat-fish-pet-1.1.4-win-x64.zip`。
+产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.2.0-setup.exe` 和 `cute-fat-fish-pet-1.2.0-win-x64.zip`。
 
 > 构建脚本口径以 `build\build.mjs` 头部注释和根 `package.json` 的 `scripts` 为准；`build\check-paths.mjs` 是构建期门禁，`--no-gate` 能跳过（不推荐）。
 
@@ -265,7 +271,14 @@ node build\build.mjs --list            # 只看会做什么，不动磁盘
 
 ## 核对下载
 
-1.1.4 的两个成品：
+1.2.0 的两个成品：
+
+| 文件 | 字节数 | SHA-256 |
+| --- | --- | --- |
+| `cute-fat-fish-pet-1.2.0-setup.exe` | 347802318 | `22DB908B29AB28E6C811FC8019E624240BAEC676E9A6D046D330EA39643CAFB4` |
+| `cute-fat-fish-pet-1.2.0-win-x64.zip` | 417016073 | `75EA491EBF46B2A4ADBDA1EE6589AC8ACEE17F1E397E0A928EC8D2110AA44502` |
+
+1.1.4 的两个成品（留档）：
 
 | 文件 | 字节数 | SHA-256 |
 | --- | --- | --- |
@@ -290,6 +303,7 @@ node verify.mjs
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | 开发日志：每一步的动机 → 改动 → 验证 → 提交 |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | 与上游 dsh-pet 0.3.0 的逐文件差异（含大小与 SHA-256） |
+| [docs/release-notes-1.2.0.md](docs/release-notes-1.2.0.md) | 1.2.0 发布说明 —— 控制台里一键检查更新、下载并装好 |
 | [docs/release-notes-1.1.4.md](docs/release-notes-1.1.4.md) | 1.1.4 发布说明 —— 录制时控制台不会露出 API Key |
 | [docs/release-notes-1.1.3.md](docs/release-notes-1.1.3.md) | 1.1.3 发布说明 —— 说「打开 X」就能开网页、文件夹或文件（语音与打字都行） |
 | [docs/release-notes-1.1.2.md](docs/release-notes-1.1.2.md) | 1.1.2 发布说明 —— 联网模型不再把思考过程念出来 |

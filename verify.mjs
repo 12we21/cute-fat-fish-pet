@@ -18,8 +18,8 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // >>>GENERATED 由 build\check-release.mjs --emit --write 生成，别手改这一段
 const EXPECT = {
-  app: { files: 594, bytes: 74562356, treeSha256: "33e5b3d54dac56633f94f74861cb23d83d4116226a1850974c2bbc285a0e4aca" },
-  launcher: { files: 9, bytes: 346181, treeSha256: "d8ef2f98dc011983618029df7a5577dce045ccf31c27274edb765fd4db75c32c" },
+  app: { files: 594, bytes: 74562356, treeSha256: "c43e8765d97293a6c70a2a62897e03089ff9be58ea721b9d8e18f76835dceacc" },
+  launcher: { files: 10, bytes: 384640, treeSha256: "e06b51c537d76f057a53f4f604bfebb0ec9212732701faf2555b42cbd921fe1c" },
   standalone: { files: 14, bytes: 106518, treeSha256: "704e11f2d4ea11dd5988947ccef86f21a935e2f1b8d7ac12d14801d132451b70" },
   defaults: { files: 4, bytes: 13967, treeSha256: "4f95360682c89202b714cbc8fca606fa6a29667c34397be08c5f081118d5229b" },
 };
@@ -32,15 +32,16 @@ const OURS = {
   'app/runtime/electron-helper/targets.js': [9430, '039d0173387dfccc9d2eb6936d7f40dbc3b380eef702e590ff02b39b61712578'],
   'app/runtime/electron-helper/shared-core.js': [52708, '2f77b7a2de89bfe1fcdf8906b53babfb1e250fc87cc812727eb0843adc037e5d'],
   'app/runtime/electron-helper/events.js': [18069, 'b7a008788f51c6b68a9e5e1f25f8dcdfd9e6ed173394c409c44e30644ee0c96a'],
-  'launcher/main.js': [38097, '4e0e3cfbb4b9c1af723df8f8c625d653763eea84c47da062580ed6a01835772a'],
-  'launcher/index.html': [95329, '97a2c7f4a2d117f5cd73b9096affa4d71ab7369ecf37e7cd5c6ea3bff6ab590b'],
-  'launcher/preload.js': [3651, '901a9f2cae2be7dbf1813fa4c11740468f7ec8b507a4cc12f7e8b6df9b799316'],
+  'launcher/main.js': [40931, '62b475a2bcea506999852817c8f299c52d23200b8ff7f0206ec4cbf66e3c9b31'],
+  'launcher/index.html': [102900, 'fdad652b9926bb031b5e196db44500d25b95e707000e85bbfff93453a189470b'],
+  'launcher/preload.js': [4365, '4a0f3cee3dc8b3053f7b6f18b299bb431dfdd1a15154032683e2c4b3188ec8dc'],
   'launcher/paths.js': [4103, '8c9d31cbef9bc151681faf49b67709e80d62a663779eb24b6cad0ac1ca9e1749'],
+  'launcher/update.js': [27340, 'a734ea28cf220a9d6ac0a7115d3b7203e0c97351ba78debae6c7391cdffc151e'],
   'launcher/pet-api.js': [16659, '79584b3c285cb5883668c4a4ba534a82262451f1373e6de05986f2116c55ce7e'],
   'launcher/rec.js': [22702, 'b63c254334e3672218920ebba75b49e604602e3fd4fcd5130837ac0ff101bcd2'],
   'launcher/agent.js': [22851, '9a67364fb317724397bfa605c20692a7c9734e04d8b56562e02b828342d19651'],
   'launcher/pet.ico': [142521, 'b727ea4dcec32409cb6bc4709489276b5daaf90fe180184298e598b35bcfc6c0'],
-  'launcher/package.json': [268, 'a81ac0465422fcfd14dab81e66dc689bc5c603e2b32e79b74b4e1f028f11f3ee'],
+  'launcher/package.json': [268, '4d61d7a0f84aa459645967d81a7bd8ac1d3bc2afe97d0a6879fe3c234e2e57d6'],
   'standalone/main.mjs': [27034, '0ef47d97ea7bfa857c8e9e3d9d67e59a7a3f792a5c16e8518b2cdd28669f4dee'],
   'standalone/server.mjs': [8681, '07a7ca5c1e18fbb46693869603d1593b05b492f573184ac6473ab2497c85404d'],
   'standalone/context.mjs': [12059, 'ae85889600d9402743ef60bb781b7f17fcdd58f768ba42c639a1d119eaa823f8'],

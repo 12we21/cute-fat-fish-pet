@@ -160,6 +160,7 @@ const GENERATED = (() => {
     "launcher/index.html",
     "launcher/preload.js",
     "launcher/paths.js",
+    "launcher/update.js",
     "launcher/pet-api.js",
     "launcher/rec.js",
     "launcher/agent.js",

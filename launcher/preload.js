@@ -69,6 +69,19 @@ contextBridge.exposeInMainWorld("pet", {
 		return () => ipcRenderer.removeListener("detect-done", handler);
 	},
 
+	// 一键更新（1.2.0）：问 GitHub 有没有新版 → 下安装包（边下边校验）→
+	// 关掉这个窗口，交给独立的 PowerShell 静默装回原目录，装完自己开回来
+	updateCheck: () => ipcRenderer.invoke("update-check"),
+	updateDownload: (req) => ipcRenderer.invoke("update-download", req || {}),
+	updateApply: (req) => ipcRenderer.invoke("update-apply", req || {}),
+	updateResult: () => ipcRenderer.invoke("update-result"),
+	updateOpenPage: (url) => ipcRenderer.invoke("update-open-page", url),
+	onUpdateProgress: (fn) => {
+		const handler = (_e, p) => fn(p);
+		ipcRenderer.on("update-progress", handler);
+		return () => ipcRenderer.removeListener("update-progress", handler);
+	},
+
 	openHealth: (port) => ipcRenderer.invoke("open-health", port),
 	openFolder: () => ipcRenderer.invoke("open-folder"),
 });
