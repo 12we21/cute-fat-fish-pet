@@ -36,7 +36,7 @@
 关键事实（都已核对）：
 
 - **插件三件套**：`src\lib\index.js:1496 const name = "pet";`、`:1497 const inject = ["webServer","agentDefaultModel","credentials","llm","commands"];`、`:2969 export { apply, inject, name };`
-  挂载声明在 `src\cordis.patch.yml`（`insert: [{ id: pet, name: 'dsh-pet' }]`），由 `src\package.json:86-96` 的 `dsh.bundle.patch` 声明。
+  挂载声明在 `src\cordis.patch.yml`（`insert: [{ id: cute-fat-fish-pet, name: 'cute-fat-fish-pet' }]`），由 `src\package.json` 的 `dsh.bundle.patch` 声明。
 - **独立版怎么跑起来的**：`standalone\main.mjs:69-73` 用 `ALIASES` 把三个宿主包指向替身，`:75-84` 用 `registerHooks({ resolve })` 在**运行期**做 alias（上游是构建期 alias，我们没有构建链）；`:32 DEFAULT_APP_DIR = resolve(HERE, "..", "app")`；`:508` 特意「先监听、后 apply」（插件在 `apply` 里就要读 `ctx.webServer.port`）；`:574` 再动态 `import()` 宿主入口并调用 `apply(ctx)`。
 - **`standalone\` 已经证明核心是宿主无关的**：伪 ctx 只实现了插件真正用到的那点表面，插件照样完整跑起来。
 - **桌面桌宠其实早就和 DSH 无关**：`src\runtime\electron-helper\main.js:504` 用 `loadFile('index.html')` 装载**自己的**渲染端（`index.html:169-173` 引入 `shared-core.js / constants.js / sprite.js / events.js / renderer.js`），它不加载 `lib/client.js`。`lib/client.js`（浏览器半侧，4066 行）只服务「在 DSH 网页里出现的那只宠物」。
@@ -196,8 +196,8 @@ src\lib\client.js           ← 浏览器半侧：不再自己拼 URL，base 由
 
 **明确不做的事**（做下去会搬走用户配置或破坏署名）：
 
-- 不改 `src\package.json` 的 `name` / `main` / `exports` / `dsh` / `peerDependencies` 的**键名**；
-- 不改包名 `dsh-pet`、`dsh-pet-electron-helper`、APP_ID / 数据目录 `BlueHairMaid`、localStorage `dsh-pet-*`、
+- 不改 `src\package.json` 的 `main` / `exports` / `dsh` / `peerDependencies` 的**键名**（`name` 已于 2026-10-10 由 `dsh-pet` 改成 `cute-fat-fish-pet`）；
+- 不改桌面渲染端包名 `dsh-pet-electron-helper`、APP_ID / 数据目录 `BlueHairMaid`、localStorage `dsh-pet-*`、
   路由前缀 `/dsh-pet-7340`、数据根 `%APPDATA%\BlueHairMaid`（见 [NOTICE](../NOTICE.md) 第 5 节）；
 - 不动上游 MIT 署名与 `assets\LICENSE.txt`；
 - 不在同一版里既重构又改行为。
