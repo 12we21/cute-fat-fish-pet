@@ -1,7 +1,7 @@
 # Known issues
 
 English summary: defects that were confirmed in shipped builds, with the reproduction, the root cause
-and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 / 1.1.4 / 1.2.0 (kept for the record).
+and how they were fixed. Open items come first, then the ones fixed in 1.1.1 / 1.1.2 / 1.1.3 / 1.1.4 / 1.2.0 / 1.2.1 (kept for the record).
 This document is in Chinese.
 
 本文件记录**已经确认过**的缺陷：现象 → 怎么复现 → 根因 → 怎么修的 / 打算怎么修。
@@ -533,3 +533,67 @@ This document is in Chinese.
   `apply()` 要喂 `.ctx`；③ 切换口令是 `void swSave(...)`（**异步写盘、不等回复**），验证时要轮询等 `state.json` 落盘。
 - **发版决定**：沿用 1.2.0（主人只让修），提交 `465112d`「控制台/语音：问她「在线还是离线」由代码如实回答，
   问句不再被当成切换命令」；她那份 `app\lib\index.js` 就地覆盖后即生效。
+
+### 1.2.1 的验收（2026-10-09）
+
+- **功能验证（假 GitHub + 真控制台，CDP 驱动）**：`_accept\run-update-live-121.ps1` 全程编排 —— 先拍主人 HKCU 与快捷方式的快照
+  （`_accept\user-state-121`），静默把**真·1.2.0**（`release\cute-fat-fish-pet-1.2.0-setup.exe`）装进 `D:\_e2e121\install` 当底座
+  （这次不再用 `e2e-tools.cjs doctor` 改 `launcher\package.json` 假装旧版，而是直接断言装出来的版本就是 1.2.0），起
+  `_accept\feed-120.cjs` 这个假 GitHub（版本参数传 1.2.1、`/feed.json` 形状与 `releases/latest` 一致、只喂真安装包、
+  `digest` 是真 sha256），最后用 `_accept\test-update-live-121.cjs` 通过 CDP 点真按钮：
+  - live 驱动 **18/18**：检查前角标「还没检查过」、按钮禁用 → 点「检查更新」→ `当前 1.2.0 → 新版 1.2.1`、
+    `有新版 1.2.1（约 331.7 MB）`、按钮解锁 → 下载进度样本 `正在下载 37.4 MB / 331.7 MB（11%） · 92.0 MB/s`
+    … `303.3 MB（91%） · 150.8 MB/s` → 交班文案「马上关掉窗口开始装 1.2.1」→ 更新日志
+    `[23:30:38] 开始更新：1.2.0 -> 1.2.1` / `安装目录：D:\_e2e121\install` / `[23:30:39] 控制台已退出` /
+    `开始静默安装：… /S /D=D:\_e2e121\install` / `[23:31:32] 安装程序退出码：0` / `控制台已重新打开` / `收工`；
+    `apply-update.ps1` 与 `apply-update.vbs` 都自删、347 MB 安装包删掉、安装目录里没留下便携脚本
+    （安装器渠道本来就 0 条，绿色包渠道才是 4 条）。
+  - 更新后的树与 `stage\` 逐字节核（`build\verify-install.py`）**exit 0**：**712 个文件逐字节一致（797,915,546 B）**，
+    实装 713 个（多出来的只有安装时生成的 `Uninstall.exe`）；`launcher\package.json` 的版本 = **1.2.1**；
+    登记项 `DisplayVersion=1.2.1`、`InstallDir` 指向更新后的目录。
+  - 回读驱动 **4/4**：更新完第一次启动，角标 `当前 1.2.1 · 刚更新过`、终端
+    `上次更新成功：已经升到 1.2.1 了（1.2.0 → 1.2.1）。`、`last-result.txt` 读完即删。整套 `failures: 0`，
+    跑完卸载并按快照还原主人状态（`DisplayVersion=1.2.0`、`InstallLocation=D:\...\BlueHairMaid`、桌面 4 个 `.lnk`）。
+  - **1.2.0 那三个脚手架坑这次不再出现**：底座就是真 1.2.0（不用 doctor 假装），所以「`launcher\package.json` 变成新版
+    = 装完了」那个半截树问题从根上没有了 —— 判断安装完成仍以更新日志出现「收工」为准；读 `last-result.txt` 仍先去 UTF-8 BOM；
+    live 模式这次没抓到 `last-result.txt`（已被自动重开的控制台读走，属正常），结果回读单独在 result 模式里验。
+- **真机验收（安装器）**：`release\cute-fat-fish-pet-1.2.1-setup.exe` = **347,864,787 B**
+  （`5D354375D41AD7CC6F8C1B5C87375664384E173B9AEE9520F0CEBDDDED516EC2`，NSIS 全 LZMA）；`_accept\run-accept-exe-121.ps1`
+  （= 快照 → `accept-exe-121.ps1` → 还原）静默装进隔离目录 `_accept\Programs\BlueHairMaid121`（**54 秒**，
+  **713 个文件 / 798,171,496 B** = 该装的 712 个 + 安装时生成的 `Uninstall.exe`）→ `verify-install.py exit=0`
+  （712 个逐字节一致，797,915,546 B）→ 登记项 `DisplayName=可爱大肥鱼桌宠` / `DisplayVersion=1.2.1` /
+  `InstallLocation` 与 `InstallDir` 都指向该目录 → `Uninstall.exe /S`（2 秒）后安装目录消失、登记项清掉、
+  `%APPDATA%\BlueHairMaid` 前后都是 **69 个文件 / 6,093,199 B**（一字未动）。
+- **真机验收（绿色包）**：`release\cute-fat-fish-pet-1.2.1-win-x64.zip` = **417,022,629 B**
+  （`8C36D3B89C72EC5F968473BCB48AA28C6A93FA0E311261E863D264D2025B2843`，716 个文件）；`_accept\run-accept-zip-121.ps1`
+  解压 **716 个文件 / 797,940,061 B** → 树内 `node verify.mjs` **exit 0**（4 棵树的整树指纹 + **27 个关键文件**全对）→
+  `安装.cmd` 真装一次（**4.4 秒**，716 个文件 / 797,940,061 B，日志以 `[ok] Setup finished.` 结束）→ 登记项
+  `DisplayVersion=1.2.1`、`UninstallString` 指向该目录的 `卸载.cmd` → `verify-install.py`：712 个逐字节一致
+  （797,915,546 B），`exit=1` 只因那 4 个便携脚本本来就该留在便携安装目录里（工具口径，同 1.2.0）→ `卸载.cmd`
+  （3.8 秒）后安装目录与登记项都消失、`%APPDATA%\BlueHairMaid` 用户数据保留。
+- **快照与还原 + 顺手清理**：`_accept\user-state-121\`（两个 HKCU 键 + 桌面 4 个 `.lnk` + 开始菜单 + `registry.json`，
+  另有一份 `user-state-121b\`）。两条验收跑完都按快照还原，还原后 `DisplayVersion=1.2.0`、`InstallLocation` 指回
+  `D:\...\BlueHairMaid`、桌面 4 个 `.lnk`（AI Radar / 可爱大肥鱼桌宠 / 小鲸女仆 / 蓝毛小女仆）完好。清理：桌面与开始菜单里
+  各发现一份 2026-10-09 21:12:13 的 `可爱大肥鱼桌宠.lnk.bak`（1.2.0 绿色包验收留下的，内容指向她的安装目录），
+  确认活的快捷方式仍指向 `…\electron.exe "…\launcher"` 之后删掉。测试目录 `_accept\Programs\BlueHairMaid121`、
+  `D:\_test121-zip`、`D:\_test121-install`、`D:\_e2e121` 都在仓库外，跑完已删，不随版本发布。
+- **成品真值**：`_accept\fill-121.py`（幂等：台账 `_accept\fill-121-last.json` 存上一轮的 bytes/sha，重打后先把旧值逐个替换成
+  新值，再填 `{{…}}` 占位符，残留占位符就 `exit 1`）本次刷新 **22 处**、0 个残留；`docs\how-to-publish.zh-CN.md` 里的
+  `v1.2.1 是 347864787` 也由它一起刷。
+- **版本号**：四个 `package.json`、`build\installer.nsi` 的 `!define APP_VER` 默认值、`NOTICE.md`、两个 README、
+  `docs\README.md`、`bug_report.md`、`differences-from-upstream.md`、`code-signing.zh-CN.md`、`how-to-publish.zh-CN.md`、
+  `known-issues.md` 一起改到 1.2.1；`verify.mjs` 的关键文件表不变（仍 **27** 个），但 `differences-from-upstream.md` 里
+  `lib/index.js` 的大小跟着 1.2.1 的树从 113,465 改成 **116,727 B**（Markers 仍 **16** —— 该文件 :47 的口径只数
+  `[local patch …]` / `[bridge-auth@…]` 注释行，新加的 `[互动@2]` 不算）。1.2.0 与 1.1.4 的成品行在两个 README 的核对表里
+  作为「留档」保留。
+- **构建链**：`_accept\build-121.ps1`（纯 ASCII）九步全 exit 0 —— `build.mjs` → `check-release.mjs --emit --write` →
+  `build.mjs` → `stage\verify.mjs` → `check-release.mjs` → `check-paths.mjs` → `nsi-syntax-check.py` → `mkzip.py` → `mkexe.py`。
+  这台机器三个外部运行时（Electron / Node / 语音）都不在默认位置，所以两步 `build.mjs` 都要传
+  `--toolchain=<一份装好的桌宠目录>`（也认 `BLUEHAIRMAID_TOOLCHAIN` 环境变量）；本仓库的 `src\package.json` 版本是
+  `/DAPP_VER` 的唯一来源。`mkzip`：716 个文件，原始 761.0 MB → 压缩 397.7 MB，77 秒；`mkexe`：642 秒。
+- **正式发布与主人那份**：`gh release create v1.2.1`（4 个成品 + 标题「可爱大肥鱼桌宠 1.2.1」+ `--notes-file docs\release-notes-1.2.1.md`）
+  → <https://github.com/12we21/cute-fat-fish-pet/releases/tag/v1.2.1>；随后 `gh release upload v1.2.1 … -R 12we21/cute-fat-fish-pet --clobber`
+  补传无版本号别名，共 **6 个资产**；`api.github.com/repos/12we21/cute-fat-fish-pet/releases/latest` 返回 `tag_name=v1.2.1`；
+  永久链接 `curl.exe -sIL …/releases/latest/download/cute-fat-fish-pet-setup.exe` → 302 → 302 → **200 / Content-Length 347,864,787**。
+  主人那份 `D:\...\BlueHairMaid` 用 `_accept\upgrade-her-121.ps1` 原地升到 1.2.1（静默安装、712 个文件与 `stage\` 逐字节一致、
+  登记项 `DisplayVersion=1.2.1`），升完用 WMI 起回 `electron.exe "…\launcher"`。

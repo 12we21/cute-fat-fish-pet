@@ -4,6 +4,7 @@ English-first where it matters (the front page and the security/contribution doc
 
 | Document | Language | What is in it |
 | --- | --- | --- |
+| [release-notes-1.2.1.md](release-notes-1.2.1.md) | EN + 中文 | 1.2.1 release notes — the connection test says what it found, the console behaves for a real person, and "online or offline?" is answered from the configuration: what changed, download hashes, known limitations |
 | [release-notes-1.2.0.md](release-notes-1.2.0.md) | EN + 中文 | 1.2.0 release notes — check for updates, download and install in one click, with hash verification: what changed, download hashes, known limitations |
 | [release-notes-1.1.4.md](release-notes-1.1.4.md) | EN + 中文 | 1.1.4 release notes — the console keeps the API key masked while you record: what changed, download hashes, known limitations |
 | [release-notes-1.1.3.md](release-notes-1.1.3.md) | EN + 中文 | 1.1.3 release notes — 「打开 X」 opens a website, a folder or a file, by voice as well as typed: what changed, download hashes, known limitations |
@@ -25,5 +26,5 @@ Related files outside this directory: [../README.md](../README.md) (English fron
 
 1. [differences-from-upstream.md](differences-from-upstream.md) — what came from where.
 2. [development-log.md](development-log.md) — what was changed, when and how it was verified.
-3. [release-notes-1.2.0.md](release-notes-1.2.0.md) — what the current release contains (one-click updating; [1.1.4](release-notes-1.1.4.md) for the API-key masking, [1.1.3](release-notes-1.1.3.md) for 「打开 X」, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
+3. [release-notes-1.2.1.md](release-notes-1.2.1.md) — what the current release contains (console answers from the configuration, connection tests and interaction fixes; [1.2.0](release-notes-1.2.0.md) for one-click updating, [1.1.4](release-notes-1.1.4.md) for the API-key masking, [1.1.3](release-notes-1.1.3.md) for 「打开 X」, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
 4. [SECURITY.md](../SECURITY.md) — the local-port hardening and what the app can do on your machine.
