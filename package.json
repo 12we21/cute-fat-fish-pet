@@ -8,6 +8,59 @@
   "description": "Cute Fat Fish Pet — a chibi blue-haired maid who lives on your Windows desktop (source repository; build entry point)",
   "license": "MIT",
   "author": "Mikolu",
+  "_comment": [
+    "=============== 仓库根清单：既是构建入口，也是 DSH 插件的「门面」 ===============",
+    "插件的真实包在 src/：那里才有 lib/（宿主半侧 + 浏览器半侧构建产物）、assets/（106 个 webm）和 cordis.patch.yml。",
+    "为什么根目录也声明 dsh.bundle —— 一批目录/工具只把『仓库根』当成安装目标，会生成",
+    "    dsh plugin add github:12we21/cute-fat-fish-pet",
+    "（dshbase 的 gen-catalog.py、bradeGithub/DSH-Plugins-Marketplace、ukinch605/awesome-dsh-hub 的收录条件、",
+    "以及 dshfind 的 is_plugin 判定都是这个口径）。根清单没有 dsh.bundle 时，这条命令装不上任何东西，",
+    "仓库也会被判成「不是插件」。子目录指向（#path:/src）依然有效，两种装法并存。",
+    "main / exports 一律指向 src/ —— src/lib/index.js 里 PACKAGE_ROOT = resolve(new URL('..', import.meta.url))",
+    "是模块相对解析，所以无论从仓库根装还是从 src/ 装，assets/ 都能找到。",
+    "本清单不参与 Electron / NSIS 打包；打包入口是下面的 scripts（node build/build.mjs 等）。",
+    "================================================"
+  ],
+  "main": "src/lib/index.js",
+  "exports": {
+    ".": {
+      "types": "./src/lib/types/index.d.ts",
+      "default": "./src/lib/index.js"
+    },
+    "./client": {
+      "types": "./src/lib/types/client/index.d.ts",
+      "default": "./src/lib/client.js"
+    },
+    "./cordis.patch.yml": "./src/cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./src/cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-connection"
+      ],
+      "platform": "web"
+    }
+  },
+  "dependencies": {
+    "@electron-internal/extract-zip": "^1.0.5",
+    "@electron/get": "^5.1.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-agent-default-model": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-client-connection": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-commands": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-credentials": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-home-paths": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-host-webserver": "^0.2.0-rc.1",
+    "@deepseek-ai/dsh-llm": "^0.2.0-rc.1",
+    "react": "^18.2.0"
+  },
   "homepage": "https://github.com/12we21/cute-fat-fish-pet",
   "engines": {
     "node": ">=20"
