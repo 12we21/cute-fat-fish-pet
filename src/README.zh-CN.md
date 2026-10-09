@@ -47,8 +47,11 @@ dsh plugin --profile web add ./cute-fat-fish-pet/src
 
 ## 关于名字
 
-仓库名、包名和内部标识符仍然是 `cute-fat-fish-pet`、`dsh-pet` 和 `BlueHairMaid`，
-**改的只是显示名**。改内部标识符会让现有用户的人设、记忆和设置搬家，所以保持不动 ——
+显示名是「蓝毛小女仆」，仓库标识符仍是 `cute-fat-fish-pet`。**DSH 插件包名改过一次**
+（2026-10-10，`dsh-pet` → `cute-fat-fish-pet`）—— `dsh-pet` 既是上游的 npm 包名，也是另一个
+插件补丁行的 id。这次改名不动用户数据：数据根（`$DSH_HOME/dsh-pet/`）、路由前缀
+（`/dsh-pet-7340`）和浏览器存储键都是 `lib/` 里的**硬编码字符串**，不是从包名推导的。其余内部
+标识（`dsh-pet-electron-helper`、`BlueHairMaid`）保持不动 ——
 见 [../NOTICE.md](../NOTICE.md) 第 5 节。完整的选项说明在原作者措辞下保留于
 [UPSTREAM-README.md](UPSTREAM-README.md)。
 
