@@ -10,6 +10,8 @@ edition — same character, plus offline speech recognition, Edge TTS, a control
 installer — lives in the repository root; see the
 [root README](https://github.com/12we21/cute-fat-fish-pet#readme).
 
+![106 hand-drawn transparent animations of the same character, playing on a desktop](https://raw.githubusercontent.com/12we21/cute-fat-fish-pet/main/docs/images/demo.gif)
+
 ## Install
 
 ```bash
