@@ -34,22 +34,22 @@ There is no patching step any more: `src/` **is** the shipped source. Building i
 | Version | 1.2.1 |
 | License | MIT — see [LICENSE](LICENSE) |
 
-> **On the name.** 蓝毛小女仆 is the product's name. The repository, the npm package and the installers shipped so far still carry the older name **Cute Fat Fish Pet** / 「可爱大肥鱼桌宠」 — renaming those would break existing installs, shortcuts and download links, so they stay as they are. Until the next repack, Windows still shows 「可爱大肥鱼桌宠」 on the desktop shortcut and in *Settings → Apps*.
+> **On the name.** 蓝毛小女仆 is the product's name. The repository and the npm package keep the bare identifier **`cute-fat-fish-pet`**, and the installers shipped so far still carry the older display name **Cute Fat Fish Pet** / 「可爱大肥鱼桌宠」 — renaming those would break existing installs, shortcuts and download links, so they stay as they are. Until the next repack, Windows still shows 「可爱大肥鱼桌宠」 on the desktop shortcut and in *Settings → Apps*.
 
-### Internal identifiers are kept on purpose (`dsh-pet` / `BlueHairMaid`)
+### Internal identifiers are kept on purpose (`BlueHairMaid`)
 
-Everything the user can see has been renamed. Nothing on the inside has — on purpose:
+Everything the user can see has been renamed, and so has the **DSH plugin package name** (it collided with the upstream npm package). Everything else on the inside has not — on purpose:
 
 | Internal identifier | Value | What breaks if it is renamed |
 | --- | --- | --- |
 | App folder / APP_ID / uninstall entry | `BlueHairMaid` | Existing config, data, shortcuts and "Apps & features" entry no longer match — it becomes a second pet |
-| Pet plugin package name | `dsh-pet` | Data root and plugin load path change; her persona and memory "move house" |
+| Pet plugin package name *(renamed 2026-10-10)* | `dsh-pet` → `cute-fat-fish-pet` | Nothing user-visible: the data root and route prefix below are hard-coded strings in `src/lib/`, not derived from the package name, so persona and memory stay put. An already-installed copy just has to be re-added once. |
 | Desktop renderer package | `dsh-pet-electron-helper` | The pet page's localStorage (position, size, sprite state) is lost and she is put back in the middle of the screen |
 | Browser storage keys | `dsh-pet-*` | Same as above — all existing settings are ignored |
 | Local route prefix | `/dsh-pet-7340` | Incompatible with the already-shipped versions; console and pet stop understanding each other |
 | User data directory | `%APPDATA%\BlueHairMaid` | Existing persona / memory / screen-watch state is lost |
 
-In short: **rename what is visible, never touch what is not.** That is what makes upgrading from 1.0.0 a no-op for the user.
+In short: **rename what is visible — plus the plugin package name, once — but never touch the identifiers that hold user data.** That is what makes upgrading from 1.0.0 a no-op for the user.
 
 The same list is in [NOTICE.md](NOTICE.md) (section 5), and the reasoning behind it is in [docs/architecture-roadmap.zh-CN.md](docs/architecture-roadmap.zh-CN.md).
 
