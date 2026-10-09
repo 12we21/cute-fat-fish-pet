@@ -88,6 +88,12 @@
   .saved { color: var(--ok); font-size: 11.5px; margin-left: 8px; opacity: 0; transition: opacity .2s; }
   .saved.show { opacity: 1; }
   .err { color: var(--danger); }
+  /* 「测一下通不通 / 测『看屏幕』」的即时结果行：以前结果只写进页面很下面的终端，
+     点完像什么都没发生（主人反馈），所以改成按钮下面一行当场说清「正在测 / 通了 / 没通」。 */
+  .testmsg { font-size: 11.5px; margin-top: 9px; color: #9fb0cf; line-height: 1.6; word-break: break-word; }
+  .testmsg.ok { color: var(--ok); }
+  .testmsg.bad { color: var(--danger); }
+  .testmsg.wait { color: var(--busy); }
   .sub2 { margin: 14px 0 0; padding-top: 11px; border-top: 1px dashed var(--line); font-size: 11.5px; color: #9fb0cf; font-weight: 600; letter-spacing: .5px; }
   textarea {
     width: 100%; margin-top: 9px; min-height: 96px; resize: vertical; padding: 8px 10px;
@@ -174,6 +180,8 @@
       <button id="testVision" class="ghost">测「看屏幕」那条通不通</button>
       <span class="saved" id="savedOnline">已保存</span>
     </div>
+    <div class="testmsg" id="testOnlineMsg">联网模型：还没测过 —— 点左边「测一下通不通」，结果会显示在这一行。</div>
+    <div class="testmsg" id="testVisionMsg">看屏幕：还没测过 —— 想让她用联网的眼睛，先填上面的「视觉模型」，再点上面那个按钮。</div>
     <div class="hint" id="onlineHint">没填 API Key 也不会坏：桌宠会自动只用本机模型。</div>
     <div class="hint" id="visionHint"></div>
   </div>
@@ -705,6 +713,16 @@ function flash(id, text, isErr) {
   el.textContent = text;
   el.className = "saved show" + (isErr ? " err" : "");
   setTimeout(() => { el.className = "saved"; }, 2600);
+}
+
+/** 按钮下面那行即时结果：点一下当场看到「正在测… → 通了 / 没通」。
+ *  以前结果只写进下面的终端，而终端在页面很下面的那一截，点完像什么都没发生（主人反馈）。
+ *  cls: "" 普通 / "wait" 正在测 / "ok" 通了 / "bad" 没通。文字同样走 maskSecrets。 */
+function testMsg(id, text, cls) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = maskSecrets(text == null ? "" : String(text));
+  el.className = "testmsg" + (cls ? " " + cls : "");
 }
 
 // ---------------------------------------------------------------- 敏感信息
@@ -1591,23 +1609,61 @@ async function saveOnlineFields(autoSwitch) {
 $("saveOnline").onclick = async () => { await saveOnlineFields(true); };
 
 $("testOnline").onclick = async () => {
+  const btn = $("testOnline");
+  btn.disabled = true;
+  testMsg("testOnlineMsg", "联网模型：正在问……（最多 20 秒）", "wait");
   log("系统", "正在问联网模型……（最多 20 秒）");
-  const r = await window.pet.testOnline();
-  log("系统", r && r.ok ? `通了：${r.ms} ms，它回「${r.text}」` : "没通：" + ((r && (r.message || r.reason)) || ""));
+  let r = null;
+  try {
+    // 探测读的是**已保存**的 standalone\online.json，所以先把框里刚敲的值存下来再测，
+    // 不然「填了新 Key 直接点测」测的还是上一次保存的旧配置。
+    const cfg = await saveOnlineFields(false);
+    if (!cfg) throw new Error("保存设置失败");
+    r = await window.pet.testOnline();
+  } catch (e) {
+    r = { ok: false, message: String((e && e.message) || e) };
+  }
+  btn.disabled = false;
+  if (r && r.ok) {
+    testMsg("testOnlineMsg", `联网模型：通了（${r.ms} ms），它回「${String(r.text || "").slice(0, 80)}」`, "ok");
+    log("系统", `通了：${r.ms} ms，它回「${r.text}」`);
+  } else {
+    const why = (r && (r.message || r.reason)) || "没有返回";
+    testMsg("testOnlineMsg", "联网模型：没通 —— " + why, "bad");
+    log("系统", "没通：" + why);
+  }
 };
 
 // [主人第 4 条] 「看屏幕」是另一套目标（视觉模型 / 视觉地址 / 视觉 Key，后两样留空自动跟聊天共用）——
 // 所以要能单独测：先把框里的值存下来，再按视觉那套探测一次。
 $("testVision").onclick = async () => {
-  const cfg = await saveOnlineFields(false);
-  if (!cfg) return;
-  if (!cfg.visionModel && !cfg.visionBaseUrl && !cfg.visionApiKey) {
-    log("系统", "现在「看屏幕」用的是本机视觉模型（Ollama），没走联网 ⇒ 没什么可测的。想让她用联网的眼睛，先填上面「视觉模型」。");
-    return;
+  const btn = $("testVision");
+  btn.disabled = true;
+  testMsg("testVisionMsg", "看屏幕：正在问……（最多 20 秒）", "wait");
+  let r = null;
+  try {
+    const cfg = await saveOnlineFields(false);
+    if (!cfg) throw new Error("保存设置失败");
+    if (!cfg.visionModel && !cfg.visionBaseUrl && !cfg.visionApiKey) {
+      testMsg("testVisionMsg", "看屏幕：这条现在走本机视觉模型（Ollama），没联网 —— 想测联网的眼睛，先把上面「视觉模型」填上。", "");
+      log("系统", "现在「看屏幕」用的是本机视觉模型（Ollama），没走联网 ⇒ 没什么可测的。想让她用联网的眼睛，先填上面「视觉模型」。");
+      btn.disabled = false;
+      return;
+    }
+    log("系统", "正在按「看屏幕」那套问一次视觉端点……（最多 20 秒）");
+    r = await window.pet.testOnline({ which: "vision" });
+  } catch (e) {
+    r = { ok: false, message: String((e && e.message) || e) };
   }
-  log("系统", "正在按「看屏幕」那套问一次视觉端点……（最多 20 秒）");
-  const r = await window.pet.testOnline({ which: "vision" });
-  log("系统", r && r.ok ? `视觉端点通了：${r.ms} ms，它回「${r.text}」` : "视觉端点没通：" + ((r && (r.message || r.reason)) || ""));
+  btn.disabled = false;
+  if (r && r.ok) {
+    testMsg("testVisionMsg", `看屏幕：通了（${r.ms} ms），它回「${String(r.text || "").slice(0, 80)}」`, "ok");
+    log("系统", `视觉端点通了：${r.ms} ms，它回「${r.text}」`);
+  } else {
+    const why = (r && (r.message || r.reason)) || "没有返回";
+    testMsg("testVisionMsg", "看屏幕：没通 —— " + why, "bad");
+    log("系统", "视觉端点没通：" + why);
+  }
 };
 
 // ---------------------------------------------------------------- 活跃度 · 自主说话
