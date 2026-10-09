@@ -466,3 +466,39 @@ This document is in Chinese.
   `FDAD652B…470B`）—— 停掉她那 4 个 `electron.exe` → 覆盖这一个文件 → 用 WMI 起回 `electron.exe "…\launcher"`
   （4 个进程都在，主窗口标题「蓝毛小女仆」）。**注意**：这让她的安装目录与线上 1.2.0 成品差这一个文件，
   `verify-install.py` 会对它报 1 处不一致（预期如此，不是坏了）。
+
+### 控制台互动性（2026-10-09，「模拟真人」审一遍，修在 main，版本号仍叫 1.2.0）
+
+- **怎么审的**：`_accept\ui-audit.cjs`（`node _accept\ui-audit.cjs [debugPort]`，默认 9365）—— 起一个隔离控制台
+  （`DSH_PET_DATA_DIR=%TEMP%\dsh-pet-ui-audit` + 独立 `--user-data-dir`），用 CDP 真的量控件尺寸、真的悬停
+  （`Input.dispatchMouseEvent`）、真的按 Tab 走 40 步（`Input.dispatchKeyEvent`）、真的点按钮，把整页 + 14 个区块 +
+  悬停 / 聚焦 / 走完 Tab 的截图落到 `_accept\ui-shots\`，量测数据落到 `_accept\ui-audit.json`（含 `interactionChecks`）。
+  它是只读的（不碰发送命令 / 打开程序 / 录屏 / 更新），跑完会还原被「保存联网设置」那一步改掉的
+  `stage\standalone\online.json`（本来没有就删掉 —— 那只是运行时生成的文件，1.2.0 的发布包里并没有它）。
+- **量出来的毛病（改前）**：131 个可交互控件，CSS 里只有 2 条 `:focus` 规则 ⇒ Tab 到按钮 / 折叠栏 / chip 看不出
+  焦点停在哪；「在线 / 本地 / 自动择优」和性格二选一用的是 `.seg input{display:none}` ⇒ 键盘完全进不去；
+  9 个折叠栏的 `<summary>` 只有 **19px** 高，而外面那圈 padding 让整条看起来有 52px ⇒ 点上下边缘没反应；
+  终端在 y=1834、高 104px，多数动作的结果只写进终端 ⇒ 停在上面点按钮像什么都没发生（同一个病根见上一条）；
+  改了输入框（`dirty=true`）没有任何「有改动没保存」提示；小控件只有 19~26px（chip 19px、`.eye` 26px、
+  原生勾选框 13px、range 16px、`.ghost` 也不高）；折叠状态不记忆（localStorage 里 0 个相关键）。
+- **改法（只动 `launcher\index.html`，全部标 `[互动@1]`）**：① `button / summary / .chip / .seg label / .list .it`
+  补 `:focus-visible` 外圈，`.seg input` 改成 1px 视觉隐藏（仍可聚焦，焦点圈画在 label 上）；② 折叠栏
+  `details.sec > summary.sh { margin:-10px -14px 10px; padding:13px 14px; min-height:44px }` ⇒ 整条都是点击区，
+  悬停有底色和蓝色箭头；③ 底部常驻状态条（`#statusbar`：最近一条消息 + 「去终端 ↓」+「↑ 顶部」，`.ok/.err/.wait`
+  变色 + 一次性 pulse 动画），终端加「↓ 有新消息」胶囊（往上翻历史时不被拽回底部、点了回最底）、「清屏」按钮；
+  ④ 改了值那一栏显示「● 有改动没保存」并高亮保存按钮，点保存后消失；⑤ 删一套性格改成要点两下（第二次才真删，
+  3.2 秒不点自动还原成「删除」）；⑥ 小控件一律 ≥26px、按钮按下 1px 下沉 + 变暗（原来只有悬停变亮）、
+  终端命令行 `↑/↓` 翻历史（最多 50 条，连续重复不记）、折叠状态写进 `localStorage["pet.console.sections.v1"]`
+  （键 = 折叠栏标题前 12 字）；顺手给灰着的「停止桌宠 / 状态页」加了 title 说明为什么点不了。
+- **自检**：`_accept\ui-audit.cjs` **15/15 全过 / exit 0** —— 终端新消息自动到底、翻历史时挂出「有新消息」、
+  点它回到底部、状态条显示最新一条且常驻视口（`position: fixed`）、Tab 40 步里「没有可见焦点」的列表为空、
+  段选能用键盘进、改值亮提醒 / 点保存后消失、展开状态刷新后仍在、`↑` 翻回刚敲过的口令、清屏有效、
+  常用小控件都 ≥26px、删性格要先点两下。量测复验：页面高 2405 → **2375px**，剩下的「小目标」只有视觉隐藏的
+  `.seg input`（1px）和 `.chk` 里的原生勾选框（15px，整行 label ≥26px 可点）。
+- **发版决定**：沿用 1.2.0（主人只让修，不发 1.2.1）⇒ 版本号一处没动、没重打 zip/exe、没新 release；
+  仓库提交 `41b317b`「控制台互动性：整条折叠栏可点、按钮有焦点圈和按下手感、小控件加大、结果就近可见」
+  （`launcher\index.html` 105,880 → **118,389 B**，sha256 `803CCB8D…B3B1`）。
+- **主人那份**：她的 `launcher\index.html` 已就地换成这一版（同 sha256 `803CCB8D…B3B1`）—— 停掉她那 4 个
+  `electron.exe` → 覆盖这一个文件 → 用 WMI 起回 `electron.exe "…\launcher"`（4 个进程都在）。
+  **注意**：她那边的与线上 1.2.0 成品现在差 `launcher\index.html` 一个文件（累计两个修复都在 `main` 上），
+  `verify-install.py` 会对她那份报 1 处不一致（预期如此，等下次发版自然对齐）。
