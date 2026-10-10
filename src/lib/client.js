@@ -1,4 +1,10 @@
-
+// The DSH host concatenates every plugin bundle into ONE classic script
+// (dsh-client-modules buildComboScript: source += <bundle> + ";\n"), so any
+// top-level const/let/class here would collide with another plugin's bundle
+// ("SyntaxError: Identifier 'css' has already been declared" aborts the whole
+// batch).  Everything, including the __ModuleLoader__ registration below, lives
+// inside this IIFE.  Keep it wrapped when rebuilding.
+;(() => {
 //#region src/shared/pickers.ts
 const pick = (pool, exclude) => {
 	const entries = exclude ? pool.filter((n) => n !== exclude) : pool;
@@ -4064,3 +4070,4 @@ window.__ModuleLoader__.load({
 });
 
 //#endregion
+})();

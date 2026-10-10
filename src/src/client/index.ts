@@ -1,6 +1,16 @@
 // client 半侧 bundle 外壳：由 tsdown 构建为 lib/client.js。
 // 必须是一个「普通副作用脚本」——加载时调用 window.__ModuleLoader__.load，
 // 不能包含顶层 ESM export / import（react 由 factory 的 require 取得）。
+//
+// ★ 产物必须再整体套一层 IIFE（lib/client.js 首行 `;(() => {`、末行 `})();`）：
+//   宿主把同一批插件的 client.js **原样拼接成一个 classic script**
+//   （dsh-client-modules 的 buildComboScript：source += <bundle> + ";\n"，见
+//   dsh/node_modules/@deepseek-ai/dsh-client-modules/lib/index.js:329-334），
+//   所以顶层 const/let/class 会与其他插件撞名 —— 一句
+//   "SyntaxError: Identifier 'css' has already been declared" 会让整批 bundle 中止。
+//   本 bundle 修前有 153 个顶层词法声明（css / NS / PIC / pick / sleep / toast …），
+//   现已全部收进 IIFE；重建时不要把这层丢掉。
+//   契约测试：src/src/client/bundle-contract.test.ts
 import { makeFactory } from './app';
 
 declare const window: {
