@@ -4059,7 +4059,7 @@ function makeFactory() {
 //#endregion
 //#region src/client/index.ts
 window.__ModuleLoader__.load({
-	id: "dsh-pet",
+	id: "cute-fat-fish-pet",
 	factory: makeFactory()
 });
 

@@ -114,7 +114,7 @@ export const zh = {
   uninstallStep2: '2. 卸载插件本体（终端执行，会同时从 profile 的 bundle 层移除）：',
   uninstallStep3:
     '3. 按需删除上面的位置：缓存类删了无影响；「插件用户数据」删了会丢配置与对话记忆（想保留就先备份其中的 main-config.json）。',
-  uninstallCmd: 'dsh plugin --profile {profile} remove dsh-pet',
+  uninstallCmd: 'dsh plugin --profile {profile} remove cute-fat-fish-pet',
 };
 
 export const en = {
@@ -206,7 +206,7 @@ export const en = {
   uninstallStep2: '2. Remove the plugin itself (run in a terminal; this also drops it from the profile bundle layer):',
   uninstallStep3:
     '3. Delete the locations above as needed: cache folders are harmless; deleting "plugin user data" loses your config and chat memory (back up main-config.json first if you want to keep it).',
-  uninstallCmd: 'dsh plugin --profile {profile} remove dsh-pet',
+  uninstallCmd: 'dsh plugin --profile {profile} remove cute-fat-fish-pet',
 };
 
 /**
