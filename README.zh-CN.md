@@ -201,6 +201,25 @@ Get-FileHash .\cute-fat-fish-pet-1.2.1-setup.exe -Algorithm SHA256
 
 桌宠页面自己的 localStorage（位置、大小、立绘状态）在 `%APPDATA%\dsh-pet-electron-helper`——这是 Electron 的规矩，所以上面那份「内部标识故意不改」的说明里也包括它。
 
+### 作为 DSH 插件安装时，数据放在哪
+
+走 DSH 插件路线安装（`dsh plugin --profile web add github:12we21/cute-fat-fish-pet`）时，她不用 `%APPDATA%\BlueHairMaid`。宿主半边会解析 DSH 家目录，所有可变数据都在 `$DSH_HOME/dsh-pet/` 下：
+
+```
+$DSH_HOME\
+└─ dsh-pet\
+   ├─ main-config.json    人设 + 宠物列表（盖在内置默认值之上的用户层）
+   ├─ memory.json         聊天记忆；只有宿主进程写它
+   ├─ pet\                每只宠物各自的配置文件
+   └─ main-animation\     给浏览器半边用的自定义动画素材
+```
+
+`$DSH_HOME` 就是 DSH 自己的家目录（默认 `%USERPROFILE%\.dsh`）。关于共存，有两件事值得知道：
+
+- 这个目录**不是** `$DSH_HOME/pets\<id>`。后者属于市场里的 v2 宠物**资产包**（`petManifestVersion: 2` + `pet.json`），只装内容；本插件是自带宿主半边与浏览器半边的 cordis bundle，两边互不读写对方的目录。
+- 上游插件（`@linxin666/dsh-pet`）用的是**同一个** `$DSH_HOME/dsh-pet/` 根目录。两者装一个就好，不要同时装：它们会共用 `main-config.json` 和 `memory.json`。
+
+
 ### 隐私
 
 - **看屏幕**是**本机截图 → 交给你自己选的那个模型**。选本机 Ollama 就完全不出机器；选联网模型才会把图发到你填的那个接口去。不想用就在控制台关掉，关掉就不截。

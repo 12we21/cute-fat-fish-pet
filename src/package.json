@@ -84,6 +84,10 @@
       "platform": "web"
     }
   },
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0-rc.1"
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
     "@deepseek-ai/dsh-agent-default-model": "^0.2.0-rc.1",

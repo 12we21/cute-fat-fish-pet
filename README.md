@@ -205,6 +205,25 @@ Treat the program directory (`%LOCALAPPDATA%\BlueHairMaid`) as **read-only**. Ev
 
 The pet page's own localStorage (position, size, sprite state) lives in `%APPDATA%\dsh-pet-electron-helper` — that is Electron's rule, which is why it is part of the "internal identifiers are kept" note above.
 
+### Data root when installed as a DSH plugin
+
+Installed through the DSH plugin route (`dsh plugin --profile web add github:12we21/cute-fat-fish-pet`), she does not use `%APPDATA%\BlueHairMaid`. The host half resolves the DSH home and keeps everything under `$DSH_HOME/dsh-pet/`:
+
+```
+$DSH_HOME\
+└─ dsh-pet\
+   ├─ main-config.json    persona + pet list (the user layer over the bundled defaults)
+   ├─ memory.json         chat memory; the host process is its only writer
+   ├─ pet\                per-pet config files
+   └─ main-animation\     your own animation assets for the browser half
+```
+
+`$DSH_HOME` is DSH's own home directory (`%USERPROFILE%\.dsh` by default). Two things worth knowing about coexistence:
+
+- This is **not** `$DSH_HOME/pets\<id>`. That directory belongs to the market's v2 pet *asset* packs (`petManifestVersion: 2` plus `pet.json`), which ship content only. This plugin is a cordis bundle with its own host half and browser half, so the two never read or write each other's directory.
+- The upstream plugin (`@linxin666/dsh-pet`) uses the **same** `$DSH_HOME/dsh-pet/` root. Install one of the two, not both: they would share `main-config.json` and `memory.json`.
+
+
 ### Privacy
 
 - **Screen watching** is **a local screenshot handed to the model you chose**. Pick a local Ollama model and nothing leaves your machine; pick an online model and the image goes to the endpoint you configured. Turn it off in the console and no screenshot is taken at all.
