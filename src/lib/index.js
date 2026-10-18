@@ -2177,8 +2177,13 @@ function apply(ctx) {
 		}
 	};
 	const SW_EMOTIONS = ["success", "error", "thinking", "waiting", "result", "working"];
-	/** 情绪 + 台词走已有的工作状态通道：setState 选动画档位、setTask 当气泡文案。
-	 *  若真实会话档位优先级更高、压过了她，就退回 /broadcast 保证话一定说得出。 */
+	/** 情绪走工作状态通道（setState 只挑动画档位），台词一律走 /broadcast。
+	 *  1.2.1 的气泡 BUG 就出在这：以前只有「输给真实会话的工作状态优先级」才 broadcast，
+	 *  而客户端默认 whisperEnabled / workStatusEnabled 都是关的 —— 没有真实会话竞争时
+	 *  snap.task === say 恒成立，于是 workStatus 气泡不渲染、broadcast 也不发，
+	 *  点评/监测结果只写进 state.json 和后端日志，用户看到的就是「她明明有反应却没有气泡」；
+	 *  开着「工作状态联动」时又会在 9s clear 时让气泡突然消失。
+	 *  所以台词无条件 broadcast：与对话回复同一条通道，客户端 1s 轮询、不受两个开关影响。 */
 	const swSpeak = (emotion, say) => {
 		const petId = resolveActivePetId() || "main";
 		const emo = SW_EMOTIONS.indexOf(emotion) >= 0 ? emotion : "thinking";
@@ -2188,7 +2193,7 @@ function apply(ctx) {
 			workStatus.setTask(SW_SID, say);
 			const snap = workStatus.snapshot();
 			const won = Boolean(snap && snap.task === say);
-			if (!won) broadcastTo(petId, say);
+			broadcastTo(petId, say);
 			setTimeout(() => {
 				try {
 					workStatus.clear(SW_SID);
