@@ -2146,17 +2146,28 @@ function ttsConnect(rawUrl, extraHeaders, handlers) {
 }
 
 /** 合成一句话：resolve 成 mp3 Buffer，失败 reject（调用方 catch 后如实回 {ok:false}）。 */
-function ttsSynthesize(opts) {
-  const text = String((opts && opts.text) || '').trim();
-  const voice = (opts && opts.voice) || 'zh-CN-XiaoyiNeural';
-  const rate = (opts && opts.rate) || '+0%';
-  const timeoutMs = (opts && opts.timeoutMs) || 15000;
-  if (!text) return Promise.reject(new Error('TTS 文本为空'));
-  const url = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1' +
-    '?TrustedClientToken=' + TTS_TRUSTED_TOKEN +
-    '&Sec-MS-GEC=' + ttsSecMsGec(opts && opts.nowMs) +
-    '&Sec-MS-GEC-Version=' + TTS_SEC_MS_GEC_VERSION +
-    '&ConnectionId=' + TTS_CRYPTO.randomUUID().replace(/-/g, '');
+function ttsSynthesisUrls(nowMs) {
+  const gec = ttsSecMsGec(nowMs);
+  const mk = (base, subscriptionKey) => {
+    const u = new URL(base);
+    u.searchParams.set('TrustedClientToken', TTS_TRUSTED_TOKEN);
+    u.searchParams.set('Sec-MS-GEC', gec);
+    u.searchParams.set('Sec-MS-GEC-Version', TTS_SEC_MS_GEC_VERSION);
+    u.searchParams.set('ConnectionId', TTS_CRYPTO.randomUUID().replace(/-/g, ''));
+    if (subscriptionKey) u.searchParams.set('Ocp-Apim-Subscription-Key', TTS_TRUSTED_TOKEN);
+    return 'wss://' + u.host + u.pathname + '?' + u.searchParams.toString();
+  };
+  // Microsoft moved Edge Read Aloud synthesis to api.msedgeservices.com (the old
+  // speech.platform.bing.com host answers 403 by region since 2026-10). The new
+  // host takes the same legacy v1 Sec-MS-GEC token, the token repeated as
+  // Ocp-Apim-Subscription-Key; the old host stays second as a fallback.
+  return [
+    { url: mk('https://api.msedgeservices.com/tts/cognitiveservices/websocket/v1', true), subscriptionKey: true },
+    { url: mk('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1', false), subscriptionKey: false },
+  ];
+}
+
+function ttsSynthesizeOn(url, text, voice, rate, timeoutMs, opts, onOpen) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let settled = false, lastText = '', sockRef = null;
@@ -2181,6 +2192,7 @@ function ttsSynthesize(opts) {
     const ws = ttsConnect(url, TTS_HEADERS, {
       onSocket: (s) => { sockRef = s; TTS_LIVE.add(s); },
       open: () => {
+        onOpen();
         ws.send('X-Timestamp:' + new Date().toISOString() + '\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n' +
           '{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
         ws.send('X-RequestId:' + TTS_CRYPTO.randomUUID().replace(/-/g, '') + '\r\nContent-Type:application/ssml+xml\r\nX-Timestamp:' + new Date().toISOString() + '\r\nPath:ssml\r\n\r\n' +
@@ -2196,6 +2208,28 @@ function ttsSynthesize(opts) {
       error: (e) => fail(e && e.message ? e : new Error(String(e))),
     });
   });
+}
+
+async function ttsSynthesize(opts) {
+  const text = String((opts && opts.text) || '').trim();
+  const voice = (opts && opts.voice) || 'zh-CN-XiaoyiNeural';
+  const rate = (opts && opts.rate) || '+0%';
+  const timeoutMs = (opts && opts.timeoutMs) || 15000;
+  if (!text) return Promise.reject(new Error('TTS 文本为空'));
+  const endpoints = ttsSynthesisUrls(opts && opts.nowMs);
+  const errors = [];
+  for (let i = 0; i < endpoints.length; i++) {
+    let opened = false;
+    try {
+      const buf = await ttsSynthesizeOn(endpoints[i].url, text, voice, rate, timeoutMs, opts, () => { opened = true; });
+      return buf;
+    } catch (e) {
+      errors.push(String((e && e.message) || e));
+      // 已经握手成功（开始说话）的端点失败就直接报错，不再换端点重来
+      if (opened) throw e;
+    }
+  }
+  throw new Error('TTS 所有端点都失败：' + errors.join(' ｜ '));
 }
 
 let TTS_INFLIGHT = 0;       // 正在合成的句数

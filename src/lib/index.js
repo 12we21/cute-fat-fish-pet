@@ -2168,7 +2168,13 @@ function apply(ctx) {
 		const text = assembler.blocks().filter((b) => b.type === "text").map((b) => b && typeof b.text === "string" ? b.text : "").join("").trim();
 		const a = text.indexOf("{");
 		const z = text.lastIndexOf("}");
-		if (a < 0 || z <= a) return { error: "模型没有按 JSON 回复" };
+		if (a < 0 || z <= a) {
+			// 本地小视觉模型经常不按 JSON 回，直接说人话。以前这里判 judge-failed，
+			// 结果「看屏幕点评」一声不响；现在把整段话当点评用，情绪给个中性档。
+			const plain = text.replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
+			if (!plain) return { error: "模型没有按 JSON 回复" };
+			return { react: true, emotion: "thinking", say: plain, parsed: "plain-text" };
+		}
 		try {
 			const o = JSON.parse(text.slice(a, z + 1));
 			return { react: o.react === true, emotion: String(o.emotion || ""), say: String(o.say || "").trim().slice(0, 80) };
