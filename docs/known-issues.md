@@ -605,3 +605,12 @@ This document is in Chinese.
 - **成品指纹**：`cute-fat-fish-pet-1.2.2-win-x64.zip` 417,038,706 B（SHA-256 `D8593761C3B37F69A453938877C83FC6BA13E40CBD56D9659C26AF9F3545829B`）；`cute-fat-fish-pet-1.2.2-setup.exe` 347,884,737 B（SHA-256 `EF02EA6F52D03E8E2451D1FA365055E8E0A2E7B532129521924832BDC020DB20`）。
 - **安装器静默安装本轮未复验**：`setup.exe /S /D=<临时目录>` 这次进程无声退出、临时目录没建出来，也没有改动已装的 1.2.1（安装目录仍是 1.2.1，723 个文件未动）。安装器脚本本身没改（只换了版本号与载荷），所以 1.2.1 那轮的安装器验收（54 秒 / 713 文件 / 数据根 69 文件未动 / 卸载 2 秒）仍然成立。
 - **1.2.2 改了哪些字节**：`src\lib\index.js` 的 `swSpeak()` 无条件 `broadcastTo()`（补丁注释见文件内 `local patch` 段）。仓库里 `lib/` 与 `app/` 是构建产物，二者同源，所以安装包形态与 DSH 插件形态拿到的是同一份修复。
+
+### 1.2.3 的验收（2026-10-18）
+
+- **背景**：1.2.2 的语音完全不出声（Edge TTS 旧主机 2026-10 起对所有握手返回 403），且看屏幕点评遇到不按 JSON 回话的模型会静默失败。用户要求只发一次修复版，且发前必须过闸门。
+- **修复**：`runtime/electron-helper/main.js` 优先连 `wss://api.msedgeservices.com/tts/cognitiveservices/websocket/v1`（信任 token 同时作为 `Ocp-Apim-Subscription-Key`），旧主机只在握手未成功时兜底；`src/lib/index.js` 的 `swJudge()` 在拿不到 JSON 时把整段话当点评（情绪 `thinking`），只有空文本才报 `judge-failed`。
+- **构建**：`node build\build.mjs --toolchain=<安装目录>` → **720 个文件 / 761.1 MB**；`check-paths` 干净（187 文件）；`check-release --emit --write` 重新生成 `verify.mjs` 的期望指纹，`check-release` 与 `stage\verify.mjs` 四棵树 + 27 个关键文件全部一致。
+- **成品指纹**：`cute-fat-fish-pet-1.2.3-win-x64.zip` **417,039,455 B**（SHA-256 `6F3D2E218A59A4F97F01158FAA3FC572C0690F310D7C2C5BABFC24456F4804DC`）；`cute-fat-fish-pet-1.2.3-setup.exe` **347,857,693 B**（SHA-256 `2A2C65D9FC0562F85807E42C5486C20B530DE0EA318FF2D78E56C6A69F69DFB4`）。
+- **安装器静默安装（本轮已复验）**：从普通目录运行 `setup.exe /S /D=D:\tmp-install-123` → **104.8 秒、717 个文件、798,292,837 字节**。之前在 DSH 工作区目录里运行会报 `NSIS Error: Error writing temporary file`，原因是该目录的沙箱 ACL / 低完整性级别让 NSIS 的临时文件创建失败；换到 `D:\` 或用户目录即正常，普通用户下载后双击不受影响。
+- **发布闸门**：`python build\acceptance.py --install-dir D:\tmp-install-123 --user-root <临时数据根> --fresh --seed-local-model` → **13 项里 12 项通过、必需项全绿**：版本 1.2.3、Electron v24.18.1、node v24.21.0、语音模型 253 MB、106 个动画、`Uninstall.exe`、standalone `/health`、helper 14 个状态键、气泡通道、**真实 TTS 音频 29,664 字节 / 3.8 秒**、对话回复、屏幕监测点评（`brain=local`）。唯一未绿的是 `runtime.update_feed`（`latest` 还是 v1.2.2，比构建旧），发布后自然转绿——这是闸门故意的顺序检查。
