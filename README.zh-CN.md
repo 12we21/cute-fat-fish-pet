@@ -69,7 +69,7 @@
 
 ### 方式一：安装程序（推荐）
 
-下载 **`cute-fat-fish-pet-1.2.1-setup.exe`**（约 331.7 MB，NSIS 安装器）双击。
+下载 **`cute-fat-fish-pet-1.2.2-setup.exe`**（约 331.8 MB，NSIS 安装器）双击。
 
 > **永远指向最新版的链接**：每一版都会额外放一份去掉版本号、内容完全相同的副本，
 > 所以下面这条链接永远是最新安装包：
@@ -83,12 +83,12 @@
 
 ### 方式二：绿色 zip 包
 
-下载 **`cute-fat-fish-pet-1.2.1-win-x64.zip`**（约 397.7 MB，解压后约 760 MB），解压到任意目录，然后二选一：
+下载 **`cute-fat-fish-pet-1.2.2-win-x64.zip`**（约 397.7 MB，解压后约 760 MB），解压到任意目录，然后二选一：
 
 > **1.1.1 把这条绿色包的路整条修好了。** 一定要**先解压**（右键 →「全部解压缩…」），再到解压出来的目录里双击
 > `安装.cmd`：它会先检查包是否完整，缺件时用中文说明（旧版是一闪而过、什么都不说）；
 > 装出来的名字是「可爱大肥鱼桌宠」、版本号是真的；`卸载.cmd` 也会真的把整个目录删干净，而不是留下 714 个文件。
-> 细节见 [1.2.1 发布说明](docs/release-notes-1.2.1.md) 与 [已确认缺陷](docs/known-issues.md)。
+> 细节见 [1.2.2 发布说明](docs/release-notes-1.2.2.md) 与 [已确认缺陷](docs/known-issues.md)。
 
 - 双击 `安装.cmd`：建快捷方式、写卸载登记（想让它像装过一样）；
 - 或者直接双击 `standalone\start-pet.vbs` 起桌宠、`standalone\stop-pet.vbs` 停（纯绿色，不写注册表）。
@@ -116,10 +116,10 @@ dsh plugin --profile web add ./cute-fat-fish-pet/src
 
 ### 每个包都带 `.sha256`
 
-`cute-fat-fish-pet-1.2.1-setup.exe.sha256`、`cute-fat-fish-pet-1.2.1-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
+`cute-fat-fish-pet-1.2.2-setup.exe.sha256`、`cute-fat-fish-pet-1.2.2-win-x64.zip.sha256`，格式是 `<SHA256>  <文件名>`，用来核对下载是否完整：
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.2.1-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.2.2-setup.exe -Algorithm SHA256
 ```
 
 > 发布用的文件名一律是 ASCII：GitHub Release 会把资产名里的非 ASCII 字符直接删掉
@@ -304,7 +304,7 @@ node build\build.mjs launcher assets   # 只铺这几块（块名：app launcher
 node build\build.mjs --list            # 只看会做什么，不动磁盘
 ```
 
-产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.2.1-setup.exe` 和 `cute-fat-fish-pet-1.2.1-win-x64.zip`。
+产物名由 `src\package.json` 的 `version` 生成（且只用 ASCII——GitHub Release 会删掉资产名里的非 ASCII 字符），所以这一版就是 `cute-fat-fish-pet-1.2.2-setup.exe` 和 `cute-fat-fish-pet-1.2.2-win-x64.zip`。
 
 > 构建脚本口径以 `build\build.mjs` 头部注释和根 `package.json` 的 `scripts` 为准；`build\check-paths.mjs` 是构建期门禁，`--no-gate` 能跳过（不推荐）。
 
@@ -312,17 +312,19 @@ node build\build.mjs --list            # 只看会做什么，不动磁盘
 
 ## 核对下载
 
-1.2.1 的两个成品：
+1.2.2 的两个成品：
+
+| 文件 | 字节数 | SHA-256 |
+| --- | --- | --- |
+| `cute-fat-fish-pet-1.2.2-setup.exe` | 347884737 | `EF02EA6F52D03E8E2451D1FA365055E8E0A2E7B532129521924832BDC020DB20` |
+| `cute-fat-fish-pet-1.2.2-win-x64.zip` | 417038706 | `D8593761C3B37F69A453938877C83FC6BA13E40CBD56D9659C26AF9F3545829B` |
+
+1.2.1、1.2.0 与 1.1.4 的成品（留档）：
 
 | 文件 | 字节数 | SHA-256 |
 | --- | --- | --- |
 | `cute-fat-fish-pet-1.2.1-setup.exe` | 347864787 | `5D354375D41AD7CC6F8C1B5C87375664384E173B9AEE9520F0CEBDDDED516EC2` |
 | `cute-fat-fish-pet-1.2.1-win-x64.zip` | 417022629 | `8C36D3B89C72EC5F968473BCB48AA28C6A93FA0E311261E863D264D2025B2843` |
-
-1.2.0 与 1.1.4 的两个成品（留档）：
-
-| 文件 | 字节数 | SHA-256 |
-| --- | --- | --- |
 | `cute-fat-fish-pet-1.2.0-setup.exe` | 347802318 | `22DB908B29AB28E6C811FC8019E624240BAEC676E9A6D046D330EA39643CAFB4` |
 | `cute-fat-fish-pet-1.2.0-win-x64.zip` | 417016073 | `75EA491EBF46B2A4ADBDA1EE6589AC8ACEE17F1E397E0A928EC8D2110AA44502` |
 | `cute-fat-fish-pet-1.1.4-setup.exe` | 347880285 | `495F5D3506C419B7967513E3F8C73F655F108FAC965BFF58B643EE018553C5D0` |
@@ -346,7 +348,7 @@ node verify.mjs
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | 开发日志：每一步的动机 → 改动 → 验证 → 提交 |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | 与上游 dsh-pet 0.3.0 的逐文件差异（含大小与 SHA-256） |
-| [docs/release-notes-1.2.1.md](docs/release-notes-1.2.1.md) | 1.2.1 发布说明 —— 连接测试有了明确反馈、界面照顾真人操作、问「在线还是离线」由代码如实回答 |
+| [docs/release-notes-1.2.2.md](docs/release-notes-1.2.2.md) | 1.2.2 发布说明 —— 连接测试有了明确反馈、界面照顾真人操作、问「在线还是离线」由代码如实回答 |
 | [docs/release-notes-1.2.0.md](docs/release-notes-1.2.0.md) | 1.2.0 发布说明 —— 控制台里一键检查更新、下载并装好 |
 | [docs/release-notes-1.1.4.md](docs/release-notes-1.1.4.md) | 1.1.4 发布说明 —— 录制时控制台不会露出 API Key |
 | [docs/release-notes-1.1.3.md](docs/release-notes-1.1.3.md) | 1.1.3 发布说明 —— 说「打开 X」就能开网页、文件夹或文件（语音与打字都行） |
