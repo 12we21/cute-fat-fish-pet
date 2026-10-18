@@ -25,8 +25,20 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DEFAULT_INSTALL = Path(r"D:\测试\BlueHairMaid")
+DEFAULT_INSTALL = None  # resolved from the uninstall registry key unless --install-dir is given
 APP_ID = "BlueHairMaid"
+OLLAMA_API = "http://127.0.0.1:11434"
+VISION_RE = re.compile(r"(vl|vision|llava|minicpm-?v|moondream|pixtral|internvl|gemma3|llama3\.2-vision)", re.I)
+
+
+def installed_dir() -> Path:
+    """Read InstallLocation from the per-user uninstall key (no hard-coded paths)."""
+    import winreg
+
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                        rf"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{APP_ID}") as key:
+        location, _ = winreg.QueryValueEx(key, "InstallLocation")
+    return Path(location)
 
 
 # ---------------------------------------------------------------- helpers
@@ -76,7 +88,7 @@ def clean_env(install: Path, user_root: Path) -> dict:
 
 
 class Gate:
-    def __init__(self, install: Path, user_root: Path):
+    def __init__(self, install: Path, user_root: Path, seed_local_model: bool = False):
         self.install = install
         self.user_root = user_root
         self.data_root = user_root / "dsh-pet"
@@ -85,6 +97,34 @@ class Gate:
         self.runner_proc: subprocess.Popen | None = None
         self.started = False
         self.helper_token: str | None = None
+        self.seed_local_model = seed_local_model
+        self.seeded_model: str | None = None
+
+    def seed_ollama_config(self):
+        """Point an isolated data root at the first local model so chat/screen-watch can run.
+
+        Only for throwaway user roots: this rewrites screen-watch/state.json. A preference for
+        a vision-capable model keeps the optional screen-watch check meaningful too.
+        """
+        try:
+            _, tags = http_json(f"{OLLAMA_API}/api/tags", timeout=3)
+        except Exception as exc:  # noqa: BLE001 - Ollama is optional
+            raise RuntimeError(f"Ollama not reachable at {OLLAMA_API}: {exc}") from exc
+        models = [m.get("name") for m in tags.get("models", []) if m.get("name")]
+        if not models:
+            raise RuntimeError("Ollama is running but has no local model")
+        model = next((m for m in models if VISION_RE.search(m)), models[0])
+        state = {
+            "brain": "local", "trigger": "manual", "verbosity": "auto", "running": False,
+            "intervalSec": 20, "minGapSec": 45, "changeThreshold": 10, "maxCallsPerHour": 35,
+            "localProvider": "ollama", "localModel": model, "quipModel": model,
+            "localApi": OLLAMA_API,
+        }
+        path = self.data_root / "screen-watch" / "state.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+        self.seeded_model = model
+        return model
 
     # ---------------------------------------------------------- checks
     def check(self, name: str, fn=None, required: bool = True):
@@ -107,6 +147,9 @@ class Gate:
     def start(self):
         install, user_root = self.install, self.user_root
         env = clean_env(install, user_root)
+        if self.seed_local_model:
+            model = self.seed_ollama_config()
+            print(f"seeded local brain: {model}")
         logs = user_root / "logs"
         logs.mkdir(parents=True, exist_ok=True)
         self.console_proc = subprocess.Popen(
@@ -116,10 +159,11 @@ class Gate:
         )
         self.runner_proc = subprocess.Popen(
             [str(install / "electron" / "electron.exe"), str(install / "standalone" / "main.mjs")],
-            cwd=str(install / "standalone"), env=env, detached=True,
+            cwd=str(install / "standalone"), env=env,
             stdout=open(logs / "acceptance-runner.log", "ab"),
             stderr=open(logs / "acceptance-runner.err.log", "ab"),
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            | getattr(subprocess, "DETACHED_PROCESS", 0),
         )
         self.started = True
 
@@ -300,7 +344,15 @@ class Gate:
         missing = [n for n in need if n not in names]
         if missing:
             raise RuntimeError(f"latest {tag} missing assets: {missing}")
-        return f"latest {tag} with {len(names)} assets"
+        built = json.loads((self.install / "app" / "package.json").read_text(encoding="utf-8")).get("version", "")
+        try:
+            latest_v = tuple(int(x) for x in tag.lstrip("v").split("."))
+            built_v = tuple(int(x) for x in built.split("."))
+        except ValueError:
+            latest_v = built_v = ()
+        if latest_v and built_v and latest_v < built_v:
+            raise RuntimeError(f"latest release is {tag}, older than the build {built}")
+        return f"latest {tag} with {len(names)} assets (build {built})"
 
 
 def main() -> int:
@@ -308,15 +360,20 @@ def main() -> int:
     ap.add_argument("--install-dir", default=None)
     ap.add_argument("--user-root", default=None)
     ap.add_argument("--fresh", action="store_true", help="stop and restart the pet for the run")
+    ap.add_argument("--seed-local-model", action="store_true",
+                    help="throwaway user roots only: point screen-watch/state.json at the first Ollama model")
     ap.add_argument("--json", default=None, help="write a JSON report here")
     args = ap.parse_args()
 
-    install = Path(args.install_dir) if args.install_dir else DEFAULT_INSTALL
+    install = Path(args.install_dir) if args.install_dir else installed_dir()
     user_root = Path(args.user_root) if args.user_root else Path(os.environ["APPDATA"]) / APP_ID
+    default_root = Path(os.environ["APPDATA"]) / APP_ID
+    if args.seed_local_model and user_root.resolve() == default_root.resolve():
+        sys.exit("--seed-local-model would rewrite the real user configuration; give --user-root")
     print(f"install: {install}")
     print(f"user root: {user_root}")
 
-    gate = Gate(install, user_root)
+    gate = Gate(install, user_root, seed_local_model=args.seed_local_model)
     try:
         if args.fresh:
             gate.stop()

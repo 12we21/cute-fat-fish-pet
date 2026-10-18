@@ -31,7 +31,7 @@ There is no patching step any more: `src/` **is** the shipped source. Building i
 | Product name | **蓝毛小女仆** (Blue-Haired Little Maid) |
 | Repository / package / installer name | `cute-fat-fish-pet` — legacy display name "Cute Fat Fish Pet" / 「可爱大肥鱼桌宠」 |
 | Author / maintainer | Mikolu |
-| Version | 1.2.2 |
+| Version | 1.2.3 |
 | License | MIT — see [LICENSE](LICENSE) |
 
 > **On the name.** 蓝毛小女仆 is the product's name. The repository and the npm package keep the bare identifier **`cute-fat-fish-pet`**, and the installers shipped so far still carry the older display name **Cute Fat Fish Pet** / 「可爱大肥鱼桌宠」 — renaming those would break existing installs, shortcuts and download links, so they stay as they are. Until the next repack, Windows still shows 「可爱大肥鱼桌宠」 on the desktop shortcut and in *Settings → Apps*.
@@ -76,7 +76,7 @@ The same list is in [NOTICE.md](NOTICE.md) (section 5), and the reasoning behind
 
 ### Option 1 — installer (recommended)
 
-Download **`cute-fat-fish-pet-1.2.2-setup.exe`** (about 331.8 MB, NSIS) and double-click it.
+Download **`cute-fat-fish-pet-1.2.3-setup.exe`** (about 331.8 MB, NSIS) and double-click it.
 
 > **Always-latest link:** every release also carries a byte-identical copy without the version in
 > its name, so this one link always points at the newest installer:
@@ -90,7 +90,7 @@ Download **`cute-fat-fish-pet-1.2.2-setup.exe`** (about 331.8 MB, NSIS) and doub
 
 ### Option 2 — portable zip
 
-Download **`cute-fat-fish-pet-1.2.2-win-x64.zip`** (about 397.7 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
+Download **`cute-fat-fish-pet-1.2.3-win-x64.zip`** (about 397.7 MB, ~760 MB unpacked), unpack it anywhere, then pick one:
 
 > **1.1.1 fixed this path end to end.** Unpack the zip **first** (right-click → *Extract All…*) and only then double-click
 > `安装.cmd` inside the extracted folder. It checks that the package is complete and explains the problem in Chinese if it
@@ -126,10 +126,10 @@ This half of the project is a **subset** of the standalone build: all 106 animat
 
 ### Every download comes with a `.sha256`
 
-`cute-fat-fish-pet-1.2.2-setup.exe.sha256` and `cute-fat-fish-pet-1.2.2-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
+`cute-fat-fish-pet-1.2.3-setup.exe.sha256` and `cute-fat-fish-pet-1.2.3-win-x64.zip.sha256`, in the format `<SHA256>  <filename>`:
 
 ```powershell
-Get-FileHash .\cute-fat-fish-pet-1.2.2-setup.exe -Algorithm SHA256
+Get-FileHash .\cute-fat-fish-pet-1.2.3-setup.exe -Algorithm SHA256
 ```
 
 > Release file names are ASCII on purpose: GitHub Releases deletes non-ASCII characters from
@@ -310,7 +310,7 @@ node build\build.mjs --list            # show what it would do, touch nothing
 
 Blocks: `app launcher standalone defaults assets verify electron node speech`.
 
-Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.2.2-setup.exe` and `cute-fat-fish-pet-1.2.2-win-x64.zip`.
+Artifact names come from the `version` field in `src\package.json` and are ASCII-only (GitHub Releases drops non-ASCII asset names), so this version produces `cute-fat-fish-pet-1.2.3-setup.exe` and `cute-fat-fish-pet-1.2.3-win-x64.zip`.
 
 > The build contract lives in the header of `build\build.mjs` and in the root `package.json` scripts.
 > `build\check-paths.mjs` is a build gate; `--no-gate` skips it (not recommended).
@@ -331,17 +331,19 @@ Artifact names come from the `version` field in `src\package.json` and are ASCII
 
 ## Verify your download
 
-1.2.2 artifacts:
+1.2.3 artifacts:
+
+| File | Size (bytes) | SHA-256 |
+| --- | --- | --- |
+| `cute-fat-fish-pet-1.2.3-setup.exe` | 347857693 | `2A2C65D9FC0562F85807E42C5486C20B530DE0EA318FF2D78E56C6A69F69DFB4` |
+| `cute-fat-fish-pet-1.2.3-win-x64.zip` | 417039455 | `6F3D2E218A59A4F97F01158FAA3FC572C0690F310D7C2C5BABFC24456F4804DC` |
+
+1.2.2, 1.2.1, 1.2.0 and 1.1.4 artifacts (kept for the record):
 
 | File | Size (bytes) | SHA-256 |
 | --- | --- | --- |
 | `cute-fat-fish-pet-1.2.2-setup.exe` | 347884737 | `EF02EA6F52D03E8E2451D1FA365055E8E0A2E7B532129521924832BDC020DB20` |
 | `cute-fat-fish-pet-1.2.2-win-x64.zip` | 417038706 | `D8593761C3B37F69A453938877C83FC6BA13E40CBD56D9659C26AF9F3545829B` |
-
-1.2.1, 1.2.0 and 1.1.4 artifacts (kept for the record):
-
-| File | Size (bytes) | SHA-256 |
-| --- | --- | --- |
 | `cute-fat-fish-pet-1.2.1-setup.exe` | 347864787 | `5D354375D41AD7CC6F8C1B5C87375664384E173B9AEE9520F0CEBDDDED516EC2` |
 | `cute-fat-fish-pet-1.2.1-win-x64.zip` | 417022629 | `8C36D3B89C72EC5F968473BCB48AA28C6A93FA0E311261E863D264D2025B2843` |
 | `cute-fat-fish-pet-1.2.0-setup.exe` | 347802318 | `22DB908B29AB28E6C811FC8019E624240BAEC676E9A6D046D330EA39643CAFB4` |
@@ -367,6 +369,7 @@ The build also enforces this from the other side: `build\check-release.mjs` prov
 | --- | --- |
 | [docs/development-log.md](docs/development-log.md) | Development log: motivation → change → verification → commit, for every step of this project |
 | [docs/differences-from-upstream.md](docs/differences-from-upstream.md) | Every file that differs from upstream dsh-pet 0.3.0, with sizes and SHA-256 |
+| [docs/release-notes-1.2.3.md](docs/release-notes-1.2.3.md) | 1.2.3 release notes — the pet speaks again after the Edge TTS endpoint moved, and screen commentary survives a model that ignores the JSON contract |
 | [docs/release-notes-1.2.2.md](docs/release-notes-1.2.2.md) | 1.2.2 release notes — the console tells you what a connection test found, behaves for a real person, and answers "online or offline?" from the configuration |
 | [docs/release-notes-1.2.0.md](docs/release-notes-1.2.0.md) | 1.2.0 release notes — check for updates, download and install in one click |
 | [docs/release-notes-1.1.4.md](docs/release-notes-1.1.4.md) | 1.1.4 release notes — the console keeps your API key masked while you record |

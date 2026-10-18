@@ -603,5 +603,5 @@ This document is in Chinese.
 - **构建**：`node build\build.mjs --toolchain=<1.2.1 安装目录>` → 720 个文件 / 761.1 MB；`node build\check-paths.mjs` 干净；`node build\check-release.mjs --emit --write` 重新生成 `verify.mjs` 的期望指纹（4 棵整树 + 27 个关键文件），随后 `node build\check-release.mjs` 与 `node stage\verify.mjs` 全部一致。
 - **绿色包**：解压 53.6 秒；与 `stage\` 逐字节一致 **716/716**（实装 798,035,014 字节）；多出的 4 个是绿色包自带的 `install.ps1`、`uninstall.ps1`、`安装.cmd`、`卸载.cmd`——`verify-install.py` 只把 `Uninstall.exe` 记为合法额外项，所以这次它的退出码是 1，不是内容不一致。
 - **成品指纹**：`cute-fat-fish-pet-1.2.2-win-x64.zip` 417,038,706 B（SHA-256 `D8593761C3B37F69A453938877C83FC6BA13E40CBD56D9659C26AF9F3545829B`）；`cute-fat-fish-pet-1.2.2-setup.exe` 347,884,737 B（SHA-256 `EF02EA6F52D03E8E2451D1FA365055E8E0A2E7B532129521924832BDC020DB20`）。
-- **安装器静默安装本轮未复验**：`setup.exe /S /D=<临时目录>` 这次进程无声退出、临时目录没建出来，也没有改动已装的 1.2.1（`D:\测试\BlueHairMaid` 仍是 1.2.1，723 个文件未动）。安装器脚本本身没改（只换了版本号与载荷），所以 1.2.1 那轮的安装器验收（54 秒 / 713 文件 / 数据根 69 文件未动 / 卸载 2 秒）仍然成立。
+- **安装器静默安装本轮未复验**：`setup.exe /S /D=<临时目录>` 这次进程无声退出、临时目录没建出来，也没有改动已装的 1.2.1（安装目录仍是 1.2.1，723 个文件未动）。安装器脚本本身没改（只换了版本号与载荷），所以 1.2.1 那轮的安装器验收（54 秒 / 713 文件 / 数据根 69 文件未动 / 卸载 2 秒）仍然成立。
 - **1.2.2 改了哪些字节**：`src\lib\index.js` 的 `swSpeak()` 无条件 `broadcastTo()`（补丁注释见文件内 `local patch` 段）。仓库里 `lib/` 与 `app/` 是构建产物，二者同源，所以安装包形态与 DSH 插件形态拿到的是同一份修复。
