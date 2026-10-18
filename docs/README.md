@@ -17,6 +17,7 @@ English-first where it matters (the front page and the security/contribution doc
 | [differences-from-upstream.md](differences-from-upstream.md) | EN + 中文 | Every file that differs from upstream dsh-pet 0.3.0, with sizes and SHA-256, plus how to reproduce the comparison |
 | [architecture-roadmap.zh-CN.md](architecture-roadmap.zh-CN.md) | 中文 | Roadmap: host-coupling removal (`resolveActivePetId` and friends), control-bridge security, long-term plans — with real file:line anchors |
 | [how-to-publish.zh-CN.md](how-to-publish.zh-CN.md) | 中文 | How a release is published: build, verify, tag, upload, and the ASCII-file-name rule |
+| [release-process.zh-CN.md](release-process.zh-CN.md) | 中文 | Release rules and cadence: one release = a batch, the acceptance gate must pass before upload, a version is published once, incidents are the only same-day exception — plus the `build/acceptance.py` checklist |
 | [code-signing.zh-CN.md](code-signing.zh-CN.md) | 中文 | Code signing: why the binaries are unsigned, what signing would cost and involve |
 | [history/release-notes-1.0.0.zh-CN.md](history/release-notes-1.0.0.zh-CN.md) | 中文 | The 1.0.0 notes, kept for the record. 1.0.0 was an internal milestone and was never published publicly |
 | [images/](images) | — | Screenshots and the animated demo used by the README |
@@ -28,4 +29,5 @@ Related files outside this directory: [../README.md](../README.md) (English fron
 1. [differences-from-upstream.md](differences-from-upstream.md) — what came from where.
 2. [development-log.md](development-log.md) — what was changed, when and how it was verified.
 3. [release-notes-1.2.2.md](release-notes-1.2.2.md) — what the current release contains (the screen-watch commentary now shows in the pet bubble; [1.2.1](release-notes-1.2.1.md) for the console answers and interaction fixes, [1.2.0](release-notes-1.2.0.md) for one-click updating, [1.1.4](release-notes-1.1.4.md) for the API-key masking, [1.1.3](release-notes-1.1.3.md) for 打开 X, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
-4. [SECURITY.md](../SECURITY.md) — the local-port hardening and what the app can do on your machine.
+4. [release-process.zh-CN.md](release-process.zh-CN.md) — release cadence and the acceptance gate (`build/acceptance.py`) that must pass before any upload.
+5. [SECURITY.md](../SECURITY.md) — the local-port hardening and what the app can do on your machine.

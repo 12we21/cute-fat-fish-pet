@@ -152,6 +152,10 @@ GitHub 硬限制**单个文件 100 MB**（超过直接拒收），仓库建议 1
 
 ## 每次改完东西，重新发一版
 
+> **先读 [`release-process.zh-CN.md`](release-process.zh-CN.md) 的四条硬规则**：一次发布 = 一批修复；
+> 没过验收闸门不许上传；同一版本号只发一次；只有核心功能对所有用户不可用时才允许当天打补丁。
+> 2026-10-18 的 1.2.2 就是因为没验收语音，发出去 TTS 全是 403。
+
 ```powershell
 npm run build          # 铺 stage\（含路径门禁；--no-gate 可跳过，不推荐）
 npm run paths          # 单独跑一遍路径门禁
@@ -159,9 +163,28 @@ npm run verify         # stage\verify.mjs 核对整树指纹
 npm run check          # build\check-release.mjs 与源码对账
 npm run zip            # 打 zip 到 release\
 npm run exe            # 打安装程序 exe 到 release\（需要本机装了 NSIS 3）
-git add -A; git commit -m "1.2.2: ..."; git push
-# 再把 release\ 里新的 exe + zip + 两个 .sha256 传到 GitHub Releases（tag v1.2.2）
+# 先装到测试目录，跑验收闸门，必须 PASS 才能继续（详见下方「上传前必跑」）
+python build\acceptance.py --fresh --install-dir <测试安装目录>
+git add -A; git commit -m "1.2.3: ..."; git push
+# 再把 release\ 里新的 exe + zip + 两个 .sha256 传到 GitHub Releases（tag v1.2.3）
 ```
+
+## 上传前必跑：验收闸门
+
+```powershell
+# 1) 把这次要上传的安装包装到一个空目录（不要覆盖日常在用的安装）
+Start-Process "release\cute-fat-fish-pet-<版本>-setup.exe" -ArgumentList "/S","/D=<测试安装目录>" -Wait
+
+# 2) 跑闸门（会自动起停桌宠；--json 留一份机器可读报告）
+python build\acceptance.py --fresh --install-dir <测试安装目录> --json acceptance-report.json
+# 输出 VERDICT: PASS 才允许上传；任何 [FAIL] 回到修复，不许先发再补。
+
+# 想只检查当前正在跑的实例（不重启）就去掉 --fresh
+python build\acceptance.py
+```
+
+闸门覆盖安装完整性、`/health`、helper 鉴权、气泡通道、TTS、对话、看屏幕、更新源资产；
+**麦克风、录屏、右键菜单、卸载重装**这几项脚本覆盖不到，发布前人工点一遍。
 
 指纹（大小 / sha256）出现在两处：`README.md` 的下载表、`docs\发布说明-<版本>.md` 的下载表 ——
 换版本时这两处要一起改（打包前是占位符，打包后填真值）。
