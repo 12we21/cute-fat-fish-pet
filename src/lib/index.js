@@ -374,61 +374,298 @@ function petIsReasoningModel(model) {
 function petStripThink(text) {
 	return String(text || "").replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, "").replace(/<think\b[\s\S]*$/i, "").trim();
 }
+/* ==== [1.2.4 多本地后端] 本机模型不一定跑在 Ollama 上 ====
+ *  实测常见的三个：Ollama 原生 API、OpenAI 兼容 API（LM Studio / vLLM / llama.cpp server /
+ *  KoboldCpp / SGLang / Text Generation WebUI 的 openai 兼容层）、llama.cpp 原生 /completion。
+ *  三者都是 127.0.0.1 的 HTTP 接口，不需要任何外部依赖；按 localApi 自动探测，
+ *  控制台也可以在 screen-watch/state.json 里用 localKind 强制指定（ollama / openai / llamacpp）。 */
+const PET_LOCAL_DETECT_CACHE = new Map();
+function petLocalKindFromName(name) {
+	const n = String(name || "").trim().toLowerCase();
+	return n === "ollama" || n === "openai" || n === "llamacpp" ? n : "";
+}
+async function petLocalProbe(api, path, test) {
+	try {
+		const r = await fetch(api + path, { signal: AbortSignal.timeout(1800) });
+		if (!r.ok) return false;
+		const j = await r.json();
+		return Boolean(test(j));
+	} catch {
+		return false;
+	}
+}
+/** 探测本机后端的种类（带 60 秒缓存）：ollama → openai → llamacpp 的顺序不能反，
+ *  因为 Ollama 自己也有 /v1/models，先认出原生 API 才能用上 keep_alive/num_ctx。 */
+async function petLocalDetect(cfg) {
+	const api = String(cfg && cfg.localApi || "http://127.0.0.1:11434").replace(/[/]+$/, "");
+	const forced = petLocalKindFromName(cfg && cfg.localKind);
+	if (forced) return forced;
+	const hit = PET_LOCAL_DETECT_CACHE.get(api);
+	if (hit && Date.now() - hit.at < 60000) return hit.kind;
+	let kind = "ollama";
+	if (await petLocalProbe(api, "/api/tags", (j) => Array.isArray(j && j.models))) kind = "ollama";
+	else if (await petLocalProbe(api, "/v1/models", (j) => j && (j.data || j.object))) kind = "openai";
+	else if (await petLocalProbe(api, "/props", (j) => j && (j.default_generation_settings || j.model_path)) || await petLocalProbe(api, "/health", () => true)) kind = "llamacpp";
+	PET_LOCAL_DETECT_CACHE.set(api, { kind, at: Date.now() });
+	return kind;
+}
+/** OpenAI 兼容后端：POST <base>/v1/chat/completions。model 留空时取 /v1/models 的第一个。 */
+async function petLocalOpenAIGenerate(api, model, system, prompt, numPredict, timeoutMs) {
+	const base = /\/v1$/.test(api) ? api : api + "/v1";
+	let useModel = String(model || "").trim();
+	const headers = { "content-type": "application/json" };
+	if (!useModel) {
+		try {
+			const r = await fetch(base + "/models", { headers, signal: AbortSignal.timeout(2500) });
+			const j = await r.json();
+			const first = Array.isArray(j && j.data) && j.data[0] && (j.data[0].id || j.data[0].name);
+			useModel = String(first || "");
+		} catch {
+			useModel = "";
+		}
+	}
+	const r = await fetch(base + "/chat/completions", {
+		method: "POST",
+		headers,
+		body: JSON.stringify({
+			model: useModel,
+			messages: [
+				...(String(system || "").trim() ? [{ role: "system", content: String(system) }] : []),
+				{ role: "user", content: String(prompt || "") }
+			],
+			stream: false,
+			temperature: 0.9,
+			max_tokens: numPredict
+		}),
+		signal: AbortSignal.timeout(timeoutMs)
+	});
+	if (!r.ok) {
+		let t = "";
+		try {
+			t = await r.text();
+		} catch {
+			t = "";
+		}
+		const missing = r.status === 404 || /model .*not found|no such model/i.test(t);
+		return {
+			ok: false,
+			reason: missing ? "provider-missing" : "generate-error",
+			message: missing ? "本机后端里没有模型 " + (useModel || "(空)") + "：在 LM Studio / vLLM 里加载它，或把 localModel 改成已加载的模型名" : "本机后端返回 HTTP " + r.status
+		};
+	}
+	const j = await r.json();
+	const raw = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+	const text = petStripThink(raw || (j && j.choices && j.choices[0] && j.choices[0].text) || "");
+	if (!text) return {
+		ok: false,
+		reason: "generate-error",
+		message: "本机后端没有返回文本"
+	};
+	return {
+		ok: true,
+		text,
+		provider: "openai-local",
+		model: useModel
+	};
+}
+/** llama.cpp server 原生接口：POST <base>/completion。 */
+async function petLocalLlamaCppGenerate(api, model, system, prompt, numPredict, timeoutMs) {
+	const full = [String(system || "").trim(), String(prompt || "")].filter(Boolean).join("\n\n");
+	const r = await fetch(api + "/completion", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			prompt: full,
+			n_predict: numPredict,
+			temperature: 0.9,
+			stream: false
+		}),
+		signal: AbortSignal.timeout(timeoutMs)
+	});
+	if (!r.ok) return {
+		ok: false,
+		reason: "generate-error",
+		message: "llama.cpp 后端返回 HTTP " + r.status
+	};
+	const j = await r.json();
+	const text = petStripThink(j && (j.content || j.completion) || "");
+	if (!text) return {
+		ok: false,
+		reason: "generate-error",
+		message: "llama.cpp 后端没有返回文本"
+	};
+	return {
+		ok: true,
+		text,
+		provider: "llamacpp",
+		model: String(model || "")
+	};
+}
+/** 小模型（3B/4B/7B/8B 这一档）判定：这一档最容易出现长提示跑题、一次吐好几段、
+ *  带 markdown 或把指令复述出来。只按模型名里的参数量判断，认不出的当大模型处理（不降级）。 */
+function petIsSmallModel(model) {
+	const m = String(model || "").toLowerCase();
+	const hit = m.match(/(?:[:\-_ ]|\b)(1\.5|2|3|4|7|8)\s*b(?:[^a-z0-9]|$)/);
+	return Boolean(hit);
+}
+/** 小模型的输出收尾：去 markdown / 去引号 / 去掉"好的，"这类开场 / 只留前两句。
+ *  不改模型本身的行为，只把用户能看到的那一行收紧，避免小模型写出小作文。 */
+function petPolishSmall(text, max = 120) {
+	let t = petStripThink(String(text || ""));
+	t = t.replace(/[*_`#>]+/g, "").replace(/\s+/g, " ").trim();
+	t = t.replace(/^["'“”‘’「『]+|["'“”‘’」』]+$/g, "").trim();
+	t = t.replace(/^(好的|好呀|好嘞|当然|没问题|可以)[，,。！!\s]*/u, "");
+	const parts = t.split(/(?<=[。！？!?～~])\s*/).filter(Boolean);
+	if (parts.length > 2) t = parts.slice(0, 2).join("");
+	if (t.length > max) t = t.slice(0, max - 1) + "～";
+	return t.trim();
+}
 /** 本机 Ollama 的一次纯文本生成（对话 / 碎碎念 / /quip 共用）。
 *  与 helper 的 pet:local-quip 同源：同一个 localApi、同一套模型优先级（quipModel → localModel）。
 *  只连 127.0.0.1，不引入任何新的外网出口。
  *  推理模型（R1/QwQ/Qwen3）自动加思考余量、并剥掉泄进正文的  thinking 块（与 helper 的 pet:local-quip 同策略）。 */
 async function petOllamaGenerate(cfg, system, prompt, opts = {}) {
 	const model = String(cfg && (cfg.quipModel || cfg.localModel) || "").trim();
-	if (!model) return {
-		ok: false,
-		reason: "provider-missing",
-		message: "本地模型没配置：screen-watch/state.json 里的 localModel 是空的"
-	};
 	const api = String(cfg && cfg.localApi || "http://127.0.0.1:11434").replace(/[/]+$/, "");
 	const budget = Math.max(16, Number(opts.numPredict) || 160);
 	// 推理模型：给"思考"留出余量，不然它把预算全用来想、正文一个字都没有
 	const numPredict = petIsReasoningModel(model) ? budget + PET_REASONING_HEADROOM : budget;
+	// [1.2.4 小模型兼容] 模型常驻：不显式给 keep_alive 时 Ollama 5 分钟就卸载，
+	//  下次说话要重新加载（实测 3B 视觉模型重载 10~20 秒，用户看到的是"有时候连不上"）。
+	const keepAlive = String(cfg && cfg.localKeepAlive || "10m");
+	const numCtx = Math.max(0, Number(cfg && cfg.localNumCtx) || 0);
+	// [1.2.4 多本地后端] 先认出这台的 localApi 是什么（Ollama 原生 / OpenAI 兼容 / llama.cpp），
+	//  不是 Ollama 就走对应接口，其余逻辑（预算、超时、剥思考块）完全共用。
+	const kind = await petLocalDetect(cfg);
+	if (!model && kind === "ollama") return {
+		ok: false,
+		reason: "provider-missing",
+		message: "本地模型没配置：screen-watch/state.json 里的 localModel 是空的。（Ollama 必须指名模型；LM Studio / vLLM / llama.cpp 留空会自动取第一个）"
+	};
+	if (kind !== "ollama") {
+		const timeoutMs = Number(opts.timeoutMs) || 45000;
+		try {
+			return kind === "openai"
+				? await petLocalOpenAIGenerate(api, model, system, prompt, numPredict, timeoutMs)
+				: await petLocalLlamaCppGenerate(api, model, system, prompt, numPredict, timeoutMs);
+		} catch (e) {
+			const hint = String(e && (e.cause && e.cause.code || e.code || e.message) || "");
+			return {
+				ok: false,
+				reason: /timeout|aborted/i.test(hint) ? "generate-timeout" : "provider-offline",
+				message: /timeout|aborted/i.test(hint)
+					? "本机模型响应超时（第一次加载模型时常见），再让它说一次就好～"
+					: "本机模型没连上（" + kind + "）：" + hint + "。确认 LM Studio / vLLM / llama.cpp server 已经启动，并且 localApi 指向它的地址"
+			};
+		}
+	}
+	const post = () => fetch(api + "/api/generate", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			model,
+			prompt: String(prompt || ""),
+			system: String(system || ""),
+			stream: false,
+			keep_alive: keepAlive,
+			options: Object.assign({
+				temperature: 0.9,
+				num_predict: numPredict
+			}, numCtx > 0 ? { num_ctx: numCtx } : {})
+		}),
+		signal: AbortSignal.timeout(Number(opts.timeoutMs) || 45000)
+	});
 	let res;
 	try {
-		res = await fetch(api + "/api/generate", {
-			method: "POST",
-			headers: { "content-type": "application/json" },
-			body: JSON.stringify({
-				model,
-				prompt: String(prompt || ""),
-				system: String(system || ""),
-				stream: false,
-				options: {
-					temperature: 0.9,
-					num_predict: numPredict
-				}
-			}),
-			signal: AbortSignal.timeout(Number(opts.timeoutMs) || 45000)
-		});
+		res = await post();
 	} catch (e) {
+		// 连接类失败重试一次：Ollama 刚启动 / 刚唤醒时第一次请求经常被拒
+		const hint = String(e && (e.cause && e.cause.code || e.code || e.message) || "");
+		if (/ECONNREFUSED|ECONNRESET|EAI_AGAIN|fetch failed/i.test(hint)) {
+			try {
+				await new Promise((r) => setTimeout(r, 700));
+				res = await post();
+			} catch (e2) {
+				const h2 = String(e2 && (e2.cause && e2.cause.code || e2.code || e2.message) || "");
+				return {
+					ok: false,
+					reason: "provider-offline",
+					message: /ECONNREFUSED|ECONNRESET|fetch failed/i.test(h2)
+						? "本地模型没连上：" + api + "。确认 Ollama / LM Studio / vLLM / llama.cpp server 正在运行，并且 localApi 指向它的地址"
+						: "本地模型没连上：" + h2
+				};
+			}
+		} else {
+			return {
+				ok: false,
+				reason: /timeout|aborted/i.test(hint) ? "generate-timeout" : "generate-error",
+				message: /timeout|aborted/i.test(hint)
+					? "本地模型响应超时（第一次加载模型时常见），再让它说一次就好～"
+					: "本地模型没连上：" + hint
+			};
+		}
+	}
+	if (!res.ok) {
+		let errText = "";
+		try {
+			errText = await res.text();
+		} catch {
+			errText = "";
+		}
+		const missing = res.status === 404 || /model .*not found|no such model/i.test(errText);
 		return {
 			ok: false,
-			reason: "generate-error",
-			message: "本地模型没连上：" + (e instanceof Error ? e.message : String(e))
+			reason: missing ? "provider-missing" : "generate-error",
+			message: missing
+				? "本地模型 " + model + " 还没拉下来：先跑 ollama pull " + model
+				: "本地模型返回 HTTP " + res.status
 		};
 	}
-	if (!res.ok) return {
-		ok: false,
-		reason: "generate-error",
-		message: "本地模型返回 HTTP " + res.status
-	};
 	let data = null;
 	try {
 		data = await res.json();
 	} catch {
 		data = null;
 	}
-	const text = petStripThink(data && data.response);
+	let text = petStripThink(data && data.response);
+	const thinking = data && String(data.thinking || "").trim();
+	// [1.2.4 小模型] 思考型小模型（qwen3:4b 这类）常把预算全烧在思考上、正文为空。
+	//  实测 900 token 预算下 qwen3:4b 仍只有思考 → 用「更大预算 + 明确要求直接回答」重试一次。
+	if (!text && thinking) {
+		// [1.2.4 小模型] 思考型小模型（qwen3:4b 这类）常把预算全烧在思考上、正文为空。
+		//  逐档放大预算重试（实测 900 不够、2500~4000 才稳定出正文），并把「直接回答」写进 system。
+		for (const retryPredict of [Math.max(1800, numPredict * 2), 4000]) {
+			if (text) break;
+			try {
+				const r2 = await fetch(api + "/api/generate", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({
+						model,
+						prompt: String(prompt || ""),
+						system: String(system || "") + "。这次回答时不要输出思考过程，直接说最终答案。",
+						stream: false,
+						keep_alive: keepAlive,
+						options: Object.assign({
+							temperature: 0.9,
+							num_predict: Math.min(4000, retryPredict)
+						}, numCtx > 0 ? { num_ctx: numCtx } : {})
+					}),
+					signal: AbortSignal.timeout(Number(opts.timeoutMs) || 90000)
+				});
+				if (r2.ok) {
+					const d2 = await r2.json();
+					text = petStripThink(d2 && d2.response);
+				}
+			} catch {
+				/* 继续下一档 */
+			}
+		}
+	}
 	if (!text) return {
 		ok: false,
 		reason: "generate-error",
-		message: data && String(data.thinking || "").trim() ? "本地模型只想了、没写正文（换个大预算的模型，或给它更多 numPredict）" : "本地模型没返回文本"
+		message: thinking ? "本地模型只想了、没写正文（换个大预算的模型，或给它更多 numPredict）" : "本地模型没返回文本"
 	};
 	return {
 		ok: true,
@@ -437,9 +674,17 @@ async function petOllamaGenerate(cfg, system, prompt, opts = {}) {
 		model
 	};
 }
-/** 本机模式的对话提示词（Ollama /api/generate 只吃一个 prompt，历史在这里拼平）。 */
-function petChatPrompt(history, userText, pool = []) {
-	const lines = (Array.isArray(history) ? history : []).map((m) => (m && m.role === "user" ? "主人：" : "你：") + String(m && m.content || ""));
+/** 本机模式的对话提示词（Ollama /api/generate 只吃一个 prompt，历史在这里拼平）。
+ *  [1.2.4 小模型兼容] small=true 时只带最近 4 条、每条截到 90 字：3B/4B 模型的上下文
+ *  本来就小，历史一长就开始复述/跑题，短而近的上下文反而答得更像人。 */
+function petChatPrompt(history, userText, pool = [], small = false) {
+	const hist = Array.isArray(history) ? history : [];
+	const useHist = small ? hist.slice(-4) : hist;
+	const clip = (s) => {
+		const t = String(s || "");
+		return small && t.length > 90 ? t.slice(0, 90) + "…" : t;
+	};
+	const lines = useHist.map((m) => (m && m.role === "user" ? "主人：" : "你：") + clip(m && m.content || ""));
 	const tail = "主人：" + String(userText || "") + (Array.isArray(pool) && pool.length > 0 ? PET_NL + imageInstruction(pool) : "");
 	return lines.concat([tail, "你："]).join(PET_NL);
 }
@@ -463,8 +708,17 @@ async function generateChat(ctx, system, history, userText, pool = []) {
 	// ==== [local patch 4] 全局大脑：选了"本机"就只走本机；连不上如实报错，绝不悄悄改用在线 ====
 	const petPlan = petBrainPlan();
 	if (petPlan.brain !== "dsh") {
-		const petLocal = await petOllamaGenerate(petPlan.cfg, system + petContextBlock(), petChatPrompt(history, userText, pool), { numPredict: 160 });
-		if (petLocal.ok) return petFinishChat(petLocal.text, pool);
+		const localModel = String(petPlan.cfg && (petPlan.cfg.quipModel || petPlan.cfg.localModel) || "").trim();
+		const petLocal = await petOllamaGenerate(petPlan.cfg, system + petContextBlock(), petChatPrompt(history, userText, pool, petIsSmallModel(localModel)), { numPredict: 200 });
+		// 小模型判定要覆盖「模型名留空、由后端自己挑」的情况：用实际用上的模型名再判一次
+		const small = petIsSmallModel(String(petLocal && petLocal.model || localModel));
+		if (petLocal.ok) {
+			const text = small ? petPolishSmall(petLocal.text, 140) : petLocal.text;
+			const ret = petFinishChat(text, pool);
+			ret.provider = petLocal.provider;
+			ret.model = petLocal.model;
+			return ret;
+		}
 		if (petPlan.brain === "local") return petLocal;
 	}
 	let sel;
@@ -2631,6 +2885,9 @@ function apply(ctx) {
 			const petQuipPlan = petBrainPlan();
 			if (petQuipPlan.brain !== "dsh") {
 				const petQuipLocal = await petOllamaGenerate(petQuipPlan.cfg, petQuipSystem, petQuipPrompt, { numPredict: petQuipBudget, timeoutMs: petQuipTimeout });
+				if (petQuipLocal.ok && petIsSmallModel(String(petQuipLocal.model || petQuipPlan.cfg && (petQuipPlan.cfg.quipModel || petQuipPlan.cfg.localModel) || ""))) {
+					petQuipLocal.text = petPolishSmall(petQuipLocal.text, 180);
+				}
 				if (petQuipLocal.ok || petQuipPlan.brain === "local") return {
 					kind: "json",
 					status: 200,

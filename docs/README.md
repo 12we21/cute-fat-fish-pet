@@ -4,6 +4,7 @@ English-first where it matters (the front page and the security/contribution doc
 
 | Document | Language | What is in it |
 | --- | --- | --- |
+| [release-notes-1.2.4.md](release-notes-1.2.4.md) | EN + 中文 | 1.2.4 release notes — small local models (3B–8B): shorter context, polished output, thinking-budget retries; local backends other than Ollama (LM Studio, vLLM, llama.cpp server) can now chat |
 | [release-notes-1.2.3.md](release-notes-1.2.3.md) | EN + 中文 | 1.2.3 release notes — voice output works again after the Edge TTS endpoint migration, and screen commentary no longer goes silent when the model ignores the JSON contract: what changed, download hashes, known limitations |
 | [release-notes-1.2.2.md](release-notes-1.2.2.md) | EN + 中文 | 1.2.2 release notes — the screen-watch commentary reaches the pet bubble again under every default setting: what changed, download hashes, known limitations |
 | [release-notes-1.2.1.md](release-notes-1.2.1.md) | EN + 中文 | 1.2.1 release notes — the connection test says what it found, the console behaves for a real person, and "online or offline?" is answered from the configuration: what changed, download hashes, known limitations |
@@ -29,6 +30,6 @@ Related files outside this directory: [../README.md](../README.md) (English fron
 
 1. [differences-from-upstream.md](differences-from-upstream.md) — what came from where.
 2. [development-log.md](development-log.md) — what was changed, when and how it was verified.
-3. [release-notes-1.2.3.md](release-notes-1.2.3.md) — what the current release contains (the screen-watch commentary now shows in the pet bubble; [1.2.1](release-notes-1.2.1.md) for the console answers and interaction fixes, [1.2.0](release-notes-1.2.0.md) for one-click updating, [1.1.4](release-notes-1.1.4.md) for the API-key masking, [1.1.3](release-notes-1.1.3.md) for 打开 X, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
+3. [release-notes-1.2.4.md](release-notes-1.2.4.md) — what the current release contains (the screen-watch commentary now shows in the pet bubble; [1.2.1](release-notes-1.2.1.md) for the console answers and interaction fixes, [1.2.0](release-notes-1.2.0.md) for one-click updating, [1.1.4](release-notes-1.1.4.md) for the API-key masking, [1.1.3](release-notes-1.1.3.md) for 打开 X, [1.1.2](release-notes-1.1.2.md) for the online-model fix, [1.1.1](release-notes-1.1.1.md) for the portable-zip fixes, [1.1.0](release-notes-1.1.0.md) for the first public release).
 4. [release-process.zh-CN.md](release-process.zh-CN.md) — release cadence and the acceptance gate (`build/acceptance.py`) that must pass before any upload.
 5. [SECURITY.md](../SECURITY.md) — the local-port hardening and what the app can do on your machine.

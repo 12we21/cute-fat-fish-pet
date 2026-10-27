@@ -614,3 +614,13 @@ This document is in Chinese.
 - **成品指纹**：`cute-fat-fish-pet-1.2.3-win-x64.zip` **417,039,455 B**（SHA-256 `6F3D2E218A59A4F97F01158FAA3FC572C0690F310D7C2C5BABFC24456F4804DC`）；`cute-fat-fish-pet-1.2.3-setup.exe` **347,857,693 B**（SHA-256 `2A2C65D9FC0562F85807E42C5486C20B530DE0EA318FF2D78E56C6A69F69DFB4`）。
 - **安装器静默安装（本轮已复验）**：从普通目录运行 `setup.exe /S /D=D:\tmp-install-123` → **104.8 秒、717 个文件、798,292,837 字节**。之前在 DSH 工作区目录里运行会报 `NSIS Error: Error writing temporary file`，原因是该目录的沙箱 ACL / 低完整性级别让 NSIS 的临时文件创建失败；换到 `D:\` 或用户目录即正常，普通用户下载后双击不受影响。
 - **发布闸门**：`python build\acceptance.py --install-dir D:\tmp-install-123 --user-root <临时数据根> --fresh --seed-local-model` → **13 项里 12 项通过、必需项全绿**：版本 1.2.3、Electron v24.18.1、node v24.21.0、语音模型 253 MB、106 个动画、`Uninstall.exe`、standalone `/health`、helper 14 个状态键、气泡通道、**真实 TTS 音频 29,664 字节 / 3.8 秒**、对话回复、屏幕监测点评（`brain=local`）。唯一未绿的是 `runtime.update_feed`（`latest` 还是 v1.2.2，比构建旧），发布后自然转绿——这是闸门故意的顺序检查。
+
+### 1.2.4 的验收（2026-10-27）
+
+- **目标**：小模型（3B–8B）兼容 + 本机模型支持 Ollama 以外的框架（LM Studio / vLLM / llama.cpp server 等）。
+- **本机后端适配验证（6 个黑盒场景，`POST /chat` 驱动）**：① 模拟 OpenAI 兼容后端（LM Studio 形状）→ 回复正常且经过小模型收尾；② 模拟 llama.cpp `/completion` → 回复正常；③ 不可达地址 → 明确报错（带地址与应检查的后端名单）；④ 真 Ollama `qwen2.5vl:3b` → 正常；⑤ 真 Ollama `qwen3:4b`（思考型小模型）→ 预算 1800→4000 逐档重试后正常（修复前正文为空）；⑥ 强制 `openai` 模式打 Ollama 真实 `/v1` → 正常（真实服务验证了 OpenAI 协议路径）。脚本与结果：`tmp\pr27\test_local_backends.py`、`tmp\pr27\local-backend-results.json`。
+- **构建**：`node build\build.mjs --toolchain=<安装目录>` → **720 个文件 / 761.1 MB**；`check-paths` 干净（195 文件）；`check-release --emit --write` 重生成 `verify.mjs` 指纹，`check-release` 与 `stage\verify.mjs` 四棵树 + 27 个关键文件全部一致。
+- **成品指纹**：`cute-fat-fish-pet-1.2.4-win-x64.zip` **417,043,131 B**（SHA-256 `44E2E6B8F6838288413B4D124F3A911CFE0AC896C53C2AF83CB1C678BAC41F96`）；`cute-fat-fish-pet-1.2.4-setup.exe` **347,888,074 B**（SHA-256 `A699E19D275424E39E9B636BA3E4E4417664B94D3EBF23D7CD576232287F2AD7`）。
+- **安装器静默安装**：从普通目录 `setup.exe /S /D=D:\tmp-install-124` → exit 0、**66.6 秒、717 个文件、798,304,551 字节**。
+- **发布闸门**：`python build\acceptance.py --install-dir D:\tmp-install-124 --user-root <临时数据根> --fresh`（数据根预置 `qwen2.5vl:3b`）→ **PASS 13/13**：版本 1.2.4、Electron v24.18.1、node v24.21.0、语音模型 253 MB、106 个动画、`Uninstall.exe`、`/health`、helper 14 个状态键、气泡通道、TTS 18,288 字节、对话回复 7 字、看屏幕 `brain=local`。唯一未绿的是 `runtime.update_feed`（`latest` 还是 v1.2.3，比构建旧），发布后自然转绿。
+- **已知限制**：看屏幕仍只支持 Ollama 视觉模型；LM Studio / llama.cpp 本体没装（用协议 mock + Ollama 的 OpenAI 兼容口验证）；请求仍非流式。
